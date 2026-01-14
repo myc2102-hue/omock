@@ -24,7 +24,8 @@
             font-family: 'Orbitron', sans-serif; 
             min-height: 100vh; overflow: hidden;
             display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
+            justify-content: center; /* PC에서는 중앙 정렬 */
+            align-items: center;
             touch-action: none; 
             user-select: none; -webkit-user-select: none;
         }
@@ -203,20 +204,42 @@
             #mobile-controls { display: none; }
         }
 
-        /* Mobile Layout */
+        /* === 📱 모바일 전용 레이아웃 (Top-Zero, Compact Chat) === */
         @media (max-width: 900px) {
-            .main-container { justify-content: flex-start; }
-            .game-area { height: calc(100vh - var(--chat-height-mobile) - 20px); margin-top: 10px; max-height: none; }
+            /* 1. Body 정렬을 위쪽으로 변경 */
+            body { 
+                justify-content: flex-start; 
+                background-color: #000; /* 상단 빈 공간 검게 */
+            }
+            
+            .main-container { 
+                justify-content: flex-start; 
+                width: 100%;
+            }
+            
+            /* 2. 게임 화면: 상단 마진 0, 높이는 전체에서 채팅창 만큼 뺌 */
+            .game-area {
+                margin-top: 0;
+                border-top: none; /* 상단 테두리 제거 */
+                border-radius: 0 0 8px 8px; /* 하단만 둥글게 */
+                width: 100%;
+                /* 채팅창 높이만큼 뺀 나머지 전체 */
+                height: calc(100vh - var(--chat-height-mobile)); 
+                max-height: none;
+                max-width: none; /* 너비 제한 해제 */
+            }
+
+            /* 채팅창: 하단 고정 */
             #chat-container {
                 left: 0; bottom: 0; width: 100%; height: var(--chat-height-mobile);
                 border-radius: 0; border-left: none; border-right: none; border-bottom: none;
-                background: rgba(0, 0, 0, 0.9);
+                background: rgba(0, 0, 0, 0.95);
             }
             .chat-header { display: none; }
             #chat-messages {
                 padding: 5px 10px;
-                mask-image: linear-gradient(to bottom, transparent, black 40%);
-                -webkit-mask-image: linear-gradient(to bottom, transparent, black 40%);
+                mask-image: linear-gradient(to bottom, transparent, black 30%);
+                -webkit-mask-image: linear-gradient(to bottom, transparent, black 30%);
             }
             #mobile-controls {
                 position: absolute; bottom: 100px; left: 0; width: 100%;
@@ -235,12 +258,11 @@
             .ctrl-btn:active { background: var(--neon-blue); color: #000; }
         }
 
-        /* Footer Info - 작게 수정됨 */
         .footer-info {
             margin-top: 10px;
             text-align: center;
-            font-size: 10px; /* 크기 축소 */
-            color: rgba(255, 255, 255, 0.5); /* 투명도 적용 */
+            font-size: 10px; 
+            color: rgba(255, 255, 255, 0.5); 
             line-height: 1.4;
             z-index: 10;
         }
@@ -252,7 +274,6 @@
             padding-bottom: 2px; text-decoration: none;
         }
         
-        /* PC에서만 보이게 (모바일은 공간 부족) */
         @media (max-width: 900px) { .footer-info { display: none; } }
         @media (min-width: 901px) { .footer-info { display: block; } }
     </style>
@@ -338,14 +359,12 @@
         databaseURL: "https://racingscore-default-rtdb.firebaseio.com"
     };
 
-    // 🚫 욕설/금칙어 필터 리스트 (예시)
-    // 실제 운영 시 더 많은 단어를 추가하세요.
+    // 🚫 욕설/금칙어 필터 리스트
     const BAD_WORDS = [
         "admin", "administrator", "gm", "운영자", "관리자", "test", "null",
         "badword", "shit", "fuck", "bitch", "sibal", "tlqkf", "pussy", "dick",
         "개새끼", "시발", "씨발", "병신", "미친", "존나", "섹스", "sex", "porn",
         "야동", "망가", "살인", "죽어", "自殺", "자살", "놈", "년", "trash"
-        // 여기에 100개씩 추가 가능 (직접 추가해주세요)
     ];
 
     function filterText(text) {
@@ -386,7 +405,6 @@
             let text = chatInput.value.trim();
             if (text === "") return;
             
-            // 필터링
             text = filterText(text);
 
             const name = currentNickname === "PILOT" ? "Guest" : currentNickname;
@@ -628,7 +646,6 @@
 
     document.getElementById('btn-start-game').addEventListener('click', () => {
         let name = document.getElementById('nickname-input').value.trim();
-        // 닉네임 필터링
         name = filterText(name);
         currentNickname = name ? name.toUpperCase() : "PILOT";
         initAudio();
