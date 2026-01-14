@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>운명의 메뉴 선택 - 아케이드 에디션</title>
+    <style>
+        /* 픽셀 폰트와 한글 폰트 가져오기 */
+        @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Press+Start+2P&display=swap');
+
+        :root {
+            --machine-color: #d63031;
+            --machine-dark: #b71c1c;
+            --gold: #fdcb6e;
+            --gold-dark: #e1b12c;
+            --screen-bg: #fff;
+            --pixel-font: 'Press Start 2P', cursive;
+        }
+
+        body {
+            background-color: #2d3436;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Do Hyeon', sans-serif;
+            overflow: hidden;
+        }
+
+        /* 슬롯머신 본체 */
+        .slot-machine {
+            background: linear-gradient(135deg, var(--machine-color) 0%, var(--machine-dark) 100%);
+            width: 380px;
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: 
+                0 20px 50px rgba(0,0,0,0.5),
+                inset 0 0 20px rgba(0,0,0,0.3);
+            border: 6px solid var(--gold);
+            text-align: center;
+            position: relative;
+        }
+
+        /* 상단 장식 (전구들) */
+        .lights {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+        .bulb {
+            width: 15px;
+            height: 15px;
+            background-color: #555;
+            border-radius: 50%;
+            border: 2px solid #333;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+            transition: 0.3s;
+        }
+        .bulb.on {
+            background-color: #ffeb3b;
+            box-shadow: 0 0 15px #ffeb3b, inset 0 0 5px #fff;
+            border-color: #ffeb3b;
+        }
+
+        /* 타이틀 */
+        h1 {
+            color: var(--gold);
+            text-shadow: 3px 3px 0px #000;
+            margin: 0 0 15px 0;
+            font-size: 2.5rem;
+            font-family: 'Black Han Sans', sans-serif;
+            letter-spacing: 2px;
+            -webkit-text-stroke: 1px #000;
+        }
+
+        /* 💀 무시무시한 경고문 스타일 */
+        .curse-warning {
+            background-color: rgba(0, 0, 0, 0.4);
+            color: #fff;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 1rem;
+            line-height: 1.4;
+            border: 2px dashed #ff7675;
+            word-break: keep-all;
+            text-shadow: 1px 1px 2px black;
+        }
+        .curse-warning span {
+            color: #ff7675;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        /* 슬롯 화면 (창) */
+        .window-frame {
+            background-color: var(--gold);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+        }
+
+        .window {
+            height: 100px;
+            background-color: var(--screen-bg);
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+            border: 3px solid #333;
+        }
+
+        .window::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 20px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), transparent);
+            z-index: 2;
+        }
+        .window::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0; height: 20px;
+            background: linear-gradient(to top, rgba(0,0,0,0.3), transparent);
+            z-index: 2;
+        }
+
+        .reel {
+            list-style: none; padding: 0; margin: 0;
+            transform: translateY(0);
+        }
+        .reel li {
+            height: 100px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.5rem; font-weight: bold; color: #333;
+            border-bottom: 1px dashed #ddd; box-sizing: border-box;
+        }
+        .highlight-text {
+            color: #d63031 !important;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.1);
+        }
+
+        /* 레버/버튼 영역 */
+        button {
+            background: radial-gradient(circle at 30% 30%, #ff7675, #d63031);
+            border: 4px solid #fff;
+            color: white;
+            font-size: 1.5rem;
+            font-family: 'Black Han Sans', sans-serif;
+            padding: 15px 50px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 0 #b71c1c, 0 15px 20px rgba(0,0,0,0.4);
+            transition: all 0.1s;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+            width: 100%;
+        }
+        button:active {
+            transform: translateY(10px);
+            box-shadow: 0 0 0 #b71c1c, 0 0 10px rgba(0,0,0,0.4);
+        }
+        button:disabled {
+            filter: grayscale(100%); cursor: not-allowed;
+        }
+
+        /* 🕹️ 하단 아케이드 패널 (오목/레트로 스타일) */
+        .arcade-panel {
+            margin-top: 30px;
+            background-color: #222;
+            border: 4px solid #555;
+            border-radius: 10px;
+            padding: 15px;
+            font-family: var(--pixel-font);
+            box-shadow: inset 0 0 15px #000;
+        }
+
+        .credit-display {
+            display: flex;
+            justify-content: space-between;
+            color: #76ff03; /* 네온 그린 */
+            font-size: 12px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px rgba(118, 255, 3, 0.7);
+        }
+
+        /* 흐르는 텍스트 (Marquee) */
+        .marquee-container {
+            background-color: #000;
+            border: 2px inset #444;
+            height: 25px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .marquee-text {
+            position: absolute;
+            white-space: nowrap;
+            color: #ffeb3b; /* 옐로우 */
+            font-size: 10px;
+            animation: marquee 12s linear infinite; /* 속도 조절: 숫자가 클수록 느려짐 */
+            text-transform: uppercase;
+        }
+
+        @keyframes marquee {
+            0% { left: 100%; }
+            100% { left: -100%; }
+        }
+
+        .result-message {
+            margin: 20px 0;
+            color: white;
+            font-size: 1.3rem;
+            min-height: 1.5em;
+            text-shadow: 1px 1px 2px black;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="slot-machine">
+        <div class="lights">
+            <div class="bulb"></div><div class="bulb"></div><div class="bulb"></div>
+            <div class="bulb"></div><div class="bulb"></div><div class="bulb"></div>
+            <div class="bulb"></div><div class="bulb"></div>
+        </div>
+
+        <h1>🎰 MENU PICK 🎰</h1>
+
+        <div class="curse-warning">
+            ⚠️ <strong>경고</strong> ⚠️<br>
+            선택된 메뉴는 <span>무조건</span> 먹어야 하며,<br>
+            이를 어길 시 <span>3일간 설사에 시달립니다.</span>
+        </div>
+
+        <div class="window-frame">
+            <div class="window">
+                <ul class="reel" id="reel">
+                    <li>Start</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="result-message" id="msg">COIN을 넣고 시작하세요</div>
+
+        <button id="spin-btn" onclick="spin()">SPIN!</button>
+
+        <div class="arcade-panel">
+            <div class="credit-display">
+                <span>CREDIT <span id="credit-cnt">10</span></span>
+                <span>BET 1</span>
+            </div>
+            <div class="marquee-container">
+                <div class="marquee-text">
+                    개발자 후원: 농협 3020780286881 문x철 (지사제 값 모금중...) &nbsp;&nbsp;&nbsp; ★ WINNER DON'T PAY ★
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const menus = [
+            "김치찌개", "된장찌개", "부대찌개", "비빔밥", "불고기", "갈비탕", "삼계탕", "제육볶음", "떡볶이", "순대국",
+            "라면", "김밥", "짜장면", "짬뽕", "탕수육", "마파두부", "양꼬치", "마라탕", "훠궈", "볶음밥",
+            "초밥", "돈까스", "우동", "소바", "라멘", "규동", "가츠동", "오코노미야키", "타코야키", "카레",
+            "피자", "파스타", "스테이크", "햄버거", "샌드위치", "샐러드", "리조또", "그라탕", "브런치", "타코",
+            "쌀국수", "팟타이", "나시고랭", "반미", "분짜", "치킨", "찜닭", "닭갈비", "족발", "보쌈",
+            "설렁탕", "육개장", "칼국수", "수제비", "냉면", "콩국수", "아구찜", "해물찜", "낙지볶음", "오징어덮밥",
+            "순두부찌개", "동태탕", "알탕", "감자탕", "뼈해장국", "곰탕", "잡채밥", "유산슬", "깐풍기", "고추잡채",
+            "회덮밥", "물회", "연어덮밥", "장어덮밥", "샤브샤브", "편백찜", "만두국", "떡만두국", "토스트", "베이글",
+            "서브웨이", "도시락", "컵밥", "봉구스밥버거", "이삭토스트", "맥도날드", "버거킹", "KFC", "맘스터치", "롯데리아",
+            "곱창", "막창", "대창", "양대창", "닭발", "오돌뼈", "껍데기", "삼겹살", "목살", "항정살"
+        ];
+
+        const reel = document.getElementById('reel');
+        const btn = document.getElementById('spin-btn');
+        const msg = document.getElementById('msg');
+        const bulbs = document.querySelectorAll('.bulb');
+        const creditSpan = document.getElementById('credit-cnt');
+
+        const itemHeight = 100;
+        let isSpinning = false;
+        let credits = 10; // 초기 크레딧
+
+        function spin() {
+            if (isSpinning) return;
+            
+            // 크레딧 확인
+            if (credits <= 0) {
+                msg.innerText = "INSERT COIN (F5를 눌러 충전)";
+                btn.innerText = "INSERT COIN";
+                btn.style.backgroundColor = "#555";
+                btn.disabled = true;
+                return;
+            }
+
+            // 크레딧 차감
+            credits--;
+            creditSpan.innerText = credits < 10 ? "0" + credits : credits;
+
+            isSpinning = true;
+            btn.disabled = true;
+            msg.innerText = "운명의 룰렛이 돌아갑니다...";
+            stopBlinkEffect();
+
+            reel.style.transition = 'none';
+            reel.style.transform = 'translateY(0)';
+            reel.innerHTML = '';
+            
+            const spinCount = 30;
+            const winnerIndex = Math.floor(Math.random() * menus.length);
+            const winnerMenu = menus[winnerIndex];
+
+            for(let i=0; i<spinCount; i++) {
+                const li = document.createElement('li');
+                li.innerText = menus[Math.floor(Math.random() * menus.length)];
+                reel.appendChild(li);
+            }
+
+            const winLi = document.createElement('li');
+            winLi.innerText = winnerMenu;
+            winLi.classList.add('highlight-text');
+            reel.appendChild(winLi);
+
+            void reel.offsetWidth; 
+
+            const targetY = -(spinCount * itemHeight); 
+
+            reel.style.transition = 'transform 3s cubic-bezier(0.2, 0.8, 0.3, 1)';
+            reel.style.transform = `translateY(${targetY}px)`;
+
+            setTimeout(() => {
+                isSpinning = false;
+                btn.disabled = false;
+                msg.innerHTML = `오늘의 메뉴: <strong style="color:#fdcb6e;">${winnerMenu}</strong>`;
+                startBlinkEffect();
+                
+                // 크레딧 없으면 버튼 비활성화 유지
+                if(credits <= 0) {
+                    btn.disabled = true;
+                    btn.innerText = "GAME OVER";
+                    msg.innerText = "메뉴 확정! (코인이 없습니다)";
+                }
+            }, 3000);
+        }
+
+        let blinkInterval;
+        function startBlinkEffect() {
+            let toggle = false;
+            blinkInterval = setInterval(() => {
+                bulbs.forEach((bulb, index) => {
+                    if (toggle) {
+                        bulb.classList.toggle('on', index % 2 === 0);
+                    } else {
+                        bulb.classList.toggle('on', index % 2 !== 0);
+                    }
+                });
+                toggle = !toggle;
+            }, 200);
+        }
+
+        function stopBlinkEffect() {
+            clearInterval(blinkInterval);
+            bulbs.forEach(bulb => bulb.classList.remove('on'));
+        }
+    </script>
+</body>
+</html>
