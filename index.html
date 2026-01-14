@@ -26,19 +26,26 @@
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace; color: var(--text-main);
         }
 
+        /* 팝업 모달 스타일 수정 */
         #modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center;
         }
         #result-modal {
-            background: var(--panel-bg); border: 1px solid var(--accent); width: 400px;
-            padding: 0; box-shadow: 0 0 30px rgba(0,0,0,1); text-align: left;
+            background: var(--panel-bg); border: 2px solid var(--accent); width: 450px;
+            padding: 0; box-shadow: 0 0 50px rgba(0,0,0,1); text-align: left;
+            animation: modalFade 0.3s ease;
         }
-        .modal-header { background: var(--accent); padding: 8px 15px; font-size: 0.8rem; font-weight: bold; color: white; }
-        .modal-body { padding: 25px 20px; color: var(--text-main); font-size: 1rem; line-height: 1.6; }
-        .modal-footer { padding: 10px; text-align: right; background: rgba(0,0,0,0.2); }
-        .modal-btn { background: #444; color: white; border: 1px solid #666; padding: 5px 20px; cursor: pointer; font-family: monospace; }
-        .modal-btn:hover { background: var(--accent); }
+        @keyframes modalFade { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        #modal-header-bar { background: var(--accent); padding: 10px 15px; font-size: 0.9rem; font-weight: bold; color: white; display: flex; justify-content: space-between; }
+        .modal-body { padding: 30px 25px; color: var(--text-main); font-family: monospace; }
+        #modal-result-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 15px; display: block; }
+        #modal-text { font-size: 0.95rem; line-height: 1.6; color: #aaa; }
+        
+        .modal-footer { padding: 15px; text-align: right; background: rgba(0,0,0,0.3); border-top: 1px solid #444; }
+        .modal-btn { background: #333; color: white; border: 1px solid #666; padding: 8px 25px; cursor: pointer; font-family: monospace; font-weight: bold; }
+        .modal-btn:hover { background: #444; border-color: #888; }
 
         h1 { font-size: 1.2rem; color: #888; margin-bottom: 20px; font-weight: normal; align-self: flex-start; }
         h1 span { color: var(--code-blue); }
@@ -57,9 +64,10 @@
         .cell::before { content: ""; position: absolute; width: 100%; height: 1px; background: #333; }
         .cell::after { content: ""; position: absolute; width: 1px; height: 100%; background: #333; }
         
-        .stone { width: 28px; height: 28px; border-radius: 50%; z-index: 10; }
-        .black { background: #000; border: 1px solid #444; }
-        .white { background: #ccc; border: 1px solid #fff; }
+        .stone { width: 28px; height: 28px; border-radius: 50%; z-index: 10; animation: stoneAppear 0.2s ease; }
+        @keyframes stoneAppear { from { transform: scale(0); } to { transform: scale(1); } }
+        .black { background: #000; border: 1px solid #444; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        .white { background: #ccc; border: 1px solid #fff; box-shadow: 0 0 5px rgba(255,255,255,0.2); }
 
         .side-panel { display: flex; flex-direction: column; gap: 15px; }
         #user-list-container { width: 300px; height: 120px; background: var(--panel-bg); border: 1px solid #444; display: flex; flex-direction: column; font-size: 0.8rem; }
@@ -74,7 +82,6 @@
         #chat-log { flex: 1; overflow-y: auto; padding: 10px; font-size: 0.8rem; display: flex; flex-direction: column; gap: 5px; color: #bbb; }
         .msg-item { border-bottom: 1px solid #333; padding-bottom: 5px; }
         .msg-header { display: flex; gap: 5px; color: var(--code-blue); font-weight: bold; }
-        .system-msg { color: #888; font-style: italic; font-size: 0.75rem; padding: 5px 0; }
         .error-msg { color: var(--error-red); font-size: 0.75rem; font-weight: bold; padding: 2px 0; }
         
         #input-area { display: flex; padding: 8px; background: #333; gap: 5px; }
@@ -94,10 +101,16 @@
 
     <div id="modal-overlay">
         <div id="result-modal">
-            <div class="modal-header">[SYSTEM_NOTIFICATION]</div>
-            <div class="modal-body" id="modal-text">Analysis Complete.</div>
+            <div id="modal-header-bar">
+                <span id="modal-title-text">[SYSTEM_NOTIFICATION]</span>
+                <span>ID: 0x82F</span>
+            </div>
+            <div class="modal-body">
+                <span id="modal-result-title">ANALYSIS COMPLETE</span>
+                <div id="modal-text">System processing finished.</div>
+            </div>
             <div class="modal-footer">
-                <button class="modal-btn" onclick="closeModal()">REBOOT_ENGINE</button>
+                <button class="modal-btn" onclick="closeModal()">REBOOT_SYSTEM</button>
             </div>
         </div>
     </div>
@@ -157,13 +170,7 @@
         const presenceRef = ref(db, 'presence');
         const connectedRef = ref(db, '.info/connected');
 
-        // 국가보안급 통합 금칙어 리스트 (약 150개 이상)
-        const badWords = [
-            // 한국어 욕설 및 비속어
-            "시발", "씨발", "병신", "지랄", "존나", "개새끼", "소새끼", "말새끼", "씨팔", "개색끼", "썅", "미친", "호로", "새끼", "닥쳐", "꺼져", "니미", "엠창", "느금", "앙김", "염병", "젬병", "좃", "좆", "좃가", "좆까", "보지", "자지", "성기", "섹스", "변태", "쓰레기", "개자식", "등신", "멍청", "멍충", "빡대가리", "뇌물", "걸레", "창녀", "쌍놈", "쌍년", "쌍판", "아가리", "주둥이", "십새", "씨부", "쒸바", "쒸발", "뒤져", "뒈져", "시버", "꺼저", "엿먹", "졸라", "개꿀", "개소리", "엠창", "애미", "애비", "한남", "한녀", "김치녀", "된장녀", "틀딱", "급식충", "급식", "충", "벌레", "버러지", "꺼저라", "디져", "좆밥", "좃밥", "시바", "씨바", "시발", "시빨", "씨빨", "개썅", "개극혐", "극혐", "띨띨", "개돼지", "머가리", "빡가", "빡구", "좆망", "좃망", "망할", "꺼졉", "닥처", "주글래", "디질래", "뒈질래",
-            // 영어 비속어 및 슬랭
-            "fuck", "fuk", "shit", "bitch", "asshole", "bastard", "dick", "pussy", "faggot", "nigger", "cock", "suck", "damn", "hell", "moron", "idiot", "stupid", "dumb", "jerk", "wtf", "stfu", "omfg", "shutup", "fucking", "fucker", "fuxk", "motherfucker", "bullshit", "slut", "whore", "cunt", "prick", "wanker", "twat", "piss", "crap", "bloody", "bollocks", "bugger", "bollock", "arse", "douche", "douchebag", "f0ck", "sh1t", "b1tch", "a55", "p0rn", "porn", "hentai", "retard", "scum", "trash", "loser", "noob", "nub"
-        ];
+        const badWords = ["시발", "씨발", "병신", "지랄", "존나", "개새끼", "소새끼", "말새끼", "씨팔", "개색끼", "썅", "미친", "호로", "새끼", "닥쳐", "꺼져", "니미", "엠창", "느금", "앙김", "염병", "젬병", "좃", "좆", "좃가", "좆까", "보지", "자지", "성기", "섹스", "변태", "쓰레기", "개자식", "등신", "멍청", "멍충", "빡대가리", "뇌물", "걸레", "창녀", "쌍놈", "쌍년", "쌍판", "아가리", "주둥이", "십새", "씨부", "쒸바", "쒸발", "뒤져", "뒈져", "시버", "꺼저", "엿먹", "졸라", "개꿀", "개소리", "엠창", "애미", "애비", "fuck", "shit", "bitch", "asshole"];
 
         const myId = Math.random().toString(36).substring(2, 12);
         const myPresenceRef = ref(db, `presence/${myId}`);
@@ -206,23 +213,18 @@
             const input = document.getElementById('chat-input');
             const message = input.value.trim();
             const log = document.getElementById('chat-log');
-
             if (!message) return;
-
-            // 욕설 검사 (공백 제거 및 소문자 변환 후 검사하여 우회 방지)
             const cleanMessage = message.replace(/\s+/g, "").toLowerCase();
             const hasBadWord = badWords.some(word => cleanMessage.includes(word.toLowerCase()));
-            
             if (hasBadWord) {
                 const errorItem = document.createElement('div');
                 errorItem.className = 'error-msg';
-                errorItem.innerText = `[ERROR: SECURITY_VIOLATION] UNTRUSTED_PACKET_DETECTED. Connection filtered by AI_Wall.`;
+                errorItem.innerText = `[ERROR] SECURITY_VIOLATION: FILTERED_BY_FIREWALL.`;
                 log.appendChild(errorItem);
                 log.scrollTop = log.scrollHeight;
                 input.value = "";
                 return;
             }
-
             push(chatRef, { name: myName, message: message, type: "user", timestamp: serverTimestamp() });
             input.value = "";
         };
@@ -244,15 +246,37 @@
     </script>
 
     <script>
-        // 오목 게임 로직
         const SIZE = 15;
         let board = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
         let gameOver = false;
         let turn = 1;
 
-        window.showResult = function(msg) {
-            document.getElementById('modal-text').innerText = msg;
-            document.getElementById('modal-overlay').style.display = 'flex';
+        // 결과 팝업 함수 수정
+        window.showResult = function(winner) {
+            const overlay = document.getElementById('modal-overlay');
+            const modal = document.getElementById('result-modal');
+            const header = document.getElementById('modal-header-bar');
+            const titleText = document.getElementById('modal-title-text');
+            const resultTitle = document.getElementById('modal-result-title');
+            const descText = document.getElementById('modal-text');
+
+            if (winner === 'USER') {
+                header.style.backgroundColor = '#0e639c'; // 파랑 (성공)
+                modal.style.borderColor = '#0e639c';
+                titleText.innerText = '[SYSTEM_BREACH_SUCCESS]';
+                resultTitle.innerText = 'USER_WON_THE_GAME';
+                resultTitle.style.color = '#569cd6';
+                descText.innerText = 'Target system has been successfully overridden by user node. Security protocols bypassed.';
+            } else {
+                header.style.backgroundColor = '#a31515'; // 빨강 (실패)
+                modal.style.borderColor = '#a31515';
+                titleText.innerText = '[CRITICAL_SYSTEM_FAILURE]';
+                resultTitle.innerText = 'AI_CORE_VICTORY';
+                resultTitle.style.color = '#f48771';
+                descText.innerText = 'Kernel panic detected. AI core has gained full control of the matrix. Human access revoked.';
+            }
+
+            overlay.style.display = 'flex';
         }
 
         window.closeModal = function() {
@@ -282,7 +306,7 @@
             placeStone(r, c, 1);
             if (checkWin(r, c, 1)) {
                 gameOver = true;
-                window.showResult("SUCCESS: USER_NODE_01_DOMINANCE_DETECTED.\nTarget System Overridden.");
+                window.showResult('USER');
                 return;
             }
             turn = 2;
@@ -304,7 +328,7 @@
             placeStone(move.r, move.c, 2);
             if (checkWin(move.r, move.c, 2)) {
                 gameOver = true;
-                window.showResult("CRITICAL: AI_CORE_VICTORY.\nSystem Security Reinforced. Access Denied.");
+                window.showResult('AI');
             } else {
                 turn = 1; document.getElementById('status').innerText = "WAITING_DATA_INPUT";
             }
