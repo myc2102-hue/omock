@@ -548,6 +548,9 @@
             btn.style.background = ""; 
             resultDisplay.innerHTML = `<span style="color:var(--gold)">${winnerMenu}</span> CONFIRMED`;
 
+            // ✨ 채팅창에 결과 알림 추가
+            appendMessage("SYSTEM", `>>> 🏆 당첨: [${winnerMenu}]`); 
+
             // 쿨타임 시작
             let countdown = 3;
             btn.innerText = `WAIT (${countdown})`;
