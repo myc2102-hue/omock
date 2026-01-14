@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>System Monitor v2.4.1</title>
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --sidebar-bg: #252526;
+            --panel-bg: #2d2d2d;
+            --text-main: #d4d4d4;
+            --accent: #0e639c; /* VS Code Blue */
+            --online: #6a9955;
+            --code-green: #6a9955;
+            --code-blue: #569cd6;
+            --code-orange: #ce9178;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            /* 배경에 코드가 흐르는 느낌의 텍스트 배치 */
+            background-image: linear-gradient(rgba(30, 30, 30, 0.93), rgba(30, 30, 30, 0.93)),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500"><text x="0" y="20" font-family="monospace" font-size="12" fill="rgba(100,100,100,0.2)">import { initializeApp } from "firebase"; const db = getDatabase(app); function analyzeData() { return board.map(r => r.filter(c => c !== 0)); } if(gameOver) { console.log("System Terminated"); } export default runProcess;</text></svg>');
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; margin: 0; padding: 20px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace; color: var(--text-main);
+        }
+
+        h1 { font-size: 1.2rem; color: #888; margin-bottom: 20px; font-weight: normal; align-self: flex-start; }
+        h1 span { color: var(--code-blue); }
+
+        .status-bar { width: 100%; max-width: 1000px; background: #333; padding: 5px 15px; font-size: 0.8rem; display: flex; gap: 20px; border-bottom: 1px solid #444; margin-bottom: 20px; }
+        #status { color: var(--code-orange); }
+
+        .game-layout { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+        
+        /* 오목판: 데이터 시각화 장치처럼 보이게 */
+        #board {
+            display: grid; grid-template-columns: repeat(15, 35px); grid-template-rows: repeat(15, 35px);
+            background-color: #1a1a1a; padding: 5px; border-radius: 4px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5); border: 1px solid #444;
+        }
+        .cell { width: 35px; height: 35px; position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .cell::before { content: ""; position: absolute; width: 100%; height: 1px; background: #333; }
+        .cell::after { content: ""; position: absolute; width: 1px; height: 100%; background: #333; }
+        
+        .stone { width: 28px; height: 28px; border-radius: 50%; z-index: 10; transition: transform 0.1s; }
+        .black { background: #000; border: 1px solid #444; box-shadow: inset 0 0 10px rgba(255,255,255,0.1); }
+        .white { background: #ccc; border: 1px solid #fff; box-shadow: inset 0 0 10px rgba(0,0,0,0.2); }
+
+        .side-panel { display: flex; flex-direction: column; gap: 15px; }
+        
+        /* 접속자 명단: "Active Nodes" */
+        #user-list-container {
+            width: 300px; height: 120px; background: var(--panel-bg); border: 1px solid #444;
+            display: flex; flex-direction: column; font-size: 0.8rem;
+        }
+        .panel-title { padding: 5px 10px; background: #3c3c3c; color: #aaa; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; }
+        #user-list { flex: 1; overflow-y: auto; padding: 10px; list-style: none; margin: 0; }
+        .user-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; color: var(--code-green); }
+        .dot { width: 6px; height: 6px; background: var(--online); border-radius: 50%; }
+
+        /* 채팅창: "Console Log" */
+        #chat-container {
+            width: 300px; height: 400px; background: var(--panel-bg); border: 1px solid #444;
+            display: flex; flex-direction: column;
+        }
+        #nickname-area { padding: 8px; background: #333; }
+        #user-name { width: 100%; background: #1e1e1e; border: 1px solid #444; padding: 5px; color: var(--code-orange); outline: none; font-family: monospace; font-size: 0.8rem; }
+        
+        #chat-log { flex: 1; overflow-y: auto; padding: 10px; font-size: 0.8rem; display: flex; flex-direction: column; gap: 5px; color: #bbb; }
+        .msg-item { line-height: 1.4; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .msg-header { display: flex; gap: 5px; color: var(--code-blue); font-weight: bold; }
+        .system-msg { color: #888; font-style: italic; font-size: 0.75rem; padding: 5px 0; }
+        
+        #input-area { display: flex; padding: 8px; background: #333; gap: 5px; }
+        #chat-input { flex: 1; background: #1e1e1e; border: 1px solid #444; padding: 8px; color: #fff; outline: none; font-family: monospace; }
+        #send-btn { background: var(--accent); color: white; border: none; padding: 0 12px; cursor: pointer; font-family: monospace; }
+
+        .controls { margin-top: 20px; display: flex; gap: 10px; }
+        .reset-btn { padding: 8px 20px; background: #444; border: 1px solid #555; color: #ccc; cursor: pointer; font-family: monospace; font-size: 0.8rem; }
+        .reset-btn:hover { background: #555; }
+        .credits { color: #555; font-size: 0.7rem; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>일하는 것처럼 보이는 <span>오목게임</span> --version 1.0.4</h1>
+    
+    <div class="status-bar">
+        <div>[PROCESS_ID: <span id="pid">8293</span>]</div>
+        <div id="status">READY_TO_START</div>
+        <div style="margin-left:auto">NODE_COUNT: <span id="count-num">0</span></div>
+    </div>
+
+    <div class="game-layout">
+        <div id="board"></div>
+
+        <div class="side-panel">
+            <div id="user-list-container">
+                <div class="panel-title">Active Connections</div>
+                <ul id="user-list"></ul>
+            </div>
+
+            <div id="chat-container">
+                <div id="nickname-area">
+                    <input type="text" id="user-name" placeholder="set_nickname..." onchange="window.updateMyName()">
+                </div>
+                <div id="chat-log"></div>
+                <div id="input-area">
+                    <input type="text" id="chat-input" placeholder="root@omok:~$ " onkeypress="if(event.keyCode==13) window.sendMessage()">
+                    <button id="send-btn" onclick="window.sendMessage()">RUN</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="reset-btn" onclick="window.resetGame()">REBOOT_SYSTEM</button>
+    </div>
+    <div class="credits">Developed by Young-Cheol / Build 2024.12</div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+        import { getDatabase, ref, push, onChildAdded, serverTimestamp, onValue, onDisconnect, set } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6InSfqD5e5CrM1KCQuHFL3OSgetiT3kw",
+            authDomain: "omockyc.firebaseapp.com",
+            projectId: "omockyc",
+            storageBucket: "omockyc.firebasestorage.app",
+            messagingSenderId: "336747857928",
+            appId: "1:336747857928:web:b4073ad87b47aafea2e9bd",
+            measurementId: "G-86DVKJTXV2"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        const chatRef = ref(db, 'messages');
+        const presenceRef = ref(db, 'presence');
+        const connectedRef = ref(db, '.info/connected');
+
+        const myId = Math.random().toString(36).substring(2, 12);
+        const myPresenceRef = ref(db, `presence/${myId}`);
+        let myName = "익명의 사용자";
+
+        document.getElementById('pid').innerText = Math.floor(Math.random() * 9000) + 1000;
+
+        window.updateMyName = function() {
+            const newName = document.getElementById('user-name').value.trim();
+            myName = newName || "익명의 사용자";
+            set(myPresenceRef, { name: myName, status: "online" });
+        };
+
+        onValue(connectedRef, (snap) => {
+            if (snap.val() === true) {
+                onDisconnect(myPresenceRef).remove();
+                set(myPresenceRef, { name: myName, status: "online" });
+                if (!sessionStorage.getItem('entered')) {
+                    push(chatRef, { type: "system", message: `[SYSTEM] New node connected.`, timestamp: serverTimestamp() });
+                    sessionStorage.setItem('entered', 'true');
+                }
+            }
+        });
+
+        onValue(presenceRef, (snap) => {
+            const userList = document.getElementById('user-list');
+            const countNum = document.getElementById('count-num');
+            userList.innerHTML = '';
+            const data = snap.val();
+            if (data) {
+                const keys = Object.keys(data);
+                keys.forEach(k => {
+                    const li = document.createElement('li');
+                    li.className = 'user-item';
+                    li.innerHTML = `<span class="dot"></span> ${data[k].name}`;
+                    userList.appendChild(li);
+                });
+                countNum.innerText = keys.length;
+            } else { countNum.innerText = 0; }
+        });
+
+        window.sendMessage = function() {
+            const input = document.getElementById('chat-input');
+            if (input.value.trim()) {
+                push(chatRef, { name: myName, message: input.value.trim(), type: "user", timestamp: serverTimestamp() });
+                input.value = "";
+            }
+        };
+
+        onChildAdded(chatRef, (snapshot) => {
+            const data = snapshot.val();
+            const log = document.getElementById('chat-log');
+            const item = document.createElement('div');
+            if (data.type === "system") {
+                item.className = 'system-msg';
+                item.innerText = data.message;
+            } else {
+                item.className = 'msg-item';
+                item.innerHTML = `<div class="msg-header">> ${data.name}:</div><div>${data.message}</div>`;
+            }
+            log.appendChild(item);
+            log.scrollTop = log.scrollHeight;
+        });
+    </script>
+
+    <script>
+        // --- 오목 게임 로직 ---
+        const SIZE = 15;
+        let board = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+        let gameOver = false;
+        let turn = 1;
+
+        window.initGame = function() {
+            const boardEl = document.getElementById('board');
+            boardEl.innerHTML = '';
+            board = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+            gameOver = false; turn = 1;
+            for (let r = 0; r < SIZE; r++) {
+                for (let c = 0; c < SIZE; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.id = `cell-${r}-${c}`;
+                    cell.onclick = () => window.playerMove(r, c);
+                    boardEl.appendChild(cell);
+                }
+            }
+            document.getElementById('status').innerText = "INPUT_WAITING_FOR_USER_P1";
+        };
+
+        window.playerMove = function(r, c) {
+            if (gameOver || board[r][c] !== 0 || turn !== 1) return;
+            placeStone(r, c, 1);
+            if (checkWin(r, c, 1)) {
+                document.getElementById('status').innerText = "STATUS_WIN_DETECTED_P1";
+                gameOver = true; return;
+            }
+            turn = 2;
+            document.getElementById('status').innerText = "CALCULATING_OPTIMAL_MOVE_AI...";
+            setTimeout(aiMove, 600);
+        };
+
+        function aiMove() {
+            if (gameOver) return;
+            let best = -Infinity, move = {r: 7, c: 7};
+            for (let r = 0; r < SIZE; r++) {
+                for (let c = 0; c < SIZE; c++) {
+                    if (board[r][c] === 0) {
+                        let score = evaluate(r, c);
+                        if (score > best) { best = score; move = {r, c}; }
+                    }
+                }
+            }
+            placeStone(move.r, move.c, 2);
+            if (checkWin(move.r, move.c, 2)) {
+                document.getElementById('status').innerText = "STATUS_WIN_DETECTED_AI";
+                gameOver = true;
+            } else {
+                turn = 1; document.getElementById('status').innerText = "INPUT_WAITING_FOR_USER_P1";
+            }
+        }
+
+        function evaluate(r, c) {
+            let s = 0;
+            [[0,1],[1,0],[1,1],[1,-1]].forEach(([dr, dc]) => {
+                s += getScore(r, c, dr, dc, 2);
+                s += getScore(r, c, dr, dc, 1) * 1.6;
+            });
+            return s;
+        }
+
+        function getScore(r, c, dr, dc, p) {
+            let cnt = 1, open = 0;
+            [[dr, dc], [-dr, -dc]].forEach(([tr, tc]) => {
+                let nr = r + tr, nc = c + tc;
+                while (nr>=0 && nr<SIZE && nc>=0 && nc<SIZE && board[nr][nc] === p) {
+                    cnt++; nr += tr; nc += tc;
+                }
+                if (nr>=0 && nr<SIZE && nc>=0 && nc<SIZE && board[nr][nc] === 0) open++;
+            });
+            if (cnt >= 5) return 100000;
+            if (cnt === 4) return open === 2 ? 10000 : 2000;
+            if (cnt === 3) return open === 2 ? 1500 : 300;
+            return cnt * 10;
+        }
+
+        function placeStone(r, c, p) {
+            board[r][c] = p;
+            const stone = document.createElement('div');
+            stone.className = `stone ${p === 1 ? 'black' : 'white'}`;
+            document.getElementById(`cell-${r}-${c}`).appendChild(stone);
+        }
+
+        function checkWin(r, c, p) {
+            return [[0,1],[1,0],[1,1],[1,-1]].some(([dr, dc]) => {
+                let cnt = 1;
+                [[dr, dc], [-dr, -dc]].forEach(([tr, tc]) => {
+                    let nr = r + tr, nc = c + tc;
+                    while (nr>=0 && nr<SIZE && nc>=0 && nc<SIZE && board[nr][nc] === p) {
+                        cnt++; nr += tr; nc += tc;
+                    }
+                });
+                return cnt >= 5;
+            });
+        }
+
+        window.onload = window.initGame;
+        window.resetGame = () => window.initGame();
+    </script>
+</body>
+</html>
