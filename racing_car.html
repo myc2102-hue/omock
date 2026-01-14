@@ -29,7 +29,7 @@
 
         .main-container { 
             position: relative;
-            display: flex; flex-direction: column; /* 세로 정렬 */
+            display: flex; flex-direction: column;
             align-items: center;
             justify-content: center;
         }
@@ -37,7 +37,7 @@
         /* 게임 영역 */
         .game-area { 
             position: relative; 
-            width: 100vw; height: 75vh; /* 화면 비율 조정 */
+            width: 100vw; height: 75vh; 
             max-width: 450px; max-height: 750px;
             border: 2px solid var(--neon-pink); 
             border-radius: 8px; 
@@ -56,24 +56,29 @@
             text-shadow: 0 0 10px var(--neon-green); z-index: 10;
         }
 
+        /* 랭킹 패널 (TOP 10을 위해 높이 자동 조절) */
         .mini-ranking {
             position: absolute; top: 10px; left: 10px;
-            width: 140px; 
-            background: rgba(0, 0, 0, 0.6); 
+            width: 150px; 
+            background: rgba(0, 0, 0, 0.7); 
             border: 1px solid var(--neon-blue);
             border-radius: 5px; padding: 8px;
             pointer-events: none; z-index: 20;
+            max-height: 250px; /* 너무 길어지지 않게 제한 */
+            overflow: hidden;
         }
         .mini-ranking h6 { 
             margin: 0 0 5px 0; color: var(--neon-blue); text-align: center; 
-            font-size: 10px; border-bottom: 1px solid #333; padding-bottom: 3px;
+            font-size: 11px; border-bottom: 1px solid #333; padding-bottom: 3px;
         }
         .rank-list { list-style: none; padding: 0; margin: 0; }
         .rank-item { 
             display: flex; justify-content: space-between; 
             font-size: 10px; margin-bottom: 3px; color: #ccc;
         }
-        .rank-1 { color: #ffd700; font-weight: bold; }
+        .rank-1 { color: #ffd700; font-weight: bold; text-shadow: 0 0 5px #ffd700; }
+        .rank-2 { color: #c0c0c0; font-weight: bold; }
+        .rank-3 { color: #cd7f32; font-weight: bold; }
 
         .online-counter {
             position: absolute; top: 60px; right: 10px;
@@ -137,7 +142,7 @@
         }
         .ctrl-btn:active { background: var(--neon-blue); color: #000; }
 
-        /* === Footer (개발자 정보 & 후원) === */
+        /* Footer */
         .footer-info {
             margin-top: 15px;
             text-align: center;
@@ -168,7 +173,7 @@
             <div id="timer-display">00:00.00</div>
             
             <div class="mini-ranking">
-                <h6>🏆 TOP 5 RANK</h6>
+                <h6>🏆 TOP 10 RANK</h6>
                 <ul id="rank-list" class="rank-list">
                     <li class="rank-item" style="justify-content:center;">Loading...</li>
                 </ul>
@@ -258,10 +263,11 @@
         });
     }
 
+    // 🏆 랭킹 로드 (TOP 10으로 변경)
     async function loadRankings() {
         if (!db) return;
         try {
-            const q = query(collection(db, "scores"), orderBy("rawTime", "desc"), limit(5));
+            const q = query(collection(db, "scores"), orderBy("rawTime", "desc"), limit(10));
             const querySnapshot = await getDocs(q);
             const list = document.getElementById('rank-list');
             list.innerHTML = "";
@@ -269,7 +275,14 @@
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 const li = document.createElement("li");
-                li.className = `rank-item ${rank === 1 ? 'rank-1' : ''}`;
+                
+                // 1,2,3등 강조 클래스 추가
+                let rankClass = '';
+                if(rank === 1) rankClass = 'rank-1';
+                else if(rank === 2) rankClass = 'rank-2';
+                else if(rank === 3) rankClass = 'rank-3';
+
+                li.className = `rank-item ${rankClass}`;
                 li.innerHTML = `<span>${rank}. ${data.name}</span> <span>${data.time}</span>`;
                 list.appendChild(li);
                 rank++;
@@ -305,12 +318,11 @@
     let spawnRate = 0.02;
     let obstacles = [];
     let particles = [];
-    // 플레이어 시작 위치 (정중앙 차선)
     let player = { x: 175, y: 580, width: 50, height: 90, color: '#00f3ff', speed: 8 };
     let inputDirection = 0;
     let currentNickname = "PILOT";
     
-    // 🚦 핵심 수정: 5차선 시스템 (정중앙 꼼수 방지)
+    // 5차선 시스템
     const LANE_COUNT = 5; 
 
     function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
@@ -527,10 +539,9 @@
         drawF1Car(player.x, player.y, player.color, true);
 
         if(Math.random() < spawnRate) {
-            // 5차선 로직 적용
+            // 5차선 로직
             const lane = Math.floor(Math.random() * LANE_COUNT);
             const laneWidth = canvas.width / LANE_COUNT;
-            // 차선의 정중앙 좌표 계산
             const lx = lane * laneWidth + (laneWidth / 2) - 25;
             
             let safe = true;
