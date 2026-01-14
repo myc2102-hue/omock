@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Cyber Racer: Masterpiece</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --neon-blue: #00f3ff; 
+            --neon-pink: #bc13fe; 
+            --neon-green: #0aff0a;
+            --bg-dark: #050510;
+        }
+        
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0; padding: 0; 
+            background-color: var(--bg-dark); 
+            color: white;
+            font-family: 'Orbitron', sans-serif; 
+            min-height: 100vh; overflow: hidden;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            touch-action: none; 
+            user-select: none; -webkit-user-select: none;
+        }
+
+        .main-container { 
+            position: relative;
+            display: flex; flex-direction: column; /* 세로 정렬 */
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 게임 영역 */
+        .game-area { 
+            position: relative; 
+            width: 100vw; height: 75vh; /* 화면 비율 조정 */
+            max-width: 450px; max-height: 750px;
+            border: 2px solid var(--neon-pink); 
+            border-radius: 8px; 
+            box-shadow: 0 0 30px rgba(188, 19, 254, 0.3); 
+            background: #000;
+            overflow: hidden;
+        }
+        canvas { display: block; width: 100%; height: 100%; }
+        
+        /* UI 오버레이 */
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        
+        #timer-display {
+            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+            font-size: 24px; font-weight: 900; color: var(--neon-green);
+            text-shadow: 0 0 10px var(--neon-green); z-index: 10;
+        }
+
+        .mini-ranking {
+            position: absolute; top: 10px; left: 10px;
+            width: 140px; 
+            background: rgba(0, 0, 0, 0.6); 
+            border: 1px solid var(--neon-blue);
+            border-radius: 5px; padding: 8px;
+            pointer-events: none; z-index: 20;
+        }
+        .mini-ranking h6 { 
+            margin: 0 0 5px 0; color: var(--neon-blue); text-align: center; 
+            font-size: 10px; border-bottom: 1px solid #333; padding-bottom: 3px;
+        }
+        .rank-list { list-style: none; padding: 0; margin: 0; }
+        .rank-item { 
+            display: flex; justify-content: space-between; 
+            font-size: 10px; margin-bottom: 3px; color: #ccc;
+        }
+        .rank-1 { color: #ffd700; font-weight: bold; }
+
+        .online-counter {
+            position: absolute; top: 60px; right: 10px;
+            font-size: 10px; color: #fff;
+            background: rgba(0,0,0,0.5); padding: 5px 8px;
+            border-radius: 10px; border: 1px solid #555;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .online-dot { width: 6px; height: 6px; background: var(--neon-green); border-radius: 50%; box-shadow: 0 0 5px var(--neon-green); }
+
+        #mute-btn {
+            position: absolute; top: 10px; right: 10px; width: 36px; height: 36px;
+            background: rgba(0,0,0,0.6); border: 1px solid var(--neon-blue); 
+            color: var(--neon-blue); font-size: 16px;
+            cursor: pointer; pointer-events: auto; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 100; pointer-events: auto;
+            backdrop-filter: blur(5px);
+        }
+        
+        h1 { font-size: 32px; margin-bottom: 5px; color: var(--neon-blue); text-shadow: 0 0 20px var(--neon-blue); font-style: italic;}
+        h2 { font-size: 40px; margin-bottom: 10px; color: var(--neon-pink); text-shadow: 0 0 20px var(--neon-pink); }
+        
+        input { 
+            padding: 10px; font-size: 18px; text-align: center; 
+            background: transparent; border: 2px solid var(--neon-blue); 
+            color: white; width: 180px; margin-bottom: 20px; 
+            text-transform: uppercase; font-family: 'Orbitron', sans-serif;
+            outline: none; 
+        }
+
+        .btn-neon {
+            background: transparent; color: white;
+            border: 2px solid var(--neon-pink); padding: 12px 30px;
+            font-size: 18px; font-weight: bold; cursor: pointer; text-transform: uppercase;
+            font-family: 'Orbitron', sans-serif;
+            box-shadow: 0 0 10px var(--neon-pink), inset 0 0 10px var(--neon-pink);
+            transition: all 0.2s;
+        }
+        .btn-neon:active { transform: scale(0.95); background: var(--neon-pink); }
+
+        /* 하단 컨트롤러 */
+        #mobile-controls {
+            position: absolute; bottom: 20px; left: 0; width: 100%;
+            display: flex; justify-content: space-between; padding: 0 30px;
+            pointer-events: none; z-index: 50;
+        }
+        .ctrl-btn {
+            width: 70px; height: 70px; 
+            background: rgba(0, 243, 255, 0.1); 
+            color: var(--neon-blue); 
+            border: 2px solid var(--neon-blue); border-radius: 50%;
+            font-size: 30px; cursor: pointer; pointer-events: auto;
+            box-shadow: 0 0 15px var(--neon-blue);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .ctrl-btn:active { background: var(--neon-blue); color: #000; }
+
+        /* === Footer (개발자 정보 & 후원) === */
+        .footer-info {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            line-height: 1.6;
+            z-index: 10;
+        }
+        .footer-info p { margin: 0; }
+        .coffee-link {
+            color: var(--neon-green);
+            font-weight: bold;
+            text-shadow: 0 0 5px var(--neon-green);
+            margin-top: 5px;
+            display: block;
+            background: rgba(10, 255, 10, 0.1);
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid var(--neon-green);
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <div class="game-area">
+        <div id="ui-layer">
+            <div id="timer-display">00:00.00</div>
+            
+            <div class="mini-ranking">
+                <h6>🏆 TOP 5 RANK</h6>
+                <ul id="rank-list" class="rank-list">
+                    <li class="rank-item" style="justify-content:center;">Loading...</li>
+                </ul>
+            </div>
+
+            <button id="mute-btn">🔊</button>
+            <div class="online-counter">
+                <div class="online-dot"></div>
+                <span id="online-count">1</span> Online
+            </div>
+        </div>
+
+        <div id="start-screen" class="overlay">
+            <h1>NEON RACER</h1>
+            <p style="color:#aaa; font-size:12px; margin-bottom:15px; letter-spacing:2px;">5-LANE EDITION</p>
+            <input type="text" id="nickname-input" placeholder="NAME" maxlength="8">
+            <button class="btn-neon" id="btn-start-game">START</button>
+        </div>
+
+        <div id="game-over-screen" class="overlay" style="display:none;">
+            <h2>CRASHED</h2>
+            <p id="final-time" style="font-size:24px; color:#fff; margin-bottom:30px;">00:00.00</p>
+            <button class="btn-neon" id="btn-retry">RETRY</button>
+        </div>
+
+        <div id="mobile-controls">
+            <div class="ctrl-btn" id="btn-left">◀</div>
+            <div class="ctrl-btn" id="btn-right">▶</div>
+        </div>
+
+        <canvas id="gameCanvas" width="400" height="700"></canvas>
+    </div>
+
+    <div class="footer-info">
+        <p>Copyright © 2024 Developer Moon. All rights reserved.</p>
+        <div class="coffee-link">
+            ☕ 개발자 커피 사주기<br>
+            농협 3020780286881 문x철
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { getDatabase, ref, onValue, onDisconnect, set, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+    // 🔴 API KEY (제공해주신 키 적용됨) 🔴
+    const firebaseConfig = {
+        apiKey: "AIzaSyDbe0fIhccOCer-mczrrA5LsBgaz2oUBZc",
+        authDomain: "racingscore.firebaseapp.com",
+        projectId: "racingscore",
+        storageBucket: "racingscore.firebasestorage.app",
+        messagingSenderId: "807465073308",
+        appId: "1:807465073308:web:b4bbb5ea6f95216f7e4b59",
+        databaseURL: "https://racingscore-default-rtdb.firebaseio.com"
+    };
+
+    let db;
+    let rtdb;
+
+    try {
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        rtdb = getDatabase(app);
+        console.log("Firebase Connected");
+        loadRankings();
+        setupPresence();
+    } catch (e) {
+        console.warn("Firebase Init Error:", e);
+        document.getElementById('rank-list').innerHTML = '<li class="rank-item" style="color:red; text-align:center;">OFFLINE</li>';
+    }
+
+    function setupPresence() {
+        if (!rtdb) return;
+        const connectedRef = ref(rtdb, ".info/connected");
+        const connsRef = ref(rtdb, "connections");
+        onValue(connectedRef, (snap) => {
+            if (snap.val() === true) {
+                const con = push(connsRef);
+                onDisconnect(con).remove();
+                set(con, true);
+            }
+        });
+        onValue(connsRef, (snap) => {
+            document.getElementById('online-count').innerText = snap.size;
+        });
+    }
+
+    async function loadRankings() {
+        if (!db) return;
+        try {
+            const q = query(collection(db, "scores"), orderBy("rawTime", "desc"), limit(5));
+            const querySnapshot = await getDocs(q);
+            const list = document.getElementById('rank-list');
+            list.innerHTML = "";
+            let rank = 1;
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const li = document.createElement("li");
+                li.className = `rank-item ${rank === 1 ? 'rank-1' : ''}`;
+                li.innerHTML = `<span>${rank}. ${data.name}</span> <span>${data.time}</span>`;
+                list.appendChild(li);
+                rank++;
+            });
+            if(rank === 1) list.innerHTML = '<li class="rank-item" style="justify-content:center;">No Data</li>';
+        } catch(e) { console.error(e); }
+    }
+
+    async function saveRankingToDB(name, timeStr, rawMs) {
+        if (!db) return;
+        try {
+            await addDoc(collection(db, "scores"), { name: name, time: timeStr, rawTime: rawMs, date: new Date() });
+            loadRankings();
+        } catch (e) { console.error(e); }
+    }
+
+    // ================= GAME LOGIC =================
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const timerEl = document.getElementById('timer-display');
+    
+    // Audio
+    let audioCtx;
+    let isMuted = false;
+    let engineOsc, engineGain, bgmInterval;
+
+    // Game Variables
+    let isGameOver = true;
+    let animationId;
+    let startTime = 0;
+    let gameSpeed = 10;
+    let laneOffset = 0;
+    let spawnRate = 0.02;
+    let obstacles = [];
+    let particles = [];
+    // 플레이어 시작 위치 (정중앙 차선)
+    let player = { x: 175, y: 580, width: 50, height: 90, color: '#00f3ff', speed: 8 };
+    let inputDirection = 0;
+    let currentNickname = "PILOT";
+    
+    // 🚦 핵심 수정: 5차선 시스템 (정중앙 꼼수 방지)
+    const LANE_COUNT = 5; 
+
+    function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    
+    function startEngine() {
+        if(!audioCtx || isMuted) return;
+        engineOsc = audioCtx.createOscillator();
+        engineGain = audioCtx.createGain();
+        engineOsc.type = 'sawtooth';
+        engineOsc.frequency.value = 80;
+        engineGain.gain.value = 0.05;
+        engineOsc.connect(engineGain).connect(audioCtx.destination);
+        engineOsc.start();
+    }
+    function updateEngine(speed) { if(engineOsc) engineOsc.frequency.setTargetAtTime(80 + (speed*12), audioCtx.currentTime, 0.1); }
+    function stopEngine() { if(engineOsc) { engineOsc.stop(); engineOsc=null; } }
+
+    function playSound(type) {
+        if(!audioCtx || isMuted) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        if(type === 'drift') {
+            const bufSize = audioCtx.sampleRate * 0.15;
+            const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+            const data = buf.getChannelData(0);
+            for(let i=0; i<bufSize; i++) data[i] = Math.random()*2-1;
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buf;
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'bandpass'; filter.frequency.value = 1000;
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.15);
+            noise.connect(filter).connect(gain).connect(audioCtx.destination);
+            noise.start();
+        } 
+        else if(type === 'crash') {
+            osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime+0.5);
+            osc.type = 'sawtooth';
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.5);
+            osc.connect(gain).connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime+0.5);
+        }
+    }
+
+    function playBGM() {
+        if(bgmInterval) clearInterval(bgmInterval);
+        let idx = 0;
+        const melody = [146,0,146,0, 293,0,293,0, 261,0,261,0, 196,0,196,0];
+        bgmInterval = setInterval(() => {
+            if(isMuted || isGameOver) return;
+            const freq = melody[idx++ % melody.length];
+            if(!freq) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square'; osc.frequency.value = freq;
+            gain.gain.value = 0.04;
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+0.1);
+            osc.connect(gain).connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime+0.15);
+        }, 150);
+    }
+
+    // --- Controls ---
+    const handleInput = (dir) => {
+        if(dir !== 0 && inputDirection !== dir) playSound('drift');
+        inputDirection = dir;
+    };
+
+    const btnLeft = document.getElementById('btn-left');
+    const btnRight = document.getElementById('btn-right');
+
+    const startTouch = (e, dir) => { e.preventDefault(); handleInput(dir); };
+    const endTouch = (e) => { e.preventDefault(); handleInput(0); };
+
+    btnLeft.addEventListener('touchstart', (e) => startTouch(e, -1));
+    btnRight.addEventListener('touchstart', (e) => startTouch(e, 1));
+    btnLeft.addEventListener('touchend', endTouch);
+    btnRight.addEventListener('touchend', endTouch);
+    
+    btnLeft.addEventListener('mousedown', () => handleInput(-1));
+    btnRight.addEventListener('mousedown', () => handleInput(1));
+    document.addEventListener('mouseup', () => handleInput(0));
+
+    document.addEventListener('keydown', e => {
+        if(isGameOver) return;
+        if(e.code === 'ArrowLeft') handleInput(-1);
+        if(e.code === 'ArrowRight') handleInput(1);
+    });
+    document.addEventListener('keyup', e => {
+        if(e.code === 'ArrowLeft' || e.code === 'ArrowRight') handleInput(0);
+    });
+
+    // --- Particles ---
+    class Particle {
+        constructor(x, y, color) {
+            this.x = x; this.y = y; this.color = color;
+            this.size = Math.random() * 4 + 2;
+            this.speedX = Math.random() * 6 - 3;
+            this.speedY = Math.random() * 6 - 3;
+            this.life = 1.0;
+        }
+        update() { this.x += this.speedX; this.y += this.speedY; this.life -= 0.02; }
+        draw() {
+            ctx.globalAlpha = this.life; ctx.fillStyle = this.color;
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
+            ctx.globalAlpha = 1.0;
+        }
+    }
+
+    // --- Game Lifecycle ---
+    document.getElementById('btn-start-game').addEventListener('click', () => {
+        const name = document.getElementById('nickname-input').value.trim();
+        currentNickname = name ? name.toUpperCase() : "PILOT";
+        initAudio();
+        if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        document.getElementById('start-screen').style.display = 'none';
+        resetGame();
+    });
+    
+    document.getElementById('btn-retry').addEventListener('click', resetGame);
+    document.getElementById('mute-btn').addEventListener('click', () => {
+        isMuted = !isMuted;
+        document.getElementById('mute-btn').innerText = isMuted ? "🔇" : "🔊";
+        if(audioCtx) isMuted ? audioCtx.suspend() : audioCtx.resume();
+    });
+
+    function resetGame() {
+        isGameOver = false;
+        obstacles = [];
+        particles = [];
+        gameSpeed = 10;
+        spawnRate = 0.02;
+        player.x = canvas.width/2 - 25;
+        document.getElementById('game-over-screen').style.display = 'none';
+        startTime = Date.now();
+        stopEngine(); startEngine(); playBGM();
+        update();
+    }
+
+    function createExplosion(x, y, color) {
+        for(let i=0; i<30; i++) particles.push(new Particle(x, y, color));
+    }
+
+    function gameOver() {
+        isGameOver = true;
+        cancelAnimationFrame(animationId);
+        stopEngine(); clearInterval(bgmInterval); playSound('crash');
+        
+        let dieAnim = setInterval(() => {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            drawRoad(); 
+            drawF1Car(player.x, player.y, '#333', true);
+            particles.forEach(p => { p.update(); p.draw(); });
+        }, 16);
+        setTimeout(() => clearInterval(dieAnim), 1000);
+
+        const timeStr = timerEl.innerText;
+        document.getElementById('final-time').innerText = timeStr;
+        document.getElementById('game-over-screen').style.display = 'flex';
+        saveRankingToDB(currentNickname, timeStr, Date.now() - startTime);
+    }
+
+    function drawRoad() {
+        const grad = ctx.createLinearGradient(0,0,0,canvas.height);
+        grad.addColorStop(0, '#050510'); grad.addColorStop(1, '#200f30');
+        ctx.fillStyle = grad; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+        ctx.strokeStyle = 'rgba(188, 19, 254, 0.2)'; ctx.lineWidth = 1;
+        ctx.beginPath();
+        const gridH = 60; const off = laneOffset % gridH;
+        for(let i=-1; i<canvas.height/gridH+1; i++) {
+            let y = i*gridH + off; ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
+        }
+        // 차선 그리기 (5차선 대응)
+        const laneW = canvas.width / LANE_COUNT;
+        for(let i=1; i<LANE_COUNT; i++) {
+            let x = i * laneW; ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
+        }
+        ctx.stroke();
+
+        ctx.shadowBlur = 15; ctx.shadowColor = '#00f3ff'; ctx.strokeStyle = '#00f3ff'; ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(2,0); ctx.lineTo(2,canvas.height);
+        ctx.moveTo(canvas.width-2,0); ctx.lineTo(canvas.width-2,canvas.height);
+        ctx.stroke(); ctx.shadowBlur = 0;
+    }
+
+    function drawF1Car(x, y, color, isPlayer) {
+        ctx.save(); ctx.translate(x, y);
+        ctx.shadowBlur = 10; ctx.shadowColor = color; ctx.fillStyle = color;
+        ctx.beginPath();
+        if(isPlayer) { ctx.moveTo(25, 0); ctx.lineTo(50, 80); ctx.lineTo(25, 70); ctx.lineTo(0, 80); } 
+        else { ctx.moveTo(0,0); ctx.lineTo(50,0); ctx.lineTo(25,90); }
+        ctx.fill();
+        ctx.shadowBlur = 15; ctx.shadowColor = 'white'; ctx.fillStyle = 'white';
+        ctx.beginPath(); ctx.arc(25, isPlayer?40:20, 5, 0, Math.PI*2); ctx.fill();
+        ctx.restore();
+    }
+
+    function update() {
+        if(isGameOver) return;
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        
+        laneOffset += gameSpeed;
+        updateEngine(gameSpeed);
+        drawRoad();
+
+        player.x += inputDirection * player.speed;
+        if(player.x < 15) player.x = 15;
+        if(player.x > canvas.width - 65) player.x = canvas.width - 65;
+        drawF1Car(player.x, player.y, player.color, true);
+
+        if(Math.random() < spawnRate) {
+            // 5차선 로직 적용
+            const lane = Math.floor(Math.random() * LANE_COUNT);
+            const laneWidth = canvas.width / LANE_COUNT;
+            // 차선의 정중앙 좌표 계산
+            const lx = lane * laneWidth + (laneWidth / 2) - 25;
+            
+            let safe = true;
+            obstacles.forEach(o => { if(o.y < 200 && Math.abs(o.x - lx) < 50) safe = false; });
+            
+            if(safe) {
+                if(Math.random() < 0.15) {
+                     const left = Math.random() > 0.5;
+                     obstacles.push({ type:'ball', x: left?-50:450, y: Math.random()*300+100, dx: left?gameSpeed: -gameSpeed, width:30, height:30 });
+                } else {
+                    const c = ['#ff0055', '#ffcc00', '#aa00ff'][Math.floor(Math.random()*3)];
+                    obstacles.push({ type:'car', x: lx, y: -100, speed: gameSpeed-2, color: c, width:50, height:90 });
+                }
+            }
+        }
+
+        for(let i=0; i<obstacles.length; i++) {
+            let o = obstacles[i];
+            if(o.type === 'ball') {
+                o.x += o.dx; o.y += gameSpeed * 0.6;
+                ctx.save(); ctx.translate(o.x, o.y); 
+                ctx.shadowBlur = 10; ctx.shadowColor = 'red'; ctx.fillStyle='white'; 
+                ctx.beginPath(); ctx.arc(15,15,10,0,Math.PI*2); ctx.fill(); ctx.restore();
+            } else {
+                o.y += o.speed;
+                drawF1Car(o.x, o.y, o.color, false);
+            }
+
+            const padding = 8;
+            if (player.x + padding < o.x + o.width - padding &&
+                player.x + player.width - padding > o.x + padding &&
+                player.y + padding < o.y + o.height - padding &&
+                player.y + player.height - padding > o.y + padding) {
+                
+                createExplosion(player.x + 25, player.y + 45, player.color);
+                createExplosion(o.x + 25, o.y + 45, o.color || 'white');
+                gameOver(); return;
+            }
+
+            if(o.y > canvas.height + 100 || o.x < -100 || o.x > canvas.width + 100) {
+                obstacles.splice(i, 1); i--;
+            }
+        }
+
+        const elapsed = Date.now() - startTime;
+        if (elapsed > 5000 && elapsed % 5000 < 20) { gameSpeed += 0.5; spawnRate += 0.003; }
+        
+        const min = String(Math.floor(elapsed/60000)).padStart(2,'0');
+        const sec = String(Math.floor((elapsed%60000)/1000)).padStart(2,'0');
+        const ms = String(Math.floor((elapsed%1000)/10)).padStart(2,'0');
+        timerEl.innerText = `${min}:${sec}.${ms}`;
+
+        animationId = requestAnimationFrame(update);
+    }
+</script>
+</body>
+</html>
