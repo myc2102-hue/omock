@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>운명의 메뉴 선택 - FINAL LAYOUT</title>
+    <title>운명의 메뉴 선택 - FINAL EDITION</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -16,7 +16,7 @@
             --gold: #f1c40f;
             --neon-green: #00ff88;
             --neon-red: #ff0055;
-            --neon-blue: #0984e3;
+            --neon-blue: #00d2d3;
             --screen-bg: #fff;
             --pixel-font: 'Press Start 2P', cursive;
             --tech-font: 'Share Tech Mono', monospace;
@@ -31,7 +31,7 @@
             display: flex; justify-content: center; align-items: flex-start;
             min-height: 100vh; margin: 0; font-family: 'Do Hyeon', sans-serif;
             color: white;
-            padding-top: 60px; /* 상단 배너 공간 */
+            padding-top: 60px;
             box-sizing: border-box;
             overflow-y: auto;
         }
@@ -49,7 +49,7 @@
         .blink-text { animation: blink-text 2s infinite; font-weight: bold; }
         @keyframes blink-text { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        /* 📐 전체 레이아웃 (좌:사이드바, 우:게임) */
+        /* 📐 전체 레이아웃 */
         .main-layout {
             display: flex;
             flex-direction: row;
@@ -61,38 +61,26 @@
             padding: 20px;
         }
 
-        /* 👈 왼쪽 사이드바 (랭킹 + 채팅) */
         .left-sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            width: 320px; /* 사이드바 너비 고정 */
-            flex-shrink: 0;
+            display: flex; flex-direction: column; gap: 20px;
+            width: 320px; flex-shrink: 0;
         }
 
-        /* 👉 오른쪽 게임 컨테이너 */
         .game-container {
-            flex-grow: 1;
-            width: 100%;
-            max-width: 450px;
+            flex-grow: 1; width: 100%; max-width: 450px;
         }
 
-        /* 모바일 반응형 (좁은 화면) */
         @media (max-width: 850px) {
             .main-layout { flex-direction: column; align-items: center; }
-            .left-sidebar { width: 100%; max-width: 450px; order: 2; } /* 게임 아래로 이동 */
-            .game-container { width: 100%; order: 1; } /* 게임이 먼저 나옴 */
+            .left-sidebar { width: 100%; max-width: 450px; order: 2; }
+            .game-container { width: 100%; order: 1; }
         }
 
-        /* 🏆 랭킹 패널 디자인 */
+        /* 🏆 랭킹 패널 */
         .ranking-panel {
-            width: 100%; /* 부모 너비에 맞춤 */
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid var(--gold);
-            border-radius: 15px;
-            padding: 20px;
-            box-sizing: border-box;
-            box-shadow: 0 0 20px rgba(241, 196, 15, 0.1);
+            width: 100%; background: rgba(0, 0, 0, 0.8);
+            border: 2px solid var(--gold); border-radius: 15px; padding: 20px;
+            box-sizing: border-box; box-shadow: 0 0 20px rgba(241, 196, 15, 0.1);
             font-family: var(--tech-font);
         }
         .ranking-title {
@@ -112,17 +100,28 @@
         .ranking-item:nth-child(2) .rank-num { color: #c0c0c0; }
         .ranking-item:nth-child(3) .rank-num { color: #cd7f32; }
 
-        /* 💬 채팅 패널 디자인 */
+        /* 💬 채팅 패널 */
         .chat-panel {
-            width: 100%; /* 부모 너비에 맞춤 */
-            background-color: #000; border: 1px solid #555; border-radius: 10px;
+            width: 100%; background-color: #000; border: 1px solid #555; border-radius: 10px;
             padding: 15px; box-sizing: border-box; font-family: var(--tech-font);
             box-shadow: 0 0 20px rgba(0, 255, 136, 0.05);
         }
-        .chat-header { font-size: 0.8rem; color: #aaa; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .chat-header {
+            font-size: 0.8rem; color: #aaa; border-bottom: 1px solid #333;
+            padding-bottom: 5px; margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .online-status {
+            color: var(--neon-green); font-weight: bold;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .status-led {
+            width: 8px; height: 8px; background-color: var(--neon-green);
+            border-radius: 50%; box-shadow: 0 0 5px var(--neon-green);
+            animation: blink 1.5s infinite;
+        }
         .chat-messages {
-            height: 200px; /* 채팅창 높이 */
-            overflow-y: auto; border: 1px solid #222; padding: 5px; margin-bottom: 10px;
+            height: 200px; overflow-y: auto; border: 1px solid #222; padding: 5px; margin-bottom: 10px;
             font-size: 0.8rem; color: #ddd; scrollbar-width: thin; scrollbar-color: #444 #111;
         }
         .chat-messages::-webkit-scrollbar { width: 5px; }
@@ -131,14 +130,25 @@
         .msg-nick { color: var(--neon-green); font-weight: bold; margin-right: 5px; }
         .msg-text { color: #fff; }
         .sys-msg { color: #aaa; font-style: italic; }
-
         .chat-input-area { display: flex; gap: 5px; flex-wrap: wrap;}
         .nick-input { background: #111; border: 1px solid #333; color: var(--gold); padding: 8px; width: 70px; font-family: 'Do Hyeon', sans-serif; border-radius: 3px; text-align: center; }
         .chat-input { background: #111; border: 1px solid #333; color: white; padding: 8px; flex-grow: 1; font-family: 'Do Hyeon', sans-serif; border-radius: 3px; }
         .send-btn { width: auto; padding: 0 15px; font-size: 0.9rem; background: #333; border: 1px solid #555; border-radius: 3px; box-shadow: none; color: white; cursor: pointer; }
         .send-btn:hover { background: #444; }
 
-        /* 🎰 슬롯머신 본체 */
+        /* 👥 누적 방문자 패널 */
+        .visitor-panel {
+            width: 100%; background-color: #000; border: 1px solid #333;
+            border-radius: 10px; padding: 15px; box-sizing: border-box;
+            font-family: var(--tech-font); display: flex; align-items: center; gap: 15px;
+            box-shadow: 0 0 15px rgba(0, 210, 211, 0.1);
+        }
+        .visitor-icon { font-size: 1.5rem; }
+        .visitor-info { display: flex; flex-direction: column; }
+        .visitor-label { font-size: 0.7rem; color: #aaa; margin-bottom: 5px; }
+        .visitor-count { font-size: 1.3rem; color: var(--neon-blue); font-weight: bold; font-family: 'Black Han Sans', sans-serif; letter-spacing: 1px; text-shadow: 0 0 10px var(--neon-blue); }
+
+        /* 🎰 슬롯머신 */
         .slot-machine {
             background: linear-gradient(180deg, #2d3436 0%, #000 100%);
             width: 100%; padding: 30px; border-radius: 20px;
@@ -146,7 +156,6 @@
             border: 4px solid var(--machine-border);
             text-align: center; position: relative; box-sizing: border-box;
         }
-
         .server-status-bar {
             background: #000; border: 1px solid #333; padding: 8px 15px;
             border-radius: 5px; margin-bottom: 20px; display: flex;
@@ -208,8 +217,11 @@
 
         <div class="chat-panel">
             <div class="chat-header">
-                <span>SECURE COMMS v1.4</span>
-                <span>FILTER ON</span>
+                <span>SECURE COMMS</span>
+                <span class="online-status">
+                    <div class="status-led"></div>
+                    <span id="chat-online-count">0</span> ONLINE
+                </span>
             </div>
             <div class="chat-messages" id="chat-box">
                 <div class="msg-line sys-msg">>> System initialized...</div>
@@ -221,13 +233,21 @@
             </div>
         </div>
 
+        <div class="visitor-panel">
+            <div class="visitor-icon">👥</div>
+            <div class="visitor-info">
+                <span class="visitor-label">TOTAL VISITORS</span>
+                <span class="visitor-count" id="total-visitor-count">LOADING...</span>
+            </div>
+        </div>
+
     </div>
 
     <div class="game-container">
         <div class="slot-machine">
             <div class="server-status-bar">
                 <div><span class="live-dot" id="status-dot"></span><span id="conn-text">CONNECTING...</span></div>
-                <div style="font-size: 0.8rem; color: #00cec9;">ACTIVE NODES: <span id="online-count">0</span></div>
+                <div style="font-size: 0.8rem; color: #666;">SERVER: KOR-1</div>
             </div>
 
             <h1>🎰 MENU PICK 🎰</h1>
@@ -262,7 +282,7 @@
 
 <script>
     // ========================================================
-    // 🟢 파이어베이스 설정 (적용됨)
+    // 🟢 파이어베이스 설정
     // ========================================================
     const firebaseConfig = {
       apiKey: "AIzaSyBSxM3W_RkCt8poqQJxVhIgYMPqLuZgT6Y",
@@ -315,11 +335,12 @@
     const resultDisplay = document.getElementById('result-display');
     const connText = document.getElementById('conn-text');
     const statusDot = document.getElementById('status-dot');
-    const onlineCountSpan = document.getElementById('online-count');
+    const chatOnlineCount = document.getElementById('chat-online-count');
     const chatBox = document.getElementById('chat-box');
     const nickInput = document.getElementById('my-nick');
     const msgInput = document.getElementById('my-msg');
     const rankingList = document.getElementById('ranking-list');
+    const totalVisitorCount = document.getElementById('total-visitor-count');
 
     // 📡 기능 1: 접속자 수 & 상태
     const onlineRef = db.ref(".info/connected");
@@ -343,10 +364,26 @@
     });
 
     presenceRef.on("value", (snap) => {
-        onlineCountSpan.innerText = snap.numChildren();
+        chatOnlineCount.innerText = snap.numChildren();
     });
 
-    // 💬 기능 2: 채팅 전송 (필터 적용)
+    // 👥 기능 2: 누적 방문자 수 (Total Visitors)
+    // 접속 시마다 +1 증가시키고 화면에 표시
+    const globalVisitsRef = db.ref('global_visits');
+    
+    // 1. 증가 로직 (새로고침 시마다 증가)
+    globalVisitsRef.transaction((current) => {
+        return (current || 0) + 1;
+    });
+
+    // 2. 표시 로직 (값이 바뀔 때마다 갱신)
+    globalVisitsRef.on('value', (snap) => {
+        const count = snap.val() || 0;
+        totalVisitorCount.innerText = count.toLocaleString(); // 콤마 찍어서 표시
+    });
+
+
+    // 💬 기능 3: 채팅 전송 (필터 적용)
     function sendChat() {
         const msg = msgInput.value.trim();
         if (msg === "") return;
@@ -382,7 +419,7 @@
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // 🏆 기능 3: 실시간 랭킹 시스템
+    // 🏆 기능 4: 실시간 랭킹 시스템
     const statsRef = db.ref('menu_stats');
 
     // 랭킹 데이터가 변경될 때마다 화면 갱신
@@ -415,14 +452,14 @@
         });
     });
 
-    // 🎰 기능 4: 슬롯머신
+    // 🎰 기능 5: 슬롯머신
     const menus = [
         "김치찌개", "된장찌개", "부대찌개", "비빔밥", "불고기", "갈비탕", "삼계탕", "제육볶음", "떡볶이", "순대국",
         "라면", "김밥", "짜장면", "짬뽕", "탕수육", "마파두부", "양꼬치", "마라탕", "훠궈", "볶음밥",
         "초밥", "돈까스", "우동", "소바", "라멘", "규동", "가츠동", "오코노미야키", "타코야키", "카레",
         "피자", "파스타", "스테이크", "햄버거", "샌드위치", "샐러드", "리조또", "그라탕", "브런치", "타코",
         "쌀국수", "팟타이", "나시고랭", "반미", "분짜", "치킨", "찜닭", "닭갈비", "족발", "보쌈",
-        "설렁탕", "육개장", "칼국수", "수제비", "냉면", "콩국수", "아구찜", "해물찜", "낙지볶음", "오징어덮밥",
+        "설렁탕", "육개장", "칼국수", "수제비", "냉면", "콩국수", "아구찜", "해물찜", "낙지볶음", "오징어덮밥", "구내식당",
         "순두부찌개", "동태탕", "알탕", "감자탕", "뼈해장국", "곰탕", "잡채밥", "유산슬", "깐풍기", "고추잡채",
         "회덮밥", "물회", "연어덮밥", "장어덮밥", "샤브샤브", "편백찜", "만두국", "떡만두국", "토스트", "베이글",
         "서브웨이", "도시락", "컵밥", "봉구스밥버거", "이삭토스트", "맥도날드", "버거킹", "KFC", "맘스터치", "롯데리아",
@@ -506,12 +543,26 @@
         reel.style.transition = `transform ${spinDuration/1000}s cubic-bezier(0.1, 0.9, 0.2, 1)`;
         reel.style.transform = `translateY(${targetY}px)`;
 
+        // 🟢 6초 후 결과 발표 -> 3초 카운트다운 시작
         setTimeout(() => {
-            btn.disabled = false;
-            btn.innerText = "BROADCAST SPIN";
             btn.style.background = ""; 
-            
             resultDisplay.innerHTML = `<span style="color:var(--gold)">${winnerMenu}</span> CONFIRMED`;
+
+            // 쿨타임 시작
+            let countdown = 3;
+            btn.innerText = `WAIT (${countdown})`;
+            
+            const countInterval = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    btn.innerText = `WAIT (${countdown})`;
+                } else {
+                    clearInterval(countInterval);
+                    btn.disabled = false;
+                    btn.innerText = "BROADCAST SPIN";
+                }
+            }, 1000);
+
         }, spinDuration);
     }
 </script>
