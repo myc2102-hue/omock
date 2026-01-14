@@ -3,194 +3,517 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 메뉴 동기화</title>
+    <title>운명의 메뉴 선택 - FINAL LAYOUT</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Press+Start+2P&family=Share+Tech+Mono&display=swap');
+
+        :root {
+            --machine-bg: #1e1e1e;
+            --machine-border: #444;
+            --gold: #f1c40f;
+            --neon-green: #00ff88;
+            --neon-red: #ff0055;
+            --neon-blue: #0984e3;
+            --screen-bg: #fff;
+            --pixel-font: 'Press Start 2P', cursive;
+            --tech-font: 'Share Tech Mono', monospace;
+        }
 
         body {
-            background-color: #2d3436;
+            background-color: #000;
+            background-image: 
+                linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+            display: flex; justify-content: center; align-items: flex-start;
+            min-height: 100vh; margin: 0; font-family: 'Do Hyeon', sans-serif;
             color: white;
-            font-family: 'Do Hyeon', sans-serif;
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            height: 100vh; margin: 0;
+            padding-top: 60px; /* 상단 배너 공간 */
+            box-sizing: border-box;
+            overflow-y: auto;
         }
 
-        .container {
-            text-align: center;
-            width: 90%; max-width: 400px;
-            background: #222; padding: 30px;
-            border-radius: 20px; border: 4px solid #fdcb6e;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        /* 📢 상단 고정 공지 바 */
+        .top-notice-bar {
+            position: fixed; top: 0; left: 0; width: 100%;
+            background-color: rgba(0, 20, 0, 0.95);
+            border-bottom: 1px solid var(--neon-green);
+            color: var(--neon-green); padding: 12px 0;
+            text-align: center; font-size: 0.9rem; z-index: 9999;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+            backdrop-filter: blur(5px); white-space: nowrap; overflow: hidden;
+        }
+        .blink-text { animation: blink-text 2s infinite; font-weight: bold; }
+        @keyframes blink-text { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* 📐 전체 레이아웃 (좌:사이드바, 우:게임) */
+        .main-layout {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            align-items: flex-start;
+            justify-content: center;
+            width: 100%;
+            max-width: 900px;
+            padding: 20px;
         }
 
-        .status {
-            font-size: 0.9rem; color: #00b894; margin-bottom: 10px;
+        /* 👈 왼쪽 사이드바 (랭킹 + 채팅) */
+        .left-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 320px; /* 사이드바 너비 고정 */
+            flex-shrink: 0;
         }
 
-        .slot-window {
-            height: 150px; background: white; color: #333;
-            border-radius: 10px; overflow: hidden; position: relative;
-            margin: 20px 0; border: 3px solid #333;
+        /* 👉 오른쪽 게임 컨테이너 */
+        .game-container {
+            flex-grow: 1;
+            width: 100%;
+            max-width: 450px;
         }
 
-        .reel {
-            list-style: none; padding: 0; margin: 0;
-            transform: translateY(0);
+        /* 모바일 반응형 (좁은 화면) */
+        @media (max-width: 850px) {
+            .main-layout { flex-direction: column; align-items: center; }
+            .left-sidebar { width: 100%; max-width: 450px; order: 2; } /* 게임 아래로 이동 */
+            .game-container { width: 100%; order: 1; } /* 게임이 먼저 나옴 */
         }
 
-        .reel li {
-            height: 150px; display: flex; align-items: center; justify-content: center;
-            font-size: 3rem; font-family: 'Black Han Sans', sans-serif;
-            border-bottom: 1px solid #ddd;
+        /* 🏆 랭킹 패널 디자인 */
+        .ranking-panel {
+            width: 100%; /* 부모 너비에 맞춤 */
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid var(--gold);
+            border-radius: 15px;
+            padding: 20px;
+            box-sizing: border-box;
+            box-shadow: 0 0 20px rgba(241, 196, 15, 0.1);
+            font-family: var(--tech-font);
         }
+        .ranking-title {
+            color: var(--gold); font-family: 'Black Han Sans', sans-serif;
+            font-size: 1.3rem; text-align: center; margin-bottom: 15px;
+            text-shadow: 2px 2px 0 #000; border-bottom: 1px solid #333; padding-bottom: 10px;
+        }
+        .ranking-list { list-style: none; padding: 0; margin: 0; }
+        .ranking-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 5px; border-bottom: 1px solid #333; font-size: 0.9rem;
+        }
+        .rank-num { font-weight: bold; color: var(--neon-green); margin-right: 10px; width: 20px; }
+        .rank-name { flex-grow: 1; color: white; font-family: 'Do Hyeon', sans-serif; }
+        .rank-count { color: var(--gold); font-weight: bold; }
+        .ranking-item:nth-child(1) .rank-num { color: #ffd700; text-shadow: 0 0 5px #ffd700; font-size: 1.1rem; }
+        .ranking-item:nth-child(2) .rank-num { color: #c0c0c0; }
+        .ranking-item:nth-child(3) .rank-num { color: #cd7f32; }
+
+        /* 💬 채팅 패널 디자인 */
+        .chat-panel {
+            width: 100%; /* 부모 너비에 맞춤 */
+            background-color: #000; border: 1px solid #555; border-radius: 10px;
+            padding: 15px; box-sizing: border-box; font-family: var(--tech-font);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.05);
+        }
+        .chat-header { font-size: 0.8rem; color: #aaa; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .chat-messages {
+            height: 200px; /* 채팅창 높이 */
+            overflow-y: auto; border: 1px solid #222; padding: 5px; margin-bottom: 10px;
+            font-size: 0.8rem; color: #ddd; scrollbar-width: thin; scrollbar-color: #444 #111;
+        }
+        .chat-messages::-webkit-scrollbar { width: 5px; }
+        .chat-messages::-webkit-scrollbar-thumb { background: #444; }
+        .msg-line { margin-bottom: 4px; word-break: break-all; }
+        .msg-nick { color: var(--neon-green); font-weight: bold; margin-right: 5px; }
+        .msg-text { color: #fff; }
+        .sys-msg { color: #aaa; font-style: italic; }
+
+        .chat-input-area { display: flex; gap: 5px; flex-wrap: wrap;}
+        .nick-input { background: #111; border: 1px solid #333; color: var(--gold); padding: 8px; width: 70px; font-family: 'Do Hyeon', sans-serif; border-radius: 3px; text-align: center; }
+        .chat-input { background: #111; border: 1px solid #333; color: white; padding: 8px; flex-grow: 1; font-family: 'Do Hyeon', sans-serif; border-radius: 3px; }
+        .send-btn { width: auto; padding: 0 15px; font-size: 0.9rem; background: #333; border: 1px solid #555; border-radius: 3px; box-shadow: none; color: white; cursor: pointer; }
+        .send-btn:hover { background: #444; }
+
+        /* 🎰 슬롯머신 본체 */
+        .slot-machine {
+            background: linear-gradient(180deg, #2d3436 0%, #000 100%);
+            width: 100%; padding: 30px; border-radius: 20px;
+            box-shadow: 0 0 60px rgba(0, 255, 136, 0.15);
+            border: 4px solid var(--machine-border);
+            text-align: center; position: relative; box-sizing: border-box;
+        }
+
+        .server-status-bar {
+            background: #000; border: 1px solid #333; padding: 8px 15px;
+            border-radius: 5px; margin-bottom: 20px; display: flex;
+            justify-content: space-between; align-items: center;
+            font-family: var(--tech-font); font-size: 0.9rem; color: var(--neon-green);
+        }
+        .live-dot {
+            width: 8px; height: 8px; background: var(--neon-green); border-radius: 50%;
+            box-shadow: 0 0 8px var(--neon-green); animation: blink 1s infinite; display: inline-block; margin-right: 5px;
+        }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        h1 { color: var(--gold); margin: 0 0 15px 0; font-size: 2.5rem; font-family: 'Black Han Sans', sans-serif; text-shadow: 3px 3px 0px #000; -webkit-text-stroke: 1px #000; }
+
+        .curse-warning {
+            background-color: rgba(255, 0, 85, 0.1); color: #ecf0f1; padding: 12px;
+            border-radius: 5px; margin-bottom: 20px; font-size: 1rem; line-height: 1.4;
+            border: 1px dashed var(--neon-red); text-shadow: 1px 1px 2px black;
+        }
+        .curse-warning span { color: var(--neon-red); font-weight: bold; }
+
+        .window-frame { background-color: #333; padding: 10px; border-radius: 10px; margin-bottom: 10px; border: 2px solid var(--gold); }
+        .window { height: 100px; background-color: var(--screen-bg); border-radius: 5px; overflow: hidden; position: relative; border: 3px solid #000; }
+        .reel { list-style: none; padding: 0; margin: 0; transform: translateY(0); }
+        .reel li { height: 100px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; color: #333; border-bottom: 1px dashed #ddd; box-sizing: border-box; }
+        .highlight-text { color: var(--neon-red) !important; text-shadow: 1px 1px 0 rgba(0,0,0,0.1); }
+
+        #result-display { font-family: var(--tech-font); color: var(--neon-green); min-height: 1.5rem; margin-bottom: 15px; font-size: 1.1rem; }
 
         button {
-            width: 100%; padding: 20px; font-size: 1.5rem;
-            background: #d63031; color: white; border: none;
-            border-radius: 50px; cursor: pointer;
-            font-family: 'Black Han Sans', sans-serif;
-            transition: 0.2s; box-shadow: 0 5px 0 #b71c1c;
+            background: radial-gradient(circle at 30% 30%, #e17055, #d63031); border: 4px solid #fff; color: white;
+            font-size: 1.5rem; font-family: 'Black Han Sans', sans-serif; padding: 15px 0; border-radius: 50px; cursor: pointer; width: 100%;
+            box-shadow: 0 5px 0 #b71c1c, 0 10px 20px rgba(0,0,0,0.5); transition: all 0.1s; text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
         }
-        button:active { transform: translateY(5px); box-shadow: none; }
-        button:disabled { background: #636e72; cursor: not-allowed; box-shadow: none; }
-        
-        .winner { color: #d63031; }
+        button:active { transform: translateY(5px); box-shadow: 0 0 0 #b71c1c; }
+        button:disabled { filter: grayscale(100%); cursor: progress; background: #555; }
+
+        .marquee-container { background-color: #111; border: 1px solid #333; height: 25px; margin-top: 15px; overflow: hidden; position: relative; display: flex; align-items: center; }
+        .marquee-text { position: absolute; white-space: nowrap; color: var(--gold); font-size: 10px; font-family: var(--pixel-font); animation: marquee 12s linear infinite; }
+        @keyframes marquee { 0% { left: 100%; } 100% { left: -100%; } }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="status">🟢 서버 연결 대기중...</div>
-        <h1>📡 실시간 메뉴 추첨</h1>
+<div class="top-notice-bar">
+    <span class="blink-text">🔴 LIVE</span> 해당페이지에 접속한 인원은 모두 같은 화면을 라이브로 보고있습니다. 아래 실시간 채팅을 이용하세요.
+</div>
+
+<div class="main-layout">
+    
+    <div class="left-sidebar">
         
-        <div class="slot-window">
-            <ul class="reel" id="reel">
-                <li>READY</li>
+        <div class="ranking-panel">
+            <div class="ranking-title">🏆 누적 랭킹 TOP 5</div>
+            <ul class="ranking-list" id="ranking-list">
+                <li style="text-align:center; color:#666; padding:20px;">데이터 불러오는 중...</li>
             </ul>
         </div>
 
-        <button id="spin-btn" onclick="sendTrigger()">다같이 돌리기!</button>
-        <p style="font-size:0.8rem; color:#aaa; margin-top:10px;">내가 누르면 친구 화면도 돌아갑니다</p>
+        <div class="chat-panel">
+            <div class="chat-header">
+                <span>SECURE COMMS v1.4</span>
+                <span>FILTER ON</span>
+            </div>
+            <div class="chat-messages" id="chat-box">
+                <div class="msg-line sys-msg">>> System initialized...</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" class="nick-input" id="my-nick" placeholder="닉네임" maxlength="6">
+                <input type="text" class="chat-input" id="my-msg" placeholder="채팅 입력..." onkeypress="if(event.keyCode==13) sendChat()">
+                <button class="send-btn" onclick="sendChat()">전송</button>
+            </div>
+        </div>
+
     </div>
 
-    <script>
-        // ========================================================
-        // 🔴 [중요] 여기에 본인의 파이어베이스 설정을 붙여넣으세요! 🔴
-        // 아래 내용을 지우고 복사한 firebaseConfig 내용을 넣으세요.
-        // ========================================================
-        const firebaseConfig = {
-          apiKey: "AIzaSyBSxM3W_RkCt8poqQJxVhIgYMPqLuZgT6Y",
-    authDomain: "menusame-6a326.firebaseapp.com",
-    databaseURL: "https://menusame-6a326-default-rtdb.firebaseio.com",
-    projectId: "menusame-6a326",
-    storageBucket: "menusame-6a326.firebasestorage.app",
-    messagingSenderId: "822750462446",
-    appId: "1:822750462446:web:1cc67bd3f2b49e52670eff"
-        };
-        // ========================================================
+    <div class="game-container">
+        <div class="slot-machine">
+            <div class="server-status-bar">
+                <div><span class="live-dot" id="status-dot"></span><span id="conn-text">CONNECTING...</span></div>
+                <div style="font-size: 0.8rem; color: #00cec9;">ACTIVE NODES: <span id="online-count">0</span></div>
+            </div>
 
-        // 1. 파이어베이스 초기화
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        
-        // 연결 상태 확인
-        const statusDiv = document.querySelector('.status');
-        const connectedRef = db.ref(".info/connected");
-        connectedRef.on("value", (snap) => {
-            if (snap.val() === true) {
-                statusDiv.innerHTML = "🟢 서버 연결됨 (준비 완료)";
-            } else {
-                statusDiv.innerHTML = "🔴 연결 끊김";
-            }
-        });
+            <h1>🎰 MENU PICK 🎰</h1>
 
-        // 2. 메뉴 데이터
-        const menus = [
-            "김치찌개", "된장찌개", "부대찌개", "짜장면", "짬뽕", "탕수육",
-            "치킨", "피자", "삼겹살", "떡볶이", "라면", "돈까스",
-            "초밥", "족발", "보쌈", "쌀국수", "마라탕", "국밥"
-        ];
+            <div class="curse-warning">
+                ⚠️ <strong>SYSTEM WARNING</strong> ⚠️<br>
+                선택된 메뉴 섭취 거부 시<br>
+                <span>3일간 생체 리듬(설사) 붕괴됨.</span>
+            </div>
 
-        const reel = document.getElementById('reel');
-        const btn = document.getElementById('spin-btn');
-        let lastTriggerTime = 0;
+            <div class="window-frame">
+                <div class="window">
+                    <ul class="reel" id="reel">
+                        <li>Ready</li>
+                    </ul>
+                </div>
+            </div>
 
-        // --------------------------------------------------------
-        // 기능 A: 버튼 누르면 -> 서버에 "돌려!" 명령 보내기 (쓰기)
-        // --------------------------------------------------------
-        function sendTrigger() {
-            // 미리 당첨 메뉴를 정해서 보냅니다 (그래야 모두가 같은 걸 봄)
-            const winnerIndex = Math.floor(Math.random() * menus.length);
-            
-            // 데이터베이스에 저장
-            db.ref('slot_game').set({
-                timestamp: Date.now(), // 현재 시간
-                winnerIndex: winnerIndex // 당첨 번호
-            });
+            <div id="result-display">WAITING FOR SIGNAL...</div>
+
+            <button id="spin-btn" onclick="sendTrigger()">BROADCAST SPIN</button>
+
+            <div class="marquee-container">
+                <div class="marquee-text">
+                    [개발자 후원] 농협 3020780286881 문x철 (지사제 값 모금중...) &nbsp;&nbsp;&nbsp; ★ WINNER EATS ALL ★
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // ========================================================
+    // 🟢 파이어베이스 설정 (적용됨)
+    // ========================================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyBSxM3W_RkCt8poqQJxVhIgYMPqLuZgT6Y",
+      authDomain: "menusame-6a326.firebaseapp.com",
+      databaseURL: "https://menusame-6a326-default-rtdb.firebaseio.com",
+      projectId: "menusame-6a326",
+      storageBucket: "menusame-6a326.firebasestorage.app",
+      messagingSenderId: "822750462446",
+      appId: "1:822750462446:web:1cc67bd3f2b49e52670eff"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // ========================================================
+    // 🚫 금칙어 리스트 (비속어 필터)
+    // ========================================================
+    const bannedWords = [
+        "시발", "씨발", "ㅅㅂ", "ㅆㅂ", "개새끼", "개새키", "병신", "ㅄ", "ㅂㅅ", "지랄", "ㅈㄹ",
+        "존나", "졸라", "미친", "미친놈", "미친년", "ㅁㅊ", "애자", "창녀", "걸레", "따먹",
+        "느금마", "니애미", "니애비", "엠창", "느개비", "썅", "씨앙", "좆", "좃", "대가리",
+        "호로", "염병", "꺼져", "닥쳐", "아가리", "찐따", "쓰레기", "뒤져", "나가뒤져",
+        "씨부랄", "개놈", "개년", "씹", "씹새", "새끼", "빙신", "호구", "니미", "엿먹어",
+        "섹스", "자지", "보지", "콘돔", "야동", "망가", "성폭행", "강간", "원조교제", "변태",
+        "또라이", "싸가지", "재수없어", "죽어", "살인", "칼빵", "장애인", "맘충", "한남", "김치녀",
+        "짱깨", "쪽바리", "니기미", "옘병", "육시랄", "등신", "모지리", "호로자식", "후레자식",
+        "fuck", "shit", "bitch", "asshole", "dick", "pussy", "cunt", "bastard", "whore",
+        "slut", "nigger", "nigga", "fag", "faggot", "sex", "rape", "penis", "vagina",
+        "cock", "suck", "motherfucker", "fucking", "shitty", "bullshit", "jackass", "douche",
+        "retard", "idiot", "stupid", "moron", "imbecile", "trash", "scum", "loser",
+        "die", "kill", "suicide", "murder", "stfu", "gtfo", "wtf", "omg", "ass",
+        "boobs", "tits", "porn", "xxx", "hentai", "anal", "oral", "orgasm", "cum", "jizz",
+        "damn", "hell", "crap", "piss", "bloody", "wanker", "bollocks", "bugger", "twat",
+        "prick", "sod", "shag", "tosser", "wank", "knob", "bellend", "muppet", "chink",
+        "gook", "spic", "kike", "wetback", "tranny", "shemale", "hitler", "nazi"
+    ];
+
+    function containsBadWord(text) {
+        if (!text) return false;
+        const lowerText = text.toLowerCase().replace(/\s/g, ""); 
+        for (let word of bannedWords) {
+            if (lowerText.includes(word)) return true;
+        }
+        return false;
+    }
+
+    // DOM 요소
+    const reel = document.getElementById('reel');
+    const btn = document.getElementById('spin-btn');
+    const resultDisplay = document.getElementById('result-display');
+    const connText = document.getElementById('conn-text');
+    const statusDot = document.getElementById('status-dot');
+    const onlineCountSpan = document.getElementById('online-count');
+    const chatBox = document.getElementById('chat-box');
+    const nickInput = document.getElementById('my-nick');
+    const msgInput = document.getElementById('my-msg');
+    const rankingList = document.getElementById('ranking-list');
+
+    // 📡 기능 1: 접속자 수 & 상태
+    const onlineRef = db.ref(".info/connected");
+    const presenceRef = db.ref("presence");
+    
+    onlineRef.on("value", (snap) => {
+        if (snap.val() === true) {
+            connText.innerText = "LIVE SYNC ON";
+            connText.style.color = "#00ff88";
+            statusDot.style.backgroundColor = "#00ff88";
+            statusDot.style.boxShadow = "0 0 8px #00ff88";
+            const myCon = presenceRef.push();
+            myCon.onDisconnect().remove();
+            myCon.set(true);
+        } else {
+            connText.innerText = "OFFLINE";
+            connText.style.color = "#ff0055";
+            statusDot.style.backgroundColor = "#ff0055";
+            statusDot.style.boxShadow = "none";
+        }
+    });
+
+    presenceRef.on("value", (snap) => {
+        onlineCountSpan.innerText = snap.numChildren();
+    });
+
+    // 💬 기능 2: 채팅 전송 (필터 적용)
+    function sendChat() {
+        const msg = msgInput.value.trim();
+        if (msg === "") return;
+
+        let nickname = nickInput.value.trim();
+        if (nickname === "") nickname = "익명";
+
+        if (containsBadWord(msg) || containsBadWord(nickname)) {
+            alert("🚫 바른말 고운말을 사용해주세요! (SYSTEM ALERT)\n비속어가 감지되었습니다.");
+            msgInput.value = ""; 
+            return;
         }
 
-        // --------------------------------------------------------
-        // 기능 B: 서버 신호 감지 -> 애니메이션 실행 (읽기)
-        // --------------------------------------------------------
-        const gameRef = db.ref('slot_game');
-        
-        // 누군가 DB를 업데이트하면 이 함수가 자동으로 실행됨
-        gameRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            
-            // 데이터가 있고, 새로 들어온 신호라면 (중복 방지)
-            if (data && data.timestamp > lastTriggerTime) {
-                lastTriggerTime = data.timestamp;
-                runSyncAnimation(data.winnerIndex);
-            }
+        db.ref('chat_logs').push({
+            name: nickname,
+            text: msg,
+            time: Date.now()
         });
 
-        // --------------------------------------------------------
-        // 실제 화면 애니메이션 (공통)
-        // --------------------------------------------------------
-        function runSyncAnimation(winnerIndex) {
-            btn.disabled = true;
-            btn.innerText = "추첨 진행 중...";
-            
-            const winnerMenu = menus[winnerIndex];
-            const itemHeight = 150; 
-            const spinCount = 20;
+        msgInput.value = "";
+    }
 
-            // 릴 초기화
-            reel.style.transition = 'none';
-            reel.style.transform = 'translateY(0)';
-            reel.innerHTML = '';
+    db.ref('chat_logs').limitToLast(30).on('child_added', (snap) => {
+        const data = snap.val();
+        appendMessage(data.name, data.text);
+    });
 
-            // 랜덤 메뉴 채우기
-            for(let i=0; i<spinCount; i++) {
-                const li = document.createElement('li');
-                li.innerText = menus[Math.floor(Math.random() * menus.length)];
-                reel.appendChild(li);
-            }
-            // 마지막 당첨 메뉴
-            const winLi = document.createElement('li');
-            winLi.innerText = winnerMenu;
-            winLi.classList.add('winner');
-            reel.appendChild(winLi);
+    function appendMessage(name, text) {
+        const div = document.createElement('div');
+        div.className = 'msg-line';
+        div.innerHTML = `<span class="msg-nick">[${name}]</span> <span class="msg-text">${text}</span>`;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
 
-            // 강제 리플로우 (애니메이션 꼬임 방지)
-            void reel.offsetWidth;
+    // 🏆 기능 3: 실시간 랭킹 시스템
+    const statsRef = db.ref('menu_stats');
 
-            // 회전 시작
-            const targetY = -(spinCount * itemHeight);
-            reel.style.transition = 'transform 3s cubic-bezier(0.1, 0.9, 0.2, 1)';
-            reel.style.transform = `translateY(${targetY}px)`;
-
-            // 종료 후 복구
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.innerText = "다같이 돌리기!";
-            }, 3000);
+    // 랭킹 데이터가 변경될 때마다 화면 갱신
+    statsRef.on('value', (snap) => {
+        const data = snap.val();
+        if(!data) {
+            rankingList.innerHTML = '<li style="text-align:center; padding:10px; color:#aaa;">아직 기록이 없습니다</li>';
+            return;
         }
-    </script>
+
+        const sortedMenus = Object.entries(data)
+            .sort((a, b) => b[1] - a[1]) 
+            .slice(0, 5); 
+
+        rankingList.innerHTML = '';
+        sortedMenus.forEach((item, index) => {
+            const menuName = item[0];
+            const count = item[1];
+            
+            const li = document.createElement('li');
+            li.className = 'ranking-item';
+            li.innerHTML = `
+                <div style="display:flex; align-items:center; width:100%;">
+                    <span class="rank-num">${index + 1}</span>
+                    <span class="rank-name">${menuName}</span>
+                    <span class="rank-count">${count}회</span>
+                </div>
+            `;
+            rankingList.appendChild(li);
+        });
+    });
+
+    // 🎰 기능 4: 슬롯머신
+    const menus = [
+        "김치찌개", "된장찌개", "부대찌개", "비빔밥", "불고기", "갈비탕", "삼계탕", "제육볶음", "떡볶이", "순대국",
+        "라면", "김밥", "짜장면", "짬뽕", "탕수육", "마파두부", "양꼬치", "마라탕", "훠궈", "볶음밥",
+        "초밥", "돈까스", "우동", "소바", "라멘", "규동", "가츠동", "오코노미야키", "타코야키", "카레",
+        "피자", "파스타", "스테이크", "햄버거", "샌드위치", "샐러드", "리조또", "그라탕", "브런치", "타코",
+        "쌀국수", "팟타이", "나시고랭", "반미", "분짜", "치킨", "찜닭", "닭갈비", "족발", "보쌈",
+        "설렁탕", "육개장", "칼국수", "수제비", "냉면", "콩국수", "아구찜", "해물찜", "낙지볶음", "오징어덮밥",
+        "순두부찌개", "동태탕", "알탕", "감자탕", "뼈해장국", "곰탕", "잡채밥", "유산슬", "깐풍기", "고추잡채",
+        "회덮밥", "물회", "연어덮밥", "장어덮밥", "샤브샤브", "편백찜", "만두국", "떡만두국", "토스트", "베이글",
+        "서브웨이", "도시락", "컵밥", "봉구스밥버거", "이삭토스트", "맥도날드", "버거킹", "KFC", "맘스터치", "롯데리아",
+        "곱창", "막창", "대창", "양대창", "닭발", "오돌뼈", "껍데기", "삼겹살", "목살", "항정살"
+    ];
+
+    let lastTriggerTime = 0;
+    const itemHeight = 100;
+
+    function sendTrigger() {
+        if(btn.disabled) return;
+        
+        let myNick = nickInput.value.trim();
+        if (myNick === "") myNick = "익명";
+
+        if (containsBadWord(myNick)) {
+             alert("🚫 닉네임에 비속어가 포함되어 있습니다.");
+             return;
+        }
+
+        const winnerIndex = Math.floor(Math.random() * menus.length);
+        const winnerMenu = menus[winnerIndex];
+
+        // 1. 게임 상태 업데이트
+        db.ref('slot_game_state').set({
+            timestamp: Date.now(),
+            winnerIndex: winnerIndex,
+            sender: myNick
+        });
+
+        // 2. [랭킹 업데이트]
+        db.ref(`menu_stats/${winnerMenu}`).transaction((current) => {
+            return (current || 0) + 1;
+        });
+    }
+
+    const gameRef = db.ref('slot_game_state');
+    gameRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data && data.timestamp > lastTriggerTime) {
+            lastTriggerTime = data.timestamp;
+            
+            const sender = data.sender || 'UNKNOWN';
+            appendMessage("SYSTEM", `>> Trigger signal from [${sender}]`);
+            
+            runSyncAnimation(data.winnerIndex);
+        }
+    });
+
+    function runSyncAnimation(winnerIndex) {
+        btn.disabled = true;
+        btn.innerText = "SYNCING...";
+        btn.style.background = "#555";
+        
+        resultDisplay.innerText = "DECRYPTING DATA...";
+        resultDisplay.style.color = "#aaa";
+
+        const winnerMenu = menus[winnerIndex];
+        
+        // ⚡ 6초 회전
+        const spinCount = 60; 
+        const spinDuration = 6000; 
+
+        reel.style.transition = 'none';
+        reel.style.transform = 'translateY(0)';
+        reel.innerHTML = '';
+
+        for(let i=0; i<spinCount; i++) {
+            const li = document.createElement('li');
+            li.innerText = menus[Math.floor(Math.random() * menus.length)];
+            reel.appendChild(li);
+        }
+        const winLi = document.createElement('li');
+        winLi.innerText = winnerMenu;
+        winLi.classList.add('highlight-text');
+        reel.appendChild(winLi);
+
+        void reel.offsetWidth;
+
+        const targetY = -(spinCount * itemHeight);
+        reel.style.transition = `transform ${spinDuration/1000}s cubic-bezier(0.1, 0.9, 0.2, 1)`;
+        reel.style.transform = `translateY(${targetY}px)`;
+
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.innerText = "BROADCAST SPIN";
+            btn.style.background = ""; 
+            
+            resultDisplay.innerHTML = `<span style="color:var(--gold)">${winnerMenu}</span> CONFIRMED`;
+        }, spinDuration);
+    }
+</script>
 </body>
 </html>
