@@ -12,60 +12,80 @@
             --neon-pink: #bc13fe; 
             --neon-green: #0aff0a;
             --bg-dark: #050510;
-            --chat-height-mobile: 85px;
+            --chat-height-mobile: 140px;
+            --game-max-width: 450px;
         }
         
         * { box-sizing: border-box; }
 
         body {
             margin: 0; padding: 0; 
-            background-color: var(--bg-dark); 
+            background-color: #000;
             color: white;
             font-family: 'Orbitron', sans-serif; 
-            min-height: 100vh; overflow: hidden;
+            height: 100vh; overflow: hidden;
             display: flex; flex-direction: column;
-            justify-content: center; /* PC에서는 중앙 정렬 */
-            align-items: center;
+            align-items: center; justify-content: center;
             touch-action: none; 
             user-select: none; -webkit-user-select: none;
         }
 
-        .main-container { 
-            position: relative;
-            display: flex; flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
+        /* 배경 블러 효과 */
+        body::before {
+            content: "";
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                linear-gradient(transparent 95%, var(--neon-pink) 100%),
+                linear-gradient(90deg, transparent 95%, var(--neon-blue) 100%),
+                linear-gradient(180deg, #050510 0%, #200f30 100%);
+            background-size: 40px 40px, 40px 40px, 100% 100%;
+            filter: blur(8px) brightness(0.4);
+            z-index: -1;
         }
 
-        /* === 게임 영역 === */
+        .main-container { 
+            position: relative;
+            width: 100%; height: 100%;
+            display: flex; 
+            flex-direction: row; /* 기본 가로 정렬 (PC) */
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        /* === 🎮 게임 영역 === */
         .game-area { 
             position: relative; 
-            width: 100vw; 
-            height: 75vh; 
-            max-width: 450px; max-height: 750px;
-            border: 2px solid var(--neon-pink); 
-            border-radius: 8px; 
-            box-shadow: 0 0 30px rgba(188, 19, 254, 0.3); 
+            width: 100%; 
+            max-width: var(--game-max-width); 
+            
+            /* PC 기본 높이 */
+            height: 650px; 
+            aspect-ratio: 400 / 750;
+            
+            border: 3px solid var(--neon-pink); 
+            border-radius: 12px;
+            box-shadow: 0 0 50px rgba(188, 19, 254, 0.5); 
             background: #000;
             overflow: hidden;
-            transition: height 0.3s;
+            flex-shrink: 0; 
         }
-        canvas { display: block; width: 100%; height: 100%; }
+        
+        canvas { display: block; width: 100%; height: 100%; object-fit: fill; }
         
         /* UI 오버레이 */
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         
         #timer-display {
-            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
-            font-size: 24px; font-weight: 900; color: var(--neon-green);
-            text-shadow: 0 0 10px var(--neon-green); z-index: 10;
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            font-size: 28px; font-weight: 900; color: var(--neon-green);
+            text-shadow: 0 0 15px var(--neon-green); z-index: 10;
         }
 
         /* 랭킹 패널 */
         .mini-ranking {
-            position: absolute; top: 10px; left: 10px;
-            width: 140px; 
+            position: absolute; top: 15px; left: 15px;
+            width: 130px; 
             background: rgba(0, 0, 0, 0.7); 
             border: 1px solid var(--neon-blue);
             border-radius: 5px; padding: 8px;
@@ -85,7 +105,7 @@
 
         /* 실시간 경쟁 트랙 */
         .competitor-track {
-            position: absolute; top: 70px; right: 15px; bottom: 70px;
+            position: absolute; top: 80px; right: 15px; bottom: 80px; 
             width: 4px; background: rgba(255, 255, 255, 0.15);
             border-radius: 2px; z-index: 30; display: none;
         }
@@ -116,7 +136,7 @@
         .online-dot { width: 6px; height: 6px; background: var(--neon-green); border-radius: 50%; box-shadow: 0 0 5px var(--neon-green); }
 
         #mute-btn {
-            position: absolute; top: 10px; right: 10px; width: 36px; height: 36px;
+            position: absolute; top: 15px; right: 15px; width: 36px; height: 36px;
             background: rgba(0,0,0,0.6); border: 1px solid var(--neon-blue); 
             color: var(--neon-blue); font-size: 16px; cursor: pointer; pointer-events: auto; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center;
@@ -150,14 +170,45 @@
         .btn-neon:active { transform: scale(0.95); background: var(--neon-pink); }
 
         /* ========================================= */
-        /* 💬 채팅창 */
+        /* 🕹️ 컨트롤러 (PC/모바일 공통 - 항상 보임) */
+        /* ========================================= */
+        #mobile-controls {
+            position: absolute; 
+            bottom: 30px; 
+            left: 0; width: 100%;
+            display: flex; justify-content: space-between; 
+            padding: 0 20px; 
+            pointer-events: none; /* 빈 공간 클릭 투과 */
+            z-index: 80; 
+        }
+        
+        .ctrl-btn {
+            width: 60px; height: 60px; 
+            background: rgba(0, 243, 255, 0.15); 
+            color: var(--neon-blue); 
+            border: 2px solid var(--neon-blue); 
+            border-radius: 50%;
+            font-size: 28px; 
+            cursor: pointer; pointer-events: auto;
+            box-shadow: 0 0 15px var(--neon-blue);
+            display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(4px); 
+            opacity: 0.7; 
+            transition: opacity 0.1s, transform 0.1s;
+        }
+        .ctrl-btn:active { 
+            background: var(--neon-blue); color: #000; 
+            opacity: 1; transform: scale(0.95);
+        }
+
+        /* ========================================= */
+        /* 💬 채팅창 공통 스타일 */
         /* ========================================= */
         #chat-container {
-            position: fixed;
-            background: rgba(5, 5, 16, 0.9);
+            background: rgba(5, 5, 16, 0.95);
             border: 1px solid var(--neon-blue);
             display: flex; flex-direction: column;
-            z-index: 199;
+            z-index: 200; 
             box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
         }
 
@@ -194,77 +245,96 @@
             padding: 0 12px; margin-left: 5px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px;
         }
 
-        /* PC Layout */
+        /* ================================ */
+        /* 🖥️ PC 전용 레이아웃 (901px ~) */
+        /* ================================ */
         @media (min-width: 901px) {
-            #chat-container {
-                right: 20px; top: 50%; transform: translateY(-50%);
-                width: 250px; height: 600px;
-                border-radius: 10px;
+            .main-container {
+                flex-direction: row; 
+                align-items: center; justify-content: center;
             }
+
+            /* 채팅창: 게임 화면 옆에 붙이기 */
+            #chat-container {
+                position: relative; /* 메인 컨테이너 흐름 따름 */
+                width: 250px; 
+                height: 650px; 
+                border-radius: 10px;
+                margin-left: 20px; /* 게임화면과 간격 */
+            }
+            
+            /* PC에서는 컨트롤러 숨김 */
             #mobile-controls { display: none; }
+            
+            /* 푸터: 채팅창 아래 */
+            .footer-info {
+                position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            }
         }
 
-        /* === 📱 모바일 전용 레이아웃 (Top-Zero, Compact Chat) === */
+        /* ================================== */
+        /* 📱 모바일 전용 레이아웃 (~ 900px) */
+        /* ================================== */
         @media (max-width: 900px) {
-            /* 1. Body 정렬을 위쪽으로 변경 */
+            /* 1. 상단 정렬 및 여백 제거 */
             body { 
                 justify-content: flex-start; 
-                background-color: #000; /* 상단 빈 공간 검게 */
+                background-color: #000; 
             }
             
             .main-container { 
                 justify-content: flex-start; 
                 width: 100%;
+                /* 채팅창 제외한 전체 영역 */
+                height: calc(100vh - var(--chat-height-mobile)); 
             }
             
-            /* 2. 게임 화면: 상단 마진 0, 높이는 전체에서 채팅창 만큼 뺌 */
+            /* 2. 게임 화면: 상단 마진 0 (완전 밀착) */
             .game-area {
-                margin-top: 0;
-                border-top: none; /* 상단 테두리 제거 */
-                border-radius: 0 0 8px 8px; /* 하단만 둥글게 */
+                margin: 0 auto;
+                border-top: none; 
+                border-radius: 0 0 12px 12px;
                 width: 100%;
-                /* 채팅창 높이만큼 뺀 나머지 전체 */
-                height: calc(100vh - var(--chat-height-mobile)); 
-                max-height: none;
-                max-width: none; /* 너비 제한 해제 */
+                /* 채팅창 높이 빼고 나머지 꽉 채우되 비율 유지 */
+                height: auto;
+                max-height: calc(100vh - var(--chat-height-mobile));
+                
+                /* 비율 고정 */
+                aspect-ratio: 400 / 750;
             }
 
-            /* 채팅창: 하단 고정 */
+            /* 3. 채팅창: 하단 고정 */
             #chat-container {
-                left: 0; bottom: 0; width: 100%; height: var(--chat-height-mobile);
+                position: fixed;
+                left: 0; bottom: 0; width: 100%; 
+                height: var(--chat-height-mobile); /* 140px */
                 border-radius: 0; border-left: none; border-right: none; border-bottom: none;
                 background: rgba(0, 0, 0, 0.95);
             }
             .chat-header { display: none; }
+            
             #chat-messages {
-                padding: 5px 10px;
-                mask-image: linear-gradient(to bottom, transparent, black 30%);
-                -webkit-mask-image: linear-gradient(to bottom, transparent, black 30%);
+                padding: 10px;
+                mask-image: linear-gradient(to bottom, transparent 0%, black 20%);
+                -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%);
             }
+            
+            /* 4. 컨트롤러: 게임 화면 내부 하단에 배치 */
             #mobile-controls {
-                position: absolute; bottom: 100px; left: 0; width: 100%;
-                display: flex; justify-content: space-between; padding: 0 30px;
-                pointer-events: none; z-index: 50;
+                position: absolute; 
+                bottom: 20px; 
+                left: 0; width: 100%;
+                display: flex; justify-content: space-between; padding: 0 20px;
+                pointer-events: none; z-index: 60;
             }
-            .ctrl-btn {
-                width: 70px; height: 70px; 
-                background: rgba(0, 243, 255, 0.1); color: var(--neon-blue); 
-                border: 2px solid var(--neon-blue); border-radius: 50%;
-                font-size: 30px; cursor: pointer; pointer-events: auto;
-                box-shadow: 0 0 15px var(--neon-blue);
-                display: flex; align-items: center; justify-content: center;
-                backdrop-filter: blur(2px);
-            }
-            .ctrl-btn:active { background: var(--neon-blue); color: #000; }
+            
+            /* 모바일에서 푸터 숨김 */
+            .footer-info { display: none; }
         }
 
         .footer-info {
-            margin-top: 10px;
-            text-align: center;
-            font-size: 10px; 
-            color: rgba(255, 255, 255, 0.5); 
-            line-height: 1.4;
-            z-index: 10;
+            text-align: center; font-size: 10px; 
+            color: rgba(255, 255, 255, 0.5); line-height: 1.4; z-index: 10;
         }
         .footer-info p { margin: 0; }
         .coffee-link {
@@ -273,9 +343,6 @@
             border-bottom: 1px dashed var(--neon-green);
             padding-bottom: 2px; text-decoration: none;
         }
-        
-        @media (max-width: 900px) { .footer-info { display: none; } }
-        @media (min-width: 901px) { .footer-info { display: block; } }
     </style>
 </head>
 <body>
@@ -322,24 +389,24 @@
         <canvas id="gameCanvas" width="400" height="700"></canvas>
     </div>
 
-    <div class="footer-info">
-        <p>Copyright © 2024 Developer Moon. All rights reserved.</p>
-        <div class="coffee-link">
-            ☕ 개발자 커피 사주기 : 농협 3020780286881 문x철
+    <div id="chat-container">
+        <div class="chat-header">
+            <span>💬 LIVE CHAT</span>
+        </div>
+        <div id="chat-messages">
+            <div class="msg system">서버에 연결되었습니다. 매너 채팅 부탁드립니다!</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="메시지 입력..." maxlength="50">
+            <button id="chat-send-btn">전송</button>
         </div>
     </div>
 </div>
 
-<div id="chat-container">
-    <div class="chat-header">
-        <span>💬 LIVE CHAT</span>
-    </div>
-    <div id="chat-messages">
-        <div class="msg system">서버에 연결되었습니다. 매너 채팅 부탁드립니다!</div>
-    </div>
-    <div class="chat-input-area">
-        <input type="text" id="chat-input" placeholder="메시지 입력..." maxlength="50">
-        <button id="chat-send-btn">전송</button>
+<div class="footer-info">
+    <p>Copyright © 2024 Developer Moon. All rights reserved.</p>
+    <div class="coffee-link">
+        ☕ 개발자 커피 사주기 : 농협 3020780286881 문x철
     </div>
 </div>
 
@@ -404,9 +471,7 @@
         const sendMessage = () => {
             let text = chatInput.value.trim();
             if (text === "") return;
-            
             text = filterText(text);
-
             const name = currentNickname === "PILOT" ? "Guest" : currentNickname;
             push(chatRef, { name: name, text: text, time: Date.now() });
             chatInput.value = "";
