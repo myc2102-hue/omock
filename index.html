@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Monitor v2.5.5</title>
+    <title>System Monitor v2.5.7</title>
     <style>
         :root {
             --bg-color: #1e1e1e; --sidebar-bg: #252526; --panel-bg: #2d2d2d;
@@ -22,7 +22,7 @@
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace; color: var(--text-main);
         }
 
-        /* 공용 모달 디자인 */
+        /* 공용 모달 */
         #login-overlay, #modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); z-index: 2000; display: flex; justify-content: center; align-items: center;
@@ -30,8 +30,7 @@
         .ui-modal { background: var(--panel-bg); border: 2px solid var(--accent); width: 90%; max-width: 420px; text-align: center; box-shadow: 0 0 60px #000; overflow: hidden; }
         .ui-modal input { width: 80%; background: #1a1a1a; border: 1px solid #444; color: var(--code-orange); padding: 12px; margin: 20px 0; outline: none; }
 
-        /* 결과 모달 전용 스타일 */
-        #modal-header { padding: 12px; font-weight: bold; font-size: 0.9rem; color: #fff; letter-spacing: 1px; }
+        #modal-header { padding: 12px; font-weight: bold; font-size: 0.9rem; color: #fff; }
         .modal-body { padding: 40px 20px; }
         #modal-result-title { font-size: 1.8rem; font-weight: 900; margin-bottom: 15px; }
         #modal-text { font-size: 0.95rem; color: #bbb; line-height: 1.5; }
@@ -44,35 +43,49 @@
         }
         #timer { color: #f1c40f; font-weight: bold; font-size: 1.1rem; }
 
-        /* 게임 레이아웃 */
+        /* 레이아웃 디자인 */
         .game-layout { display: flex; gap: 20px; justify-content: center; align-items: flex-start; width: 100%; max-width: 1000px; }
-        @media (max-width: 900px) {
-            .game-layout { flex-direction: column; align-items: center; }
-            .side-panel { width: 100% !important; max-width: var(--board-size); height: auto !important; }
-            #board { width: 100% !important; height: auto !important; aspect-ratio: 1/1; }
-        }
-
+        
+        /* 바둑판 모바일 최적화 */
         #board { display: grid; grid-template-columns: repeat(15, 1fr); background-color: #1a1a1a; padding: 5px; border: 1px solid #444; width: var(--board-size); height: var(--board-size); box-sizing: border-box; }
         .cell { aspect-ratio: 1/1; position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .cell::before { content: ""; position: absolute; width: 100%; height: 1px; background: #333; }
         .cell::after { content: ""; position: absolute; width: 1px; height: 100%; background: #333; }
-        .stone { width: 85%; height: 85%; border-radius: 50%; z-index: 10; transform: scale(1); animation: pop 0.2s ease-out; }
+        .stone { width: 85%; height: 85%; border-radius: 50%; z-index: 10; animation: pop 0.2s ease-out; }
         @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
         .black { background: #000; border: 1px solid #333; }
         .white { background: #ddd; border: 1px solid #fff; }
 
+        /* 사이드 패널 기본 설정 (PC) */
         .side-panel { display: flex; flex-direction: column; gap: 10px; width: 320px; height: var(--board-size); }
         .ui-panel { background: var(--panel-bg); border: 1px solid #444; font-size: 0.8rem; overflow: hidden; display: flex; flex-direction: column; }
         .panel-header { padding: 6px 10px; background: #3c3c3c; font-size: 0.7rem; text-transform: uppercase; }
         
         #ranking-list { height: 110px; overflow-y: auto; padding: 10px; list-style: none; margin: 0; }
         #user-list { height: 70px; overflow-y: auto; padding: 10px; list-style: none; margin: 0; }
-        #chat-log { flex: 1; min-height: 150px; overflow-y: auto; padding: 10px; background: #1e1e1e; font-size: 0.8rem; }
+        #chat-panel { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+        #chat-log { flex: 1; overflow-y: auto; padding: 10px; background: #1e1e1e; font-size: 0.8rem; }
         #chat-input { background: #252526; border: none; border-top: 1px solid #444; color: #fff; padding: 12px; outline: none; font-family: monospace; }
 
+        /* 📱 모바일 전용 스타일 (강제 고정) */
+        @media (max-width: 900px) {
+            .game-layout { flex-direction: column; align-items: center; }
+            .side-panel { 
+                width: 100% !important; 
+                max-width: var(--board-size); 
+                height: auto !important; 
+            }
+            #board { width: 100% !important; height: auto !important; aspect-ratio: 1/1; }
+            
+            /* 핵심: 모바일에서 각 영역 높이를 픽셀 단위로 강제 제한 */
+            #chat-panel { height: 260px !important; flex: none !important; }
+            #chat-log { height: 200px !important; flex: none !important; overflow-y: scroll !important; -webkit-overflow-scrolling: touch; }
+            #ranking-list { height: 100px !important; overflow-y: scroll !important; }
+            #user-list { height: 60px !important; overflow-y: scroll !important; }
+        }
+
         .controls { margin-top: 30px; text-align: center; width: 100%; max-width: 600px; }
-        .reset-btn { padding: 12px 25px; background: #444; color: #ccc; cursor: pointer; border: 1px solid #555; font-family: monospace; margin-bottom: 20px; font-weight: bold; transition: 0.2s; }
-        .reset-btn:hover { background: #555; }
+        .reset-btn { padding: 12px 25px; background: #444; color: #ccc; cursor: pointer; border: 1px solid #555; font-family: monospace; margin-bottom: 20px; font-weight: bold; }
         .credits-container { border-top: 1px dashed #444; padding-top: 15px; font-size: 0.75rem; color: #666; }
         .donation-text { color: var(--code-green); margin-top: 5px; font-weight: bold; }
         .rank-item { display: flex; justify-content: space-between; border-bottom: 1px solid #333; margin-bottom: 4px; padding-bottom: 2px; }
@@ -101,7 +114,7 @@
         </div>
     </div>
 
-    <h1>System Monitor <span>Analysis_Tool</span> v2.5.5</h1>
+    <h1>System Monitor <span>Analysis_Tool</span> v2.5.7</h1>
     
     <div class="status-bar">
         <div>UPTIME: <span id="timer">00:00</span></div>
@@ -120,7 +133,7 @@
                 <div class="panel-header">Nodes: <span id="count-num">0</span></div>
                 <ul id="user-list"></ul>
             </div>
-            <div class="ui-panel" style="flex:1;">
+            <div class="ui-panel" id="chat-panel">
                 <div class="panel-header">Console Output</div>
                 <div id="chat-log"></div>
                 <input type="text" id="chat-input" placeholder="root@monitor:~$ " onkeypress="if(event.keyCode==13) window.sendMessage()">
@@ -193,7 +206,6 @@
             });
         });
 
-        // 명확한 승패 팝업 로직
         window.showResult = function(winner) {
             const elapsed = window.stopTimer();
             const modalBox = document.getElementById('result-modal-box');
