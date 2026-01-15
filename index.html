@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Monitor v2.5.7</title>
+    <title>System Monitor v2.6.3</title>
     <style>
         :root {
             --bg-color: #1e1e1e; --sidebar-bg: #252526; --panel-bg: #2d2d2d;
@@ -16,105 +16,112 @@
         body {
             background-color: var(--bg-color);
             background-image: linear-gradient(rgba(30, 30, 30, 0.93), rgba(30, 30, 30, 0.93)),
-                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500"><text x="0" y="20" font-family="monospace" font-size="12" fill="rgba(100,100,100,0.2)">import { initializeApp } from "firebase"; const db = getDatabase(app);</text></svg>');
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500"><text x="0" y="20" font-family="monospace" font-size="12" fill="rgba(100,100,100,0.2)">system.integrity.check();</text></svg>');
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh; margin: 0; padding: 10px;
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace; color: var(--text-main);
         }
 
-        /* 공용 모달 */
+        #sound-toggle {
+            position: fixed; top: 15px; right: 15px; z-index: 3000;
+            padding: 5px 10px; background: #333; border: 1px solid var(--online);
+            color: var(--online); font-size: 0.7rem; cursor: pointer; font-weight: bold;
+        }
+        #sound-toggle.off { color: #888; border-color: #555; }
+
         #login-overlay, #modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); z-index: 2000; display: flex; justify-content: center; align-items: center;
         }
-        .ui-modal { background: var(--panel-bg); border: 2px solid var(--accent); width: 90%; max-width: 420px; text-align: center; box-shadow: 0 0 60px #000; overflow: hidden; }
+        .ui-modal { background: var(--panel-bg); border: 2px solid var(--accent); width: 90%; max-width: 420px; text-align: center; box-shadow: 0 0 60px #000; }
         .ui-modal input { width: 80%; background: #1a1a1a; border: 1px solid #444; color: var(--code-orange); padding: 12px; margin: 20px 0; outline: none; }
 
-        #modal-header { padding: 12px; font-weight: bold; font-size: 0.9rem; color: #fff; }
-        .modal-body { padding: 40px 20px; }
-        #modal-result-title { font-size: 1.8rem; font-weight: 900; margin-bottom: 15px; }
-        #modal-text { font-size: 0.95rem; color: #bbb; line-height: 1.5; }
-
-        /* 상태 바 */
-        .status-bar { 
-            width: 100%; max-width: 900px; background: #333; padding: 10px; 
-            font-size: 0.8rem; display: flex; flex-wrap: wrap; gap: 10px; 
-            border-bottom: 1px solid #444; margin-bottom: 20px; align-items: center; justify-content: space-between;
-        }
+        .status-bar { width: 100%; max-width: 900px; background: #333; padding: 10px; font-size: 0.8rem; display: flex; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid #444; margin-bottom: 20px; align-items: center; justify-content: space-between; }
         #timer { color: #f1c40f; font-weight: bold; font-size: 1.1rem; }
+        #status { color: var(--code-green); min-width: 250px; font-family: 'Courier New', monospace; }
 
-        /* 레이아웃 디자인 */
         .game-layout { display: flex; gap: 20px; justify-content: center; align-items: flex-start; width: 100%; max-width: 1000px; }
         
-        /* 바둑판 모바일 최적화 */
-        #board { display: grid; grid-template-columns: repeat(15, 1fr); background-color: #1a1a1a; padding: 5px; border: 1px solid #444; width: var(--board-size); height: var(--board-size); box-sizing: border-box; }
-        .cell { aspect-ratio: 1/1; position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .cell::before { content: ""; position: absolute; width: 100%; height: 1px; background: #333; }
-        .cell::after { content: ""; position: absolute; width: 1px; height: 100%; background: #333; }
-        .stone { width: 85%; height: 85%; border-radius: 50%; z-index: 10; animation: pop 0.2s ease-out; }
-        @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
-        .black { background: #000; border: 1px solid #333; }
-        .white { background: #ddd; border: 1px solid #fff; }
+        #board { display: grid; grid-template-columns: repeat(15, 1fr); background-color: #1a1a1a; padding: 5px; border: 1px solid #444; width: var(--board-size); height: var(--board-size); box-sizing: border-box; position: relative; }
+        .cell { aspect-ratio: 1/1; position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 5; }
+        .cell::before { content: ""; position: absolute; width: 100%; height: 1px; background: #333; top: 50%; }
+        .cell::after { content: ""; position: absolute; width: 1px; height: 100%; background: #333; left: 50%; }
+        
+        /* 💎 바둑돌 3D 렌더링 엔진 스타일 */
+        .stone { 
+            width: 92%; height: 92%; border-radius: 50%; z-index: 10; 
+            animation: pop 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+        
+        /* 🌑 검은 돌 (Black - Obsidian Style) */
+        .black { 
+            background: radial-gradient(circle at 30% 30%, #555 0%, #111 50%, #000 100%); 
+            box-shadow: 2px 4px 8px rgba(0,0,0,0.8), inset -1px -1px 3px rgba(255,255,255,0.2);
+            border: 1px solid #000;
+        }
+        
+        /* ⚪ 흰 돌 (White - Premium Ceramic Style) */
+        .white { 
+            /* 하이라이트 -> 몸체 -> 그림자 경계 순으로 층을 나눔 */
+            background: radial-gradient(circle at 25% 25%, 
+                #ffffff 0%, 
+                #ffffff 10%, 
+                #f8f8f8 30%, 
+                #e0e0e0 70%, 
+                #b0b0b0 100%
+            ); 
+            /* 외부 그림자와 안쪽 반사광으로 볼륨 극대화 */
+            box-shadow: 
+                2px 5px 10px rgba(0,0,0,0.6), 
+                inset -3px -5px 10px rgba(0,0,0,0.15),
+                inset 2px 2px 5px rgba(255,255,255,1);
+            border: 1px solid #d4d4d4;
+        }
 
-        /* 사이드 패널 기본 설정 (PC) */
         .side-panel { display: flex; flex-direction: column; gap: 10px; width: 320px; height: var(--board-size); }
         .ui-panel { background: var(--panel-bg); border: 1px solid #444; font-size: 0.8rem; overflow: hidden; display: flex; flex-direction: column; }
         .panel-header { padding: 6px 10px; background: #3c3c3c; font-size: 0.7rem; text-transform: uppercase; }
         
-        #ranking-list { height: 110px; overflow-y: auto; padding: 10px; list-style: none; margin: 0; }
-        #user-list { height: 70px; overflow-y: auto; padding: 10px; list-style: none; margin: 0; }
-        #chat-panel { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-        #chat-log { flex: 1; overflow-y: auto; padding: 10px; background: #1e1e1e; font-size: 0.8rem; }
+        #ranking-list, #user-list { padding: 10px; list-style: none; margin: 0; overflow-y: auto; }
+        #ranking-list { height: 110px; } #user-list { height: 70px; }
+        #chat-log { flex: 1; overflow-y: auto; padding: 10px; background: #1e1e1e; min-height: 150px; }
         #chat-input { background: #252526; border: none; border-top: 1px solid #444; color: #fff; padding: 12px; outline: none; font-family: monospace; }
 
-        /* 📱 모바일 전용 스타일 (강제 고정) */
         @media (max-width: 900px) {
             .game-layout { flex-direction: column; align-items: center; }
-            .side-panel { 
-                width: 100% !important; 
-                max-width: var(--board-size); 
-                height: auto !important; 
-            }
+            .side-panel { width: 100% !important; max-width: var(--board-size); height: auto !important; }
             #board { width: 100% !important; height: auto !important; aspect-ratio: 1/1; }
-            
-            /* 핵심: 모바일에서 각 영역 높이를 픽셀 단위로 강제 제한 */
-            #chat-panel { height: 260px !important; flex: none !important; }
-            #chat-log { height: 200px !important; flex: none !important; overflow-y: scroll !important; -webkit-overflow-scrolling: touch; }
-            #ranking-list { height: 100px !important; overflow-y: scroll !important; }
-            #user-list { height: 60px !important; overflow-y: scroll !important; }
         }
 
-        .controls { margin-top: 30px; text-align: center; width: 100%; max-width: 600px; }
-        .reset-btn { padding: 12px 25px; background: #444; color: #ccc; cursor: pointer; border: 1px solid #555; font-family: monospace; margin-bottom: 20px; font-weight: bold; }
-        .credits-container { border-top: 1px dashed #444; padding-top: 15px; font-size: 0.75rem; color: #666; }
-        .donation-text { color: var(--code-green); margin-top: 5px; font-weight: bold; }
-        .rank-item { display: flex; justify-content: space-between; border-bottom: 1px solid #333; margin-bottom: 4px; padding-bottom: 2px; }
+        .controls { margin-top: 30px; text-align: center; width: 100%; }
+        .reset-btn { padding: 12px 25px; background: #444; color: #ccc; cursor: pointer; border: 1px solid #555; font-family: monospace; font-weight: bold; transition: 0.2s; }
+        .donation-text { color: var(--code-green); margin-top: 10px; font-weight: bold; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
+    <button id="sound-toggle" onclick="toggleSound()">SOUND_ON</button>
+
     <div id="login-overlay">
         <div class="ui-modal">
-            <div style="color:var(--code-blue); font-weight:bold;">[USER_AUTHENTICATION]</div>
-            <input type="text" id="initial-name" maxlength="10" placeholder="Set Your ID..." onkeypress="if(event.keyCode==13) loginUser()">
-            <button class="reset-btn" style="width:100%; background:var(--accent); border:none; color:white;" onclick="loginUser()">START_SESSION</button>
+            <div style="color:var(--code-blue); font-weight:bold;">[SECURE_SHELL_v2]</div>
+            <input type="text" id="initial-name" maxlength="10" placeholder="Terminal ID..." onkeypress="if(event.keyCode==13) loginUser()">
+            <button class="reset-btn" style="width:100%; background:var(--accent); border:none; color:white;" onclick="loginUser()">BOOT_SYSTEM</button>
         </div>
     </div>
 
     <div id="modal-overlay" style="display:none;">
         <div class="ui-modal" id="result-modal-box">
-            <div id="modal-header"></div>
+            <div id="modal-header" style="padding:10px; font-weight:bold; color:white;"></div>
             <div class="modal-body">
-                <div id="modal-result-title"></div>
-                <div id="modal-text"></div>
+                <div id="modal-result-title" style="font-size:1.6rem; font-weight:900;"></div>
+                <div id="modal-text" style="margin-top:10px; color:#aaa;"></div>
             </div>
-            <div style="padding: 15px;">
-                <button id="modal-action-btn" class="reset-btn" style="width:100%; border:none; color:white;" onclick="closeModal()">SYSTEM_REBOOT</button>
-            </div>
+            <div style="padding:15px;"><button class="reset-btn" style="width:100%; color:white;" onclick="closeModal()">RECOVERY_INIT</button></div>
         </div>
     </div>
 
-    <h1>System Monitor <span>Analysis_Tool</span> v2.5.7</h1>
+    <h1>System Monitor <span>Analysis_Tool</span> v2.6.3</h1>
     
     <div class="status-bar">
         <div>UPTIME: <span id="timer">00:00</span></div>
@@ -125,15 +132,9 @@
     <div class="game-layout">
         <div id="board"></div>
         <div class="side-panel">
-            <div class="ui-panel">
-                <div class="panel-header">Fastest Top 10</div>
-                <ul id="ranking-list"></ul>
-            </div>
-            <div class="ui-panel">
-                <div class="panel-header">Nodes: <span id="count-num">0</span></div>
-                <ul id="user-list"></ul>
-            </div>
-            <div class="ui-panel" id="chat-panel">
+            <div class="ui-panel"><div class="panel-header">Top 10 Global Records</div><ul id="ranking-list"></ul></div>
+            <div class="ui-panel"><div class="panel-header">Active Nodes: <span id="count-num">0</span></div><ul id="user-list"></ul></div>
+            <div class="ui-panel" style="flex:1;">
                 <div class="panel-header">Console Output</div>
                 <div id="chat-log"></div>
                 <input type="text" id="chat-input" placeholder="root@monitor:~$ " onkeypress="if(event.keyCode==13) window.sendMessage()">
@@ -142,49 +143,48 @@
     </div>
 
     <div class="controls">
-        <button class="reset-btn" onclick="window.resetGame()">MANUAL_REBOOT</button>
-        <div class="credits-container">
-            <div>Developed by Young-Cheol / Build 2026.01</div>
-            <div class="donation-text">// 찰스 커피사주실분 3020780286881 농협 문x철</div>
-        </div>
+        <button class="reset-btn" onclick="playClick(); window.resetGame()">MANUAL_REBOOT</button>
+        <div class="donation-text">// 찰스 커피사주실분 3020780286881 농협 문x철</div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-        import { getDatabase, ref, push, onChildAdded, serverTimestamp, onValue, onDisconnect, set, increment, query, orderByChild, limitToFirst } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+        import { getDatabase, ref, push, onChildAdded, onValue, onDisconnect, set, increment, query, orderByChild, limitToFirst } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
         const firebaseConfig = { apiKey: "AIzaSyC6InSfqD5e5CrM1KCQuHFL3OSgetiT3kw", authDomain: "omockyc.firebaseapp.com", projectId: "omockyc", databaseURL: "https://omockyc-default-rtdb.firebaseio.com", storageBucket: "omockyc.firebasestorage.app", messagingSenderId: "336747857928", appId: "1:336747857928:web:b4073ad87b47aafea2e9bd" };
-
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const chatRef = ref(db, 'messages');
-        const presenceRef = ref(db, 'presence');
-        const rankRef = ref(db, 'rankings');
-        const visitorRef = ref(db, 'system_stats/visitors');
 
         let myName = "";
         let timerInterval = null;
         let startTime = 0;
+        let soundEnabled = true;
 
-        window.startTimer = function() {
-            if (timerInterval) clearInterval(timerInterval);
-            startTime = Date.now();
-            timerInterval = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                const min = String(Math.floor(elapsed / 60)).padStart(2, '0');
-                const sec = String(elapsed % 60).padStart(2, '0');
-                document.getElementById('timer').innerText = `${min}:${sec}`;
-            }, 1000);
+        const bgm = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3');
+        bgm.loop = true; bgm.volume = 0.15;
+        const stoneSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
+        const clickSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
+        const completeSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2567/2567-preview.mp3');
+
+        window.toggleSound = function() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('sound-toggle');
+            if(soundEnabled) { btn.innerText = "SOUND_ON"; btn.classList.remove('off'); bgm.play(); } 
+            else { btn.innerText = "SOUND_OFF"; btn.classList.add('off'); bgm.pause(); }
         };
 
-        window.stopTimer = function() { clearInterval(timerInterval); return Math.floor((Date.now() - startTime) / 1000); };
+        window.playStone = () => { if(soundEnabled) { stoneSfx.currentTime = 0; stoneSfx.play(); } };
+        window.playClick = () => { if(soundEnabled) { clickSfx.currentTime = 0; clickSfx.play(); } };
+        window.playComplete = () => { if(soundEnabled) { completeSfx.currentTime = 0; completeSfx.play(); } };
 
         window.loginUser = function() {
             const val = document.getElementById('initial-name').value.trim();
-            if(!val) return alert("ID required.");
+            if(!val) return alert("Terminal ID Required.");
             myName = val;
+            if(soundEnabled) bgm.play();
+            playClick();
             document.getElementById('login-overlay').style.display = 'none';
-            set(visitorRef, increment(1));
+            set(ref(db, 'system_stats/visitors'), increment(1));
             const myPresenceRef = ref(db, `presence/${Math.random().toString(36).substr(2,9)}`);
             set(myPresenceRef, { name: myName });
             onDisconnect(myPresenceRef).remove();
@@ -194,60 +194,54 @@
         window.sendMessage = function() {
             const input = document.getElementById('chat-input');
             if(!input.value.trim()) return;
-            push(chatRef, { name: myName, message: input.value.trim() });
+            playClick();
+            push(ref(db, 'messages'), { name: myName, message: input.value.trim() });
             input.value = "";
         };
 
-        onValue(visitorRef, (s) => document.getElementById('total-visitors').innerText = s.val() || 0);
-        onValue(query(rankRef, orderByChild('score'), limitToFirst(10)), (s) => {
+        onValue(ref(db, 'system_stats/visitors'), (s) => document.getElementById('total-visitors').innerText = s.val() || 0);
+        onValue(query(ref(db, 'rankings'), orderByChild('score'), limitToFirst(10)), (s) => {
             const l = document.getElementById('ranking-list'); l.innerHTML = '';
             let i = 1; s.forEach(c => {
-                l.innerHTML += `<li class="rank-item"><span>${i++}. ${c.val().name}</span><span>${c.val().score}s</span></li>`;
+                l.innerHTML += `<li style="display:flex; justify-content:space-between; border-bottom:1px solid #333; margin-bottom:4px;"><span>${i++}. ${c.val().name}</span><span>${c.val().score}s</span></li>`;
             });
         });
 
         window.showResult = function(winner) {
-            const elapsed = window.stopTimer();
-            const modalBox = document.getElementById('result-modal-box');
-            const header = document.getElementById('modal-header');
+            clearInterval(timerInterval);
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const overlay = document.getElementById('modal-overlay');
+            const box = document.getElementById('result-modal-box');
+            const head = document.getElementById('modal-header');
             const resTitle = document.getElementById('modal-result-title');
             const resText = document.getElementById('modal-text');
-            const btn = document.getElementById('modal-action-btn');
 
+            overlay.style.display = 'flex';
             if(winner === 'USER') {
-                modalBox.style.borderColor = "var(--win-blue)";
-                header.style.backgroundColor = "var(--win-blue)";
-                header.innerText = "[SUCCESS] SYSTEM_BREACH_COMPLETE";
-                resTitle.innerText = "MISSION ACCOMPLISHED";
-                resTitle.style.color = "var(--win-blue)";
-                resText.innerText = `Node [${myName}] successfully bypassed AI security in ${elapsed}s. Data packet recorded in global rankings.`;
-                btn.style.backgroundColor = "var(--win-blue)";
-                push(rankRef, { name: myName, score: elapsed });
+                box.style.borderColor = "var(--win-blue)"; head.style.backgroundColor = "var(--win-blue)";
+                head.innerText = "[SUCCESS]"; resTitle.innerText = "MISSION_ACCOMPLISHED"; resTitle.style.color = "var(--win-blue)";
+                resText.innerText = `Breach successful. Time: ${elapsed}s. Record saved.`;
+                push(ref(db, 'rankings'), { name: myName, score: elapsed });
             } else {
-                modalBox.style.borderColor = "var(--lose-red)";
-                header.style.backgroundColor = "var(--lose-red)";
-                header.innerText = "[CRITICAL] SYSTEM_ACCESS_DENIED";
-                resTitle.innerText = "SECURITY OVERRIDE FAILED";
-                resTitle.style.color = "var(--lose-red)";
-                resText.innerText = `Kernel panic detected. AI core has neutralized your connection. Ranking data discarded.`;
-                btn.style.backgroundColor = "var(--lose-red)";
+                box.style.borderColor = "var(--lose-red)"; head.style.backgroundColor = "var(--lose-red)";
+                head.innerText = "[CRITICAL]"; resTitle.innerText = "SECURITY_REINFORCED"; resTitle.style.color = "var(--lose-red)";
+                resText.innerText = "AI node has neutralized the intrusion.";
             }
-            document.getElementById('modal-overlay').style.display = 'flex';
         };
 
-        onChildAdded(chatRef, (s) => {
+        onChildAdded(ref(db, 'messages'), (s) => {
             const log = document.getElementById('chat-log');
-            log.innerHTML += `<div style="margin-bottom:4px; border-bottom:1px solid #2a2a2a; word-break:break-all;">> ${s.val().name}: ${s.val().message}</div>`;
+            log.innerHTML += `<div style="margin-bottom:4px; border-bottom:1px solid #2a2a2a;">> ${s.val().name}: ${s.val().message}</div>`;
             log.scrollTop = log.scrollHeight;
         });
 
-        onValue(presenceRef, (s) => {
+        onValue(ref(db, 'presence'), (s) => {
             const l = document.getElementById('user-list'); l.innerHTML = '';
             let c = 0; s.forEach(u => { l.innerHTML += `<li>● ${u.val().name}</li>`; c++; });
             document.getElementById('count-num').innerText = c;
         });
 
-        window.closeModal = () => { document.getElementById('modal-overlay').style.display = 'none'; window.resetGame(); };
+        window.closeModal = () => { playClick(); document.getElementById('modal-overlay').style.display = 'none'; window.resetGame(); };
     </script>
 
     <script>
@@ -255,6 +249,8 @@
         let board = [];
         let gameOver = false;
         let turn = 1;
+        let timerInterval = null;
+        let startTime = 0;
 
         window.resetGame = function() {
             const boardEl = document.getElementById('board');
@@ -270,16 +266,42 @@
                     boardEl.appendChild(cell);
                 }
             }
-            document.getElementById('status').innerText = "SYSTEM_RUNNING";
-            if(window.startTimer) window.startTimer();
+            document.getElementById('status').innerText = "SYSTEM_READY";
+            if (timerInterval) clearInterval(timerInterval);
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const min = String(Math.floor(elapsed / 60)).padStart(2, '0');
+                const sec = String(elapsed % 60).padStart(2, '0');
+                document.getElementById('timer').innerText = `${min}:${sec}`;
+            }, 1000);
         };
+
+        function updateProgress(percent) {
+            const barCount = 10;
+            const filled = Math.round((percent / 100) * barCount);
+            const empty = barCount - filled;
+            const bar = "█".repeat(filled) + "▒".repeat(empty);
+            document.getElementById('status').innerText = `ANALYZING [${bar}] ${percent}%`;
+        }
 
         window.playerMove = function(r, c) {
             if (gameOver || board[r][c] !== 0 || turn !== 1) return;
+            if(window.playStone) window.playStone();
             placeStone(r, c, 1);
             if (checkWin(r, c, 1)) { gameOver = true; window.showResult('USER'); return; }
-            turn = 2; document.getElementById('status').innerText = "AI_CALC...";
-            setTimeout(aiMove, 500);
+            turn = 2;
+            
+            let progress = 0;
+            const progTimer = setInterval(() => {
+                progress += 20;
+                updateProgress(progress);
+                if(progress >= 100) {
+                    clearInterval(progTimer);
+                    if(window.playComplete) window.playComplete();
+                    setTimeout(aiMove, 150);
+                }
+            }, 80);
         };
 
         function aiMove() {
@@ -293,15 +315,16 @@
                     }
                 }
             }
+            if(window.playStone) window.playStone();
             placeStone(move.r, move.c, 2);
             if (checkWin(move.r, move.c, 2)) { gameOver = true; window.showResult('AI'); }
-            else { turn = 1; document.getElementById('status').innerText = "USER_WAITING"; }
+            else { turn = 1; document.getElementById('status').innerText = "INPUT_WAITING"; }
         }
 
         function evaluate(r, c) {
             let s = 0;
             [[0,1],[1,0],[1,1],[1,-1]].forEach(([dr, dc]) => {
-                s += getScore(r, c, dr, dc, 2) + getScore(r, c, dr, dc, 1) * 1.6;
+                s += getScore(r, c, dr, dc, 2) + getScore(r, c, dr, dc, 1) * 1.65;
             });
             return s;
         }
@@ -314,7 +337,7 @@
                 if (nr>=0 && nr<SIZE && nc>=0 && nc<SIZE && board[nr][nc] === 0) open++;
             });
             if (cnt >= 5) return 10000;
-            if (cnt === 4) return open === 2 ? 1000 : 200;
+            if (cnt === 4) return open === 2 ? 1500 : 300;
             return cnt * 10;
         }
 
