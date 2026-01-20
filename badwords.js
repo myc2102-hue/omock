@@ -17,7 +17,7 @@
     // 3. 외부 욕설 데이터 비동기 로드 (GitHub Raw Data)
     console.log("🔄 욕설 데이터 다운로드 시작...");
     
-    fetch('https://raw.githubusercontent.com/fow-kr/curse-words/master/data/curse-words.json')
+    fetch('https://raw.githubusercontent.com/hlog2e/bad_word_list/master/word_list.json')
         .then(response => {
             if (!response.ok) throw new Error('Network response was not ok');
             return response.json();
