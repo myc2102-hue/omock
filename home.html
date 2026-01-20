@@ -9,7 +9,7 @@
     <script src="badwords.js"></script>
 
     <style>
-        /* CSS는 기존과 동일하게 유지 */
+        /* --- CSS 스타일 시작 --- */
         :root { --primary-color: #2563eb; --brand-orange: #FC5E20; --gradient-text: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%); --bg-color: #f8fafc; --text-main: #0f172a; --text-sub: #64748b; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; overflow-x: hidden; }
@@ -36,7 +36,7 @@
         .card p { color: var(--text-sub); font-size: 0.95rem; line-height: 1.6; word-break: keep-all; }
         footer { text-align: center; padding: 60px 20px; color: var(--text-sub); background: #f1f5f9; font-size: 0.9rem; border-top: 1px solid #e2e8f0; }
         
-        /* 채팅 위젯 */
+        /* 채팅 위젯 CSS */
         .chat-launcher { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--primary-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4); cursor: pointer; z-index: 9999; transition: transform 0.3s ease, background 0.3s ease; }
         .chat-launcher:hover { transform: scale(1.1); background: #1d4ed8; }
         .notification-badge { position: absolute; top: -5px; right: -5px; background-color: #ef4444; color: white; font-size: 0.75rem; font-weight: bold; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; opacity: 0; transform: scale(0); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -191,12 +191,11 @@
             <button class="send-btn" onclick="sendMessage()"><i class="ph ph-paper-plane-right"></i></button>
         </div>
     </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // 파이어베이스 설정
+        // 파이어베이스 설정 (사용자 정보 유지됨)
         const firebaseConfig = {
             apiKey: "AIzaSyClOSD1-ww8RzYTl9889V5TUALeYA0Msso",
             authDomain: "chat1team.firebaseapp.com",
@@ -215,10 +214,7 @@
         let unreadCount = 0;
         let initialLoad = true; 
 
-        // 🚫 2. 욕설 필터 적용 (배열 불러옴)
-        // 만약 badwords.js가 안 불러와졌으면 빈 배열로 에러 방지
-        const badWords = window.badWordsList || ["바보", "멍청이", "나쁜말"];
-
+        // DOM 요소 가져오기
         const chatContainer = document.getElementById('chatContainer');
         const chatBody = document.getElementById('chatBody');
         const loginScreen = document.getElementById('loginScreen');
@@ -227,11 +223,22 @@
         const chatTooltip = document.getElementById('chatTooltip');
         const notificationBadge = document.getElementById('notificationBadge');
 
+        // 🔥 수정된 욕설 필터링 함수 (badwords.js에서 데이터를 실시간으로 가져옴)
         function filterBadWords(text) {
+            // 채팅을 보내는 순간에 리스트를 확인 (다운로드가 늦어도 문제 없음)
+            const currentList = window.badWordsList || [];
+            
             let cleanText = text;
-            badWords.forEach(word => {
-                const regex = new RegExp(word, "gi");
-                cleanText = cleanText.replace(regex, "*".repeat(word.length));
+            
+            // 모든 욕설을 돌며 검사
+            currentList.forEach(word => {
+                // 단어가 포함되어 있다면?
+                if (cleanText.includes(word)) {
+                    // 단어 길이만큼 별표 생성
+                    const stars = "*".repeat(word.length);
+                    // 단어를 별표로 교체 (split/join은 특수문자 오류가 안 남)
+                    cleanText = cleanText.split(word).join(stars);
+                }
             });
             return cleanText;
         }
@@ -266,9 +273,11 @@
             const text = messageInput.value.trim();
             if (!text) return;
 
+            // ✅ 여기서 필터링 함수를 통과시킴
             const filteredText = filterBadWords(text);
 
             try {
+                // 필터링된 메시지(filteredText)를 전송
                 await addDoc(collection(db, "chats"), {
                     text: filteredText,
                     sender: nickname,
