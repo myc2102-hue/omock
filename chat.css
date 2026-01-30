@@ -1,0 +1,48 @@
+/* chat.css - 채팅 위젯 전용 스타일 */
+
+/* 런처 버튼 */
+.chat-launcher { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: #2563eb; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4); cursor: pointer; z-index: 9999; transition: transform 0.3s ease, background 0.3s ease; }
+.chat-launcher:hover { transform: scale(1.1); background: #1d4ed8; }
+
+/* 알림 뱃지 */
+.notification-badge { position: absolute; top: -5px; right: -5px; background-color: #ef4444; color: white; font-size: 0.75rem; font-weight: bold; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; opacity: 0; transform: scale(0); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.notification-badge.show { opacity: 1; transform: scale(1); }
+
+/* 말풍선 */
+.chat-tooltip { position: fixed; bottom: 40px; right: 100px; background: white; color: #334155; padding: 10px 16px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); font-size: 0.9rem; font-weight: 600; z-index: 9998; opacity: 1; transform: translateX(0); transition: all 0.3s ease; pointer-events: none; white-space: nowrap; font-family: 'Pretendard', sans-serif; }
+.chat-tooltip::after { content: ''; position: absolute; right: -6px; top: 50%; transform: translateY(-50%); border-width: 6px 0 6px 8px; border-style: solid; border-color: transparent transparent transparent white; }
+.chat-tooltip.hidden { opacity: 0; transform: translateX(10px); }
+
+/* 채팅 메인 컨테이너 */
+.chat-container { position: fixed; bottom: 100px; right: 30px; width: 360px; height: 500px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.15); display: none; flex-direction: column; z-index: 9999; overflow: hidden; opacity: 0; transform: translateY(20px); transition: opacity 0.3s ease, transform 0.3s ease; font-family: 'Pretendard', sans-serif; }
+.chat-container.active { display: flex; opacity: 1; transform: translateY(0); }
+
+/* 내부 요소들 */
+.chat-header { background: #2563eb; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+.chat-status { font-size: 0.85rem; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px; display: flex; align-items: center; gap: 5px; }
+.chat-close-btn { cursor: pointer; font-size: 1.2rem; }
+.chat-body { flex: 1; padding: 20px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 10px; }
+
+/* 로그인 화면 */
+.login-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; }
+.login-screen.hidden { display: none; }
+.login-input { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; }
+.join-btn { background: #2563eb; color: white; border: none; padding: 12px 30px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; }
+
+/* 메시지 */
+.message { max-width: 80%; padding: 10px 14px; border-radius: 14px; font-size: 0.95rem; line-height: 1.4; position: relative; animation: fadeIn 0.3s ease; word-break: break-all; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+.message.my-msg { background: #2563eb; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+.message.other-msg { background: white; color: #334155; align-self: flex-start; border-bottom-left-radius: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.message-info { font-size: 0.75rem; margin-bottom: 4px; opacity: 0.8; display: block; }
+
+/* 하단 입력창 */
+.chat-footer { padding: 15px; background: white; border-top: 1px solid #e2e8f0; display: flex; gap: 10px; }
+.chat-input { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 20px; outline: none; }
+.send-btn { background: transparent; border: none; color: #2563eb; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; }
+
+/* 모바일 반응형 (채팅창 전용) */
+@media (max-width: 768px) {
+    .chat-container { width: 90%; right: 5%; bottom: 100px; height: 60vh; }
+    .chat-tooltip { right: 80px; bottom: 45px; font-size: 0.8rem; }
+}
