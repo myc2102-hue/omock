@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전체 리소스 - AI Design Library</title>
+    
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="badwords.js"></script>
+    <link rel="stylesheet" href="chat.css">
+    <link rel="icon" href="favicon.ico">
+
+    <style>
+        /* --- 1. 공통 스타일 --- */
+        :root {
+            --primary-color: #2563eb;
+            --brand-orange: #FC5E20;
+            --bg-color: #f8fafc;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; }
+        a { text-decoration: none; color: inherit; }
+
+        /* 헤더 */
+        header { padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; border-bottom: var(--glass-border); }
+        .logo-svg { height: 36px; width: auto; display: block; }
+
+        /* --- 2. [NEW] 서브 비주얼 배너 (sub1과 동일 스타일) --- */
+        .sub-visual-banner {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background-image: url('https://raw.githubusercontent.com/myc2102-hue/omock/refs/heads/main/mainvisual.jpg');
+            background-size: cover;
+            background-position: center 30%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        .banner-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4); z-index: 1;
+        }
+        .banner-content { position: relative; z-index: 2; }
+        
+        .breadcrumb { font-size: 0.9rem; opacity: 0.9; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .breadcrumb span.active { font-weight: 700; color: #fff; }
+        .page-title { font-size: 2.5rem; font-weight: 800; text-shadow: 0 4px 10px rgba(0,0,0,0.3); letter-spacing: -1px; }
+
+
+        /* --- 3. 필터 및 리스트 스타일 --- */
+        .filter-bar {
+            max-width: 1200px; margin: 0 auto 40px auto; padding: 0 20px;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;
+        }
+        .filter-group { display: flex; gap: 10px; }
+        .filter-btn {
+            padding: 8px 16px; border-radius: 20px; border: 1px solid #cbd5e1; background: white;
+            color: var(--text-sub); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .filter-btn.active { background: var(--text-main); color: white; border-color: var(--text-main); }
+        .filter-btn:hover { border-color: var(--text-main); }
+        
+        .search-box { position: relative; width: 300px; }
+        .search-box input { width: 100%; padding: 10px 15px 10px 40px; border-radius: 20px; border: 1px solid #cbd5e1; outline: none; }
+        .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+
+
+        /* 12개 아이템을 위한 그리드 */
+        .resource-grid {
+            max-width: 1200px; margin: 0 auto; padding: 0 20px 100px 20px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4열 */
+            gap: 30px;
+        }
+
+        .resource-card {
+            background: white; border-radius: 16px; overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer; display: flex; flex-direction: column; text-align: left;
+        }
+        .resource-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(37, 99, 235, 0.15); }
+
+        .card-thumb {
+            width: 100%; aspect-ratio: 4 / 3;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3.5rem; color: white; position: relative; overflow: hidden;
+        }
+        .file-badge {
+            position: absolute; top: 12px; left: 12px;
+            background: rgba(0,0,0,0.6); color: white; padding: 4px 8px; border-radius: 6px;
+            font-size: 0.75rem; font-weight: 700; backdrop-filter: blur(4px);
+        }
+
+        .card-info { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+        .card-title { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin-bottom: 8px; line-height: 1.4; }
+        .card-meta { font-size: 0.85rem; color: #94a3b8; display: flex; justify-content: space-between; margin-top: auto; }
+
+        /* 배경색 패턴 */
+        .bg-blue { background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%); }
+        .bg-orange { background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%); }
+        .bg-purple { background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%); }
+        .bg-green { background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%); }
+        .bg-gray { background: linear-gradient(135deg, #94a3b8 0%, #475569 100%); }
+
+        footer { text-align: center; padding: 60px 20px; color: var(--text-sub); border-top: 1px solid #e2e8f0; }
+
+        /* 반응형 */
+        @media (max-width: 1024px) {
+            .resource-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
+            .sub-visual-banner { height: 240px; }
+        }
+        @media (max-width: 768px) {
+            .resource-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+            .filter-bar { flex-direction: column; align-items: stretch; }
+            .search-box { width: 100%; }
+        }
+        @media (max-width: 480px) {
+            .resource-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="home.html" class="logo-area">
+            <svg class="logo-svg" viewBox="0 0 800 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M191.797 43.0686L150.793 157.26H174.807L182.322 135.532H227.737L235.252 157.26H259.43L218.425 43.0686H191.797ZM188.53 117.235L205.03 69.5332L221.529 117.235H188.53Z" fill="black"/>
+                <path d="M343.069 121.483L291.283 43.0686H268.412V157.26H291.283V79.0081L343.069 157.26H365.94V43.0686H343.069V121.483Z" fill="black"/>
+                <path d="M419.602 67.0015C424.773 63.8971 430.682 62.3456 437.327 62.3456C443.535 62.3456 449.007 63.708 453.745 66.4286C458.482 69.1535 462.158 73.2365 464.772 78.682H491.074C487.26 67.1391 480.562 58.0981 470.979 51.5633C461.395 45.0291 450.233 41.7617 437.49 41.7617C426.599 41.7617 416.768 44.2403 408.003 49.1947C399.235 54.1513 392.32 61.0664 387.256 69.9423C382.192 78.8196 379.66 88.8667 379.66 100.081C379.66 111.3 382.192 121.319 387.256 130.141C392.32 138.962 399.235 145.852 408.003 150.807C416.768 155.762 426.599 158.24 437.49 158.24C450.34 158.24 461.53 154.999 471.061 148.519C480.59 142.041 487.26 132.974 491.074 121.319H464.772C462.158 126.766 458.482 130.876 453.745 133.652C449.007 136.43 443.535 137.819 437.327 137.819C430.682 137.819 424.773 136.267 419.602 133.162C414.428 130.058 410.397 125.647 407.513 119.929C404.626 114.212 403.183 107.596 403.183 100.081C403.183 92.4593 404.626 85.8151 407.513 80.1516C410.398 74.491 414.428 70.1045 419.602 67.0015Z" fill="black"/>
+                <path d="M585.904 49.1123C577.026 44.1042 567.199 41.5974 556.417 41.5974C545.742 41.5974 535.941 44.1042 527.012 49.1123C518.08 54.1231 511.002 61.0665 505.775 69.9417C500.547 78.8196 497.933 88.8103 497.933 99.9192C497.933 111.137 500.547 121.184 505.775 130.058C511.001 138.936 518.08 145.88 527.012 150.887C535.941 155.898 545.742 158.401 556.417 158.401C567.089 158.401 576.892 155.897 585.822 150.887C594.751 145.879 601.803 138.936 606.978 130.058C612.149 121.184 614.738 111.137 614.738 99.9192C614.738 88.8103 612.149 78.8196 606.978 69.9417C601.803 61.0672 594.779 54.1231 585.904 49.1123ZM586.803 120.013C583.862 125.786 579.778 130.223 574.55 133.327C569.323 136.43 563.277 137.982 556.417 137.982C549.556 137.982 543.483 136.431 538.202 133.327C532.919 130.223 528.809 125.786 525.869 120.013C522.929 114.241 521.458 107.543 521.458 99.92C521.458 92.2971 522.929 85.6247 525.869 79.9069C528.81 74.1898 532.919 69.8069 538.202 66.7568C543.483 63.7081 549.556 62.182 556.417 62.182C563.278 62.182 569.323 63.7081 574.55 66.7568C579.778 69.8069 583.862 74.1898 586.803 79.9069C589.743 85.6247 591.213 92.2971 591.213 99.92C591.213 107.543 589.743 114.241 586.803 120.013Z" fill="black"/>
+                <path d="M726.965 43.2314L690.7 128.017L654.432 43.2314H628.457V157.26H651.328V83.0932L682.04 157.26H699.357L729.906 83.0932V157.26H752.777V43.2314H726.965Z" fill="black"/>
+                <path d="M70.0813 43.2314H47.2228V87.8909H70.0813V43.2314Z" fill="black"/>
+                <path d="M70.0813 110.768H47.2228V157.259H70.0813V110.768Z" fill="black"/>
+                <path d="M141.809 43.2314H118.951V87.8909H141.809V43.2314Z" fill="black"/>
+                <path d="M141.809 87.8994H70.0813V110.757H141.809V87.8994Z" fill="#FC5E20"/>
+                <path d="M141.809 110.768H118.951V157.259H141.809V110.768Z" fill="black"/>
+            </svg>
+        </a>
+        <nav>
+            <a href="#" style="font-weight: 600; font-size: 0.95rem;">Login</a>
+        </nav>
+    </header>
+
+    <section class="sub-visual-banner">
+        <div class="banner-overlay"></div>
+        <div class="banner-content">
+            <div class="breadcrumb">
+                <a href="home.html" style="color: rgba(255,255,255,0.7)">Home</a> 
+                <i class="ph ph-caret-right" style="color: rgba(255,255,255,0.5)"></i>
+                <span class="active">Resources Gallery</span>
+            </div>
+            <h1 class="page-title">리소스 갤러리</h1>
+        </div>
+    </section>
+
+    <div class="filter-bar">
+        <div class="filter-group">
+            <button class="filter-btn active">All</button>
+            <button class="filter-btn">Templates</button>
+            <button class="filter-btn">Icons</button>
+            <button class="filter-btn">Graphics</button>
+        </div>
+        <div class="search-box">
+            <i class="ph ph-magnifying-glass"></i>
+            <input type="text" placeholder="검색어를 입력하세요...">
+        </div>
+    </div>
+
+    <div class="resource-grid">
+        
+        <a href="sub1.html" class="resource-card">
+            <div class="card-thumb bg-blue">
+                <i class="ph ph-file-ppt"></i>
+                <span class="file-badge">PPTX</span>
+            </div>
+            <div class="card-info">
+                <h3 class="card-title">2026 전략 보고서 양식</h3>
+                <div class="card-meta"><span>전략팀</span><span>01.24</span></div>
+            </div>
+        </a>
+
+        <div class="resource-card" onclick="alert('준비 중입니다')">
+            <div class="card-thumb bg-orange">
+                <i class="ph ph-chart-pie-slice"></i>
+                <span class="file-badge">XLSX</span>
+            </div>
+            <div class="card-info">
+                <h3 class="card-title">데이터 시각화 차트 킷</h3>
+                <div class="card-meta"><span>디자인팀</span><span>02.10</span></div>
+            </div>
+        </div>
+
+        <div class="resource-card" onclick="alert('준비 중입니다')">
+            <div class="card-thumb bg-purple">
+                <i class="ph ph-cube"></i>
+                <span class="file-badge">PNG</span>
+            </div>
+            <div class="card-info">
+                <h3 class="card-title">3D 아이콘 라이브러리</h3>
+                <div class="card-meta"><span>브랜드팀</span><span>02.15</span></div>
+            </div>
+        </div>
+
+        <div class="resource-card" onclick="alert('준비 중입니다')">
+            <div class="card-thumb bg-green">
+                <i class="ph ph-image"></i>
+                <span class="file-badge">PSD</span>
+            </div>
+            <div class="card-info">
+                <h3 class="card-title">SNS 홍보 배너 템플릿</h3>
+                <div class="card-meta"><span>마케팅팀</span><span>03.01</span></div>
+            </div>
+        </div>
+
+        <div class="resource-card" onclick="alert('준비 중입니다')">
+            <div class="card-thumb bg-gray">
+                <i class="ph ph-file-text"></i>
+                <span class="file-badge">DOCX</span>
+            </div>
+            <div class="card-info">
+                <h3 class="card-title">회의록 표준 서식</h3>
+                <div class="card-meta"><span>인사팀</span><span>03.05</span></div>
+            </div>
+        </div>
+
+        <div class="resource-card" onclick="alert('준비 중입니다')">
+            <div class="card-thumb bg-blue">
+                <i class="ph ph-book-open-text"></i>
+                <span class="file-badge">PDF</span>
+            </div>
+            <div class="card-info">
+                <h3 class="card-title">2026 브랜드 가이드</h3>
+                <div class="card-meta"><span>BX팀</span><span>03.10</span></div>
+            </div>
+        </div>
+
+        <div class="resource-card" onclick="alert('준비 중입니다')">
+            <div class="card-thumb bg-purple">
+                <i class="ph ph-star-four"></i>
+                <span class="file-badge">AI</span>
+            </div>
+            <div class="card-info">
+                <h3 class="card-title">공식 로고 원본 모음</h3>
+                <div class="card-meta"><span>BX팀</span><span>03.12</span></div>
+            </div>
+        </div>
+
+        <div class="resource-card" onclick="alert('준비 중입니다')">
+            <div class="card-thumb bg-orange">
+                <i class="ph ph-tree-structure"></i>
+                <span class="file-badge">EPS</span>
+            </div>
+            <div class="card-info">
+                <h3 class="card-title">인포그래픽 소스</h3>
+                <div class="card-meta"><span>디자인팀</span><span>03.20</span></div>
+            </div>
+        </div>
+
+        <div class="resource-card" onclick="alert('준비 중입니다')">
+            <div class="card-thumb bg-gray">
+                <i class="ph ph-signature"></i>
+                <span class="file-badge">HTML</span>
+            </div>
+            <div class="card-info">
+                <h3 class="card-title">이메일 서명 디자인</h3>
+                <div class="card-meta"><span>인사팀</span><span>04.01</span></div>
+            </div>
+        </div>
+
+        <div class="resource-card" onclick="alert('준비 중입니다')">
+            <div class="card-thumb bg-green">
+                <i class="ph ph-address-book"></i>
+                <span class="file-badge">INDD</span>
+            </div>
+            <div class="card-info">
+                <h3 class="card-title">임직원 명함 템플릿</h3>
+                <div class="card-meta"><span>총무팀</span><span>04.05</span></div>
+            </div>
+        </div>
+
+        <div class="resource-card" onclick="alert('준비 중입니다')">
+            <div class="card-thumb bg-blue">
+                <i class="ph ph-layout"></i>
+                <span class="file-badge">FIG</span>
+            </div>
+            <div class="card-info">
+                <h3 class="card-title">모바일 앱 UI 키트</h3>
+                <div class="card-meta"><span>개발팀</span><span>04.15</span></div>
+            </div>
+        </div>
+
+        <div class="resource-card" onclick="alert('준비 중입니다')">
+            <div class="card-thumb bg-purple">
+                <i class="ph ph-text-aa"></i>
+                <span class="file-badge">ZIP</span>
+            </div>
+            <div class="card-info">
+                <h3 class="card-title">전용 폰트 패키지</h3>
+                <div class="card-meta"><span>BX팀</span><span>04.20</span></div>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        &copy; 2026 전략지원팀. All rights reserved.
+    </footer>
+
+    <script type="module" src="chat-widget.js"></script>
+
+</body>
+</html>
