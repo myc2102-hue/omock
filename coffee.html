@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>커피요정찰스 - 실시간 공동 주문</title>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <style>
+        :root { --primary: #6f4e37; --ice: #007bff; --hot: #dc3545; --bg: #fdfaf7; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; line-height: 1.6; }
+        .container { max-width: 480px; margin: 0 auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        
+        h1 { text-align: center; color: var(--primary); margin-bottom: 5px; }
+        .status { text-align: center; font-size: 0.85rem; color: #888; margin-bottom: 25px; }
+
+        /* 메뉴 스타일 */
+        .menu-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+        .menu-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; display: block; }
+        .btn-group { display: flex; gap: 10px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 1rem; }
+        
+        .btn-ice { background: #eef6ff; color: var(--ice); border: 1px solid #cce3ff; }
+        .btn-ice:hover { background: var(--ice); color: white; }
+        .btn-hot { background: #fff5f5; color: var(--hot); border: 1px solid #ffe3e3; }
+        .btn-hot:hover { background: var(--hot); color: white; }
+        
+        input[type="text"] { width: 100%; padding: 12px; margin-bottom: 12px; border: 2px solid #eee; border-radius: 12px; box-sizing: border-box; font-size: 1rem; outline: none; }
+        input[type="text"]:focus { border-color: var(--primary); }
+
+        /* 주문 내역 섹션 (가림 현상 수정) */
+        .order-summary { margin-top: 30px; background: #fff; padding: 20px; border-radius: 15px; border: 2px solid var(--primary); position: relative; }
+        .summary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #eee; }
+        .summary-header h2 { font-size: 1.2rem; margin: 0; color: var(--primary); }
+        
+        /* 초기화 버튼을 헤더 안으로 넣어 가림 방지 */
+        .btn-reset { flex: none; width: auto; padding: 6px 12px; font-size: 0.85rem; background: #f8f9fa; color: #666; border: 1px solid #ddd; border-radius: 6px; }
+        .btn-reset:hover { background: #fee2e2; color: #dc3545; border-color: #fca5a5; }
+
+        #order-list { list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto; }
+        .order-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #eee; }
+        
+        .total-section { text-align: right; font-size: 1.25rem; color: var(--primary); font-weight: 800; margin-top: 15px; padding-top: 10px; border-top: 2px solid #eee; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>☕ 찰스는커피요정 주문</h1>
+    <p class="status">전체 사용자가 실시간으로 주문을 공유합니다.</p>
+
+    <div class="menu-item">
+        <span class="menu-name">아메리카노</span>
+        <div class="btn-group">
+            <button class="btn-ice" onclick="updateOrder('아메리카노', 'Ice')">Ice</button>
+            <button class="btn-hot" onclick="updateOrder('아메리카노', 'Hot')">Hot</button>
+        </div>
+    </div>
+
+    <div class="menu-item">
+        <span class="menu-name">라떼</span>
+        <div class="btn-group">
+            <button class="btn-ice" onclick="updateOrder('라떼', 'Ice')">Ice</button>
+            <button class="btn-hot" onclick="updateOrder('라떼', 'Hot')">Hot</button>
+        </div>
+    </div>
+
+    <div class="menu-item">
+        <span class="menu-name">기타 메뉴 직접 입력</span>
+        <input type="text" id="etc-name" placeholder="메뉴명을 입력하세요 (예: 유자차)">
+        <div class="btn-group">
+            <button class="btn-ice" onclick="updateEtcOrder('Ice')">Ice</button>
+            <button class="btn-hot" onclick="updateEtcOrder('Hot')">Hot</button>
+        </div>
+    </div>
+
+    <div class="order-summary">
+        <div class="summary-header">
+            <h2>주문 내역 🛒</h2>
+            <button class="btn-reset" onclick="clearAllOrders()">전체 초기화 🔄</button>
+        </div>
+        <ul id="order-list">
+            </ul>
+        <div class="total-section">
+            총 수량: <span id="total-count">0</span>개
+        </div>
+    </div>
+</div>
+
+<script>
+    // ✅ 사용자가 제공한 Firebase 설정 적용
+    const firebaseConfig = {
+        apiKey: "AIzaSyBSxM3W_RkCt8poqQJxVhIgYMPqLuZgT6Y",
+        authDomain: "menusame-6a326.firebaseapp.com",
+        databaseURL: "https://menusame-6a326-default-rtdb.firebaseio.com",
+        projectId: "menusame-6a326",
+        storageBucket: "menusame-6a326.firebasestorage.app",
+        messagingSenderId: "822750462446",
+        appId: "1:822750462446:web:1cc67bd3f2b49e52670eff"
+    };
+
+    // Firebase 초기화
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const orderRef = db.ref('orders');
+
+    // 1. 주문 추가/수량 증가 (Transaction 사용으로 충돌 방지)
+    function updateOrder(name, option) {
+        const itemKey = `${name} (${option})`;
+        orderRef.child(itemKey).transaction((currentValue) => {
+            return (currentValue || 0) + 1;
+        });
+    }
+
+    // 2. 기타 메뉴 추가
+    function updateEtcOrder(option) {
+        const input = document.getElementById('etc-name');
+        const name = input.value.trim();
+        if (!name) {
+            alert("메뉴명을 입력해 주세요!");
+            input.focus();
+            return;
+        }
+        updateOrder(name, option);
+        input.value = ""; // 입력창 초기화
+    }
+
+    // 3. 전체 초기화
+    function clearAllOrders() {
+        if (confirm("정말로 모든 주문 내역을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없으며 모든 사용자에게 적용됩니다.")) {
+            orderRef.remove();
+        }
+    }
+
+    // 4. 실시간 데이터 수신 및 화면 렌더링
+    orderRef.on('value', (snapshot) => {
+        const orders = snapshot.val() || {};
+        const listElement = document.getElementById('order-list');
+        const totalCountElement = document.getElementById('total-count');
+        
+        listElement.innerHTML = "";
+        let total = 0;
+
+        const keys = Object.keys(orders);
+        if (keys.length === 0) {
+            listElement.innerHTML = '<p style="text-align:center; color:#aaa; margin: 20px 0;">주문 내역이 비어 있습니다.</p>';
+        } else {
+            keys.forEach(key => {
+                const count = orders[key];
+                const li = document.createElement('li');
+                li.className = 'order-item';
+                li.innerHTML = `<span>${key}</span> <strong>${count}개</strong>`;
+                listElement.appendChild(li);
+                total += count;
+            });
+        }
+        totalCountElement.innerText = total;
+    });
+</script>
+
+</body>
+</html>
