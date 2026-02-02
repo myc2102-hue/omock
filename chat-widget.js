@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// --- 1. HTML 주입 (헤더 디자인 변경) ---
+// --- 1. HTML 주입 ---
 const chatHTML = `
     <div class="chat-tooltip" id="chatTooltip">채팅을 활성화 해보세요!</div>
 
@@ -55,14 +55,13 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 
-// --- 3. 로직 및 변수 ---
+// --- 3. 변수 및 DOM ---
 let nickname = "익명의 사용자";
 let isChatOpen = false;
 let unreadCount = 0;
 let initialLoad = true;
-let currentUserDocId = null; // 접속자 명단에서의 내 ID
+let currentUserDocId = null;
 
-// DOM 요소
 const chatContainer = document.getElementById('chatContainer');
 const chatBody = document.getElementById('chatBody');
 const loginScreen = document.getElementById('loginScreen');
@@ -85,7 +84,7 @@ function filterBadWords(text) {
     return cleanText;
 }
 
-// 창 열기/닫기
+// 화면 함수
 window.toggleChat = function() {
     chatContainer.classList.toggle('active');
     isChatOpen = chatContainer.classList.contains('active');
@@ -106,47 +105,39 @@ window.toggleChat = function() {
     }
 }
 
-// 🌟 입장하기 (핵심 로직 추가됨)
+// 🌟 입장 (시스템 메시지 전송 + 명단 등록)
 window.joinChat = async function() {
     const val = nicknameInput.value.trim();
     if(val) nickname = val;
     loginScreen.classList.add('hidden');
 
-    // 1. 접속자 명단(online_users)에 나를 등록
     try {
+        // 명단 등록
         const docRef = await addDoc(collection(db, "online_users"), {
             nickname: nickname,
             joinedAt: serverTimestamp()
         });
-        currentUserDocId = docRef.id; // 나갈 때 지우기 위해 ID 저장
+        currentUserDocId = docRef.id;
 
-        // 2. 채팅방에 "입장했습니다" 시스템 메시지 전송
+        // 입장 메시지는 "내가" 직접 보냄 (이건 성공 확률 높음)
         await addDoc(collection(db, "chats"), {
             text: `${nickname}님이 입장하셨습니다.`,
-            sender: "System",
-            type: "system", // 시스템 메시지 표시
-            timestamp: serverTimestamp()
-        });
-    } catch (e) {
-        console.error("접속 등록 실패:", e);
-    }
-}
-
-// 🌟 브라우저 닫거나 새로고침 할 때 (퇴장 처리)
-window.addEventListener("beforeunload", async () => {
-    if (currentUserDocId) {
-        // 1. 명단에서 삭제
-        // (참고: 브라우저가 닫힐 때는 비동기 처리가 보장되지 않을 수 있으나, 최선을 다해 요청함)
-        const userDocRef = doc(db, "online_users", currentUserDocId);
-        deleteDoc(userDocRef);
-
-        // 2. 퇴장 메시지 전송 (옵션: 너무 자주 뜨면 시끄러우니 뺄 수도 있음)
-        addDoc(collection(db, "chats"), {
-            text: `${nickname}님이 퇴장하셨습니다.`,
             sender: "System",
             type: "system",
             timestamp: serverTimestamp()
         });
+    } catch (e) {
+        console.error("입장 처리 실패:", e);
+    }
+}
+
+// 🌟 퇴장 (가장 중요한 수정 부분)
+window.addEventListener("beforeunload", () => {
+    if (currentUserDocId) {
+        // [수정] 퇴장 메시지(addDoc)를 보내지 않습니다! (어차피 실패함)
+        // 오직 '명단 삭제(deleteDoc)'만 시도합니다.
+        const userDocRef = doc(db, "online_users", currentUserDocId);
+        deleteDoc(userDocRef); 
     }
 });
 
@@ -154,14 +145,13 @@ window.addEventListener("beforeunload", async () => {
 window.sendMessage = async function() {
     const text = messageInput.value.trim();
     if (!text) return;
-
     const filteredText = filterBadWords(text);
 
     try {
         await addDoc(collection(db, "chats"), {
             text: filteredText,
             sender: nickname,
-            type: "user", // 일반 유저 메시지
+            type: "user",
             timestamp: serverTimestamp()
         });
         messageInput.value = '';
@@ -184,12 +174,28 @@ function updateBadge() {
     }
 }
 
-// 🌟 실시간 접속자 수 감지 (online_users 컬렉션 감시)
+// 🌟 [핵심] 접속자 명단 감시 (누가 나가면 여기서 감지!)
 onSnapshot(collection(db, "online_users"), (snapshot) => {
-    userCountSpan.innerText = snapshot.size; // 문서 개수 = 접속자 수
+    // 1. 숫자 업데이트
+    userCountSpan.innerText = snapshot.size;
+
+    // 2. 변경사항 확인 (누가 들어왔는지, 나갔는지)
+    snapshot.docChanges().forEach((change) => {
+        // 누군가 명단에서 삭제됨 -> 즉, 퇴장함
+        if (change.type === "removed") {
+            const leftUser = change.doc.data().nickname;
+            
+            // DB에 저장하지 않고, 내 화면에만 '시스템 메시지'를 띄움 (이게 제일 확실함)
+            const msgDiv = document.createElement('div');
+            msgDiv.className = "system-msg";
+            msgDiv.innerText = `${leftUser}님이 퇴장하셨습니다.`;
+            chatBody.appendChild(msgDiv);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+    });
 });
 
-// 실시간 채팅 감지
+// 채팅 메시지 감시
 const q = query(collection(db, "chats"), orderBy("timestamp", "asc"));
 onSnapshot(q, (snapshot) => {
     snapshot.docChanges().forEach((change) => {
@@ -197,7 +203,6 @@ onSnapshot(q, (snapshot) => {
             const data = change.doc.data();
             const msgDiv = document.createElement('div');
             
-            // 🌟 시스템 메시지 vs 일반 메시지 구분
             if (data.type === "system") {
                 msgDiv.className = "system-msg";
                 msgDiv.innerText = data.text;
@@ -215,7 +220,6 @@ onSnapshot(q, (snapshot) => {
                     msgDiv.innerText = data.text;
                 }
             }
-
             chatBody.appendChild(msgDiv);
             chatBody.scrollTop = chatBody.scrollHeight;
         }
