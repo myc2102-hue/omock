@@ -13,7 +13,7 @@
         h1 { text-align: center; color: var(--primary); margin-bottom: 20px; }
         
         .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
-        .tab { flex: 1; padding: 12px; text-align: center; background: #eee; border-radius: 12px; cursor: pointer; font-weight: bold; }
+        .tab { flex: 1; padding: 12px; text-align: center; background: #eee; border-radius: 12px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .tab.active { background: var(--primary); color: white; }
 
         .timer-banner { background: #333; color: #fff; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 20px; }
@@ -22,7 +22,6 @@
         .menu-item { border-bottom: 1px solid #f5f5f5; padding: 20px 0; }
         .menu-name { font-weight: bold; font-size: 1.1rem; display: block; margin-bottom: 15px; text-align: center; }
 
-        /* 4개 버튼 그리드 배치 */
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         button { padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: 0.2s; }
         
@@ -46,7 +45,7 @@
         <div id="tab-daily" class="tab" onclick="switchTab('daily')">주간용</div>
     </div>
     <div class="timer-banner">
-        <span id="timer-label">로딩 중...</span>
+        <span id="timer-label">연결 대기 중...</span>
         <span id="time-left">00:00:00</span>
         <div id="notice-text" style="font-size:0.75rem; color:#ccc; margin-top:5px;"></div>
     </div>
@@ -95,6 +94,7 @@
 </div>
 
 <script>
+    // 1. Firebase 설정
     const firebaseConfig = {
         apiKey: "AIzaSyBSxM3W_RkCt8poqQJxVhIgYMPqLuZgT6Y",
         authDomain: "menusame-6a326.firebaseapp.com",
@@ -105,6 +105,7 @@
         appId: "1:822750462446:web:1cc67bd3f2b49e52670eff"
     };
 
+    // Firebase 초기화
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
@@ -123,8 +124,10 @@
 
     function switchTab(type) {
         currentCategory = type;
-        document.getElementById('tab-morning').classList.toggle('active', type === 'morning');
-        document.getElementById('tab-daily').classList.toggle('active', type === 'daily');
+        const morningTab = document.getElementById('tab-morning');
+        const dailyTab = document.getElementById('tab-daily');
+        if(morningTab) morningTab.classList.toggle('active', type === 'morning');
+        if(dailyTab) dailyTab.classList.toggle('active', type === 'daily');
         updateTimer();
     }
 
@@ -133,20 +136,22 @@
         const config = TIMES[currentCategory];
         const timerEl = document.getElementById('time-left');
         const labelEl = document.getElementById('timer-label');
+        const noticeEl = document.getElementById('notice-text');
         const btns = document.querySelectorAll('.order-btn');
-        document.getElementById('notice-text').innerText = `운영시간: ${config.label}`;
+        
+        if(noticeEl) noticeEl.innerText = `운영시간: ${config.label}`;
 
         if (curSec >= config.open && curSec < config.close) {
-            labelEl.innerText = "영업시간";
+            if(labelEl) labelEl.innerText = "영업 중";
             btns.forEach(b => b.disabled = false);
             const diff = config.close - curSec;
             const h = Math.floor(diff/3600).toString().padStart(2,'0');
             const m = Math.floor((diff%3600)/60).toString().padStart(2,'0');
             const s = (diff%60).toString().padStart(2,'0');
-            timerEl.innerText = `${h}:${m}:${s}`;
+            if(timerEl) timerEl.innerText = `${h}:${m}:${s}`;
         } else {
-            labelEl.innerText = curSec < config.open ? "주문 시작 전" : "영업 종료";
-            timerEl.innerText = "00:00:00";
+            if(labelEl) labelEl.innerText = curSec < config.open ? "주문 시작 전" : "영업 종료";
+            if(timerEl) timerEl.innerText = "00:00:00";
             btns.forEach(b => b.disabled = true);
         }
     }
@@ -158,17 +163,18 @@
             alert("주문 가능 시간이 아닙니다!");
             return;
         }
-
         const prefix = currentCategory === 'morning' ? "아침_" : "일상_";
         const fullKey = prefix + fullMenuName;
         db.ref('orders/' + fullKey).transaction((cv) => (cv || 0) + 1);
     }
 
     function addEtcOrder(suffix) {
-        const name = document.getElementById('etc-name').value.trim();
+        const etcInput = document.getElementById('etc-name');
+        if(!etcInput) return;
+        const name = etcInput.value.trim();
         if(!name) return alert("메뉴명을 입력하세요");
         addOrder(`${name} (${suffix})`);
-        document.getElementById('etc-name').value = "";
+        etcInput.value = "";
     }
 
     window.adjustQty = function(key, amt) {
@@ -179,13 +185,16 @@
     };
 
     function clearAllOrders() {
-        if(confirm("음료별 초기화는 제품옆 "-"" 버튼을 눌러 "0" 으로 만들어주세요. 정말로 전체 초기화 하시겠습니까? 휴먼??")) db.ref('orders').remove();
+        if(confirm("정말로 전체 초기화 하시겠습니까?")) db.ref('orders').remove();
     }
 
+    // 데이터 리스너
     db.ref('orders').on('value', (snapshot) => {
         const orders = snapshot.val() || {};
         const listEl = document.getElementById('order-list');
         const totalEl = document.getElementById('total-count');
+        if(!listEl) return;
+        
         listEl.innerHTML = "";
         let total = 0;
 
@@ -202,14 +211,20 @@
             listEl.appendChild(li);
             total += count;
         });
-        totalEl.innerText = total;
+        if(totalEl) totalEl.innerText = total;
+    }, (error) => {
+        console.error("Firebase 연결 실패:", error);
     });
 
-    const nowSec = getKSTSeconds();
-    if (nowSec >= TIMES.morning.open && nowSec < TIMES.morning.close) switchTab('morning');
-    else switchTab('daily');
-
-    setInterval(updateTimer, 1000);
+    // 실행 시작
+    window.onload = function() {
+        const nowSec = getKSTSeconds();
+        if (nowSec >= TIMES.morning.open && nowSec < TIMES.morning.close) switchTab('morning');
+        else switchTab('daily');
+        
+        setInterval(updateTimer, 1000);
+        updateTimer();
+    };
 </script>
 </body>
-</html> 
+</html>
