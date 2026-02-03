@@ -3,16 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>커피요정찰스 - 수량 조절 가능</title>
+    <title>커피요정찰스 - 타임세일 주문</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        :root { --primary: #6f4e37; --ice: #007bff; --hot: #dc3545; --bg: #fdfaf7; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; line-height: 1.6; }
+        :root { --primary: #6f4e37; --ice: #007bff; --hot: #dc3545; --bg: #fdfaf7; --accent: #e67e22; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
         .container { max-width: 480px; margin: 0 auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
         
-        h1 { text-align: center; color: var(--primary); margin-bottom: 5px; }
-        .status { text-align: center; font-size: 0.85rem; color: #888; margin-bottom: 25px; }
+        h1 { text-align: center; color: var(--primary); margin-bottom: 10px; }
+        
+        /* 타이머 및 공지 스타일 */
+        .timer-banner { background: #333; color: #fff; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 20px; }
+        #time-left { font-size: 1.4rem; font-weight: 800; color: #f1c40f; display: block; }
+        .notice-text { font-size: 0.8rem; color: #ccc; margin-top: 5px; }
 
         .menu-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
         .menu-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; display: block; }
@@ -20,27 +24,21 @@
         button { flex: 1; padding: 12px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 1rem; }
         
         .btn-ice { background: #eef6ff; color: var(--ice); border: 1px solid #cce3ff; }
-        .btn-ice:hover { background: var(--ice); color: white; }
         .btn-hot { background: #fff5f5; color: var(--hot); border: 1px solid #ffe3e3; }
-        .btn-hot:hover { background: var(--hot); color: white; }
+        button:disabled { background: #eee !important; color: #aaa !important; cursor: not-allowed; border: none; }
         
-        input[type="text"] { width: 100%; padding: 12px; margin-bottom: 12px; border: 2px solid #eee; border-radius: 12px; box-sizing: border-box; font-size: 1rem; outline: none; }
+        input[type="text"] { width: 100%; padding: 12px; margin-bottom: 12px; border: 2px solid #eee; border-radius: 12px; box-sizing: border-box; outline: none; }
 
         .order-summary { margin-top: 30px; background: #fff; padding: 20px; border-radius: 15px; border: 2px solid var(--primary); }
-        .summary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #eee; }
-        .btn-reset { flex: none; width: auto; padding: 6px 12px; font-size: 0.85rem; background: #f8f9fa; color: #666; border: 1px solid #ddd; border-radius: 6px; }
+        .summary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .btn-reset { flex: none; width: auto; padding: 6px 12px; font-size: 0.8rem; background: #f8f9fa; border: 1px solid #ddd; }
 
         #order-list { list-style: none; padding: 0; margin: 0; }
         .order-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed #eee; }
         
-        /* +/- 수량 조절 버튼 스타일 */
         .count-controls { display: flex; align-items: center; gap: 10px; }
-        .btn-count { 
-            width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center;
-            border-radius: 50%; font-size: 1.2rem; background: #eee; color: #333; border: 1px solid #ccc;
-        }
-        .btn-count:hover { background: #ddd; }
-        .item-count { font-weight: 800; min-width: 25px; text-align: center; }
+        .btn-count { width: 28px; height: 28px; padding: 0; border-radius: 50%; background: #eee; border: 1px solid #ccc; font-size: 1.1rem; }
+        .item-count { font-weight: 800; min-width: 20px; text-align: center; }
 
         .total-section { text-align: right; font-size: 1.25rem; color: var(--primary); font-weight: 800; margin-top: 15px; padding-top: 10px; border-top: 2px solid #eee; }
     </style>
@@ -49,37 +47,42 @@
 
 <div class="container">
     <h1>☕ 찰스는커피요정</h1>
-    <p class="status">실시간으로 주문 수량을 조절할 수 있습니다.</p>
+    
+    <div class="timer-banner">
+        <span id="timer-label">주문 마감까지</span>
+        <span id="time-left">00:00:00</span>
+        <div class="notice-text">운영시간: 오전 07:00 ~ 07:58</div>
+    </div>
 
     <div class="menu-item">
         <span class="menu-name">아메리카노</span>
         <div class="btn-group">
-            <button class="btn-ice" onclick="changeQty('아메리카노 (Ice)', 1)">Ice</button>
-            <button class="btn-hot" onclick="changeQty('아메리카노 (Hot)', 1)">Hot</button>
+            <button class="btn-ice order-btn" onclick="handleOrder('아메리카노 (Ice)', 1)">Ice</button>
+            <button class="btn-hot order-btn" onclick="handleOrder('아메리카노 (Hot)', 1)">Hot</button>
         </div>
     </div>
 
     <div class="menu-item">
         <span class="menu-name">라떼</span>
         <div class="btn-group">
-            <button class="btn-ice" onclick="changeQty('라떼 (Ice)', 1)">Ice</button>
-            <button class="btn-hot" onclick="changeQty('라떼 (Hot)', 1)">Hot</button>
+            <button class="btn-ice order-btn" onclick="handleOrder('라떼 (Ice)', 1)">Ice</button>
+            <button class="btn-hot order-btn" onclick="handleOrder('라떼 (Hot)', 1)">Hot</button>
         </div>
     </div>
 
     <div class="menu-item">
         <span class="menu-name">기타 메뉴 직접 입력</span>
-        <input type="text" id="etc-name" placeholder="메뉴명을 입력하세요">
+        <input type="text" id="etc-name" class="order-btn" placeholder="메뉴명을 입력하세요">
         <div class="btn-group">
-            <button class="btn-ice" onclick="updateEtcOrder('Ice')">Ice</button>
-            <button class="btn-hot" onclick="updateEtcOrder('Hot')">Hot</button>
+            <button class="btn-ice order-btn" onclick="updateEtcOrder('Ice')">Ice</button>
+            <button class="btn-hot order-btn" onclick="updateEtcOrder('Hot')">Hot</button>
         </div>
     </div>
 
     <div class="order-summary">
         <div class="summary-header">
             <h2>주문 내역 🛒</h2>
-            <button class="btn-reset" onclick="clearAllOrders()">전체 초기화 🔄</button>
+            <button class="btn-reset" onclick="clearAllOrders()">초기화</button>
         </div>
         <ul id="order-list"></ul>
         <div class="total-section">총 수량: <span id="total-count">0</span>개</div>
@@ -87,6 +90,7 @@
 </div>
 
 <script>
+    // Firebase 설정
     const firebaseConfig = {
         apiKey: "AIzaSyBSxM3W_RkCt8poqQJxVhIgYMPqLuZgT6Y",
         authDomain: "menusame-6a326.firebaseapp.com",
@@ -101,32 +105,80 @@
     const db = firebase.database();
     const orderRef = db.ref('orders');
 
-    // 수량 변경 함수 (amount가 1이면 증가, -1이면 감소)
-    function changeQty(itemKey, amount) {
-        orderRef.child(itemKey).transaction((currentValue) => {
-            const newValue = (currentValue || 0) + amount;
-            return newValue <= 0 ? null : newValue; // 0이하가 되면 데이터 삭제
+    // [시간 제어 로직]
+    function getStatus() {
+        const now = new Date();
+        const h = now.getHours();
+        const m = now.getMinutes();
+        const s = now.getSeconds();
+        
+        const currentTimeInSec = h * 3600 + m * 60 + s;
+        const openTimeInSec = 7 * 3600;         // 07:00:00
+        const closeTimeInSec = 7 * 3600 + 58 * 60; // 07:58:00
+
+        if (currentTimeInSec < openTimeInSec) return { state: 'BEFORE', diff: openTimeInSec - currentTimeInSec };
+        if (currentTimeInSec >= openTimeInSec && currentTimeInSec < closeTimeInSec) return { state: 'OPEN', diff: closeTimeInSec - currentTimeInSec };
+        return { state: 'CLOSED', diff: 0 };
+    }
+
+    function updateTimer() {
+        const status = getStatus();
+        const timerEl = document.getElementById('time-left');
+        const labelEl = document.getElementById('timer-label');
+        const btns = document.querySelectorAll('.order-btn');
+
+        if (status.state === 'BEFORE') {
+            labelEl.innerText = "주문 시작까지";
+            btns.forEach(b => b.disabled = true);
+        } else if (status.state === 'OPEN') {
+            labelEl.innerText = "주문 마감까지";
+            btns.forEach(b => b.disabled = false);
+        } else {
+            labelEl.innerText = "오늘 주문 종료";
+            timerEl.innerText = "00:00:00";
+            btns.forEach(b => b.disabled = true);
+            return;
+        }
+
+        const h = Math.floor(status.diff / 3600).toString().padStart(2, '0');
+        const m = Math.floor((status.diff % 3600) / 60).toString().padStart(2, '0');
+        const s = (status.diff % 60).toString().padStart(2, '0');
+        timerEl.innerText = `${h}:${m}:${s}`;
+    }
+
+    setInterval(updateTimer, 1000);
+    updateTimer();
+
+    // [주문 처리 로직]
+    function handleOrder(itemKey, amount) {
+        if (getStatus().state !== 'OPEN') {
+            alert("주문 가능한 시간이 아닙니다! (오전 7:00 ~ 7:58)");
+            return;
+        }
+        orderRef.child(itemKey).transaction((cv) => {
+            const nv = (cv || 0) + amount;
+            return nv <= 0 ? null : nv;
         });
     }
 
     function updateEtcOrder(option) {
         const input = document.getElementById('etc-name');
         const name = input.value.trim();
-        if (!name) return alert("메뉴명을 입력해 주세요!");
-        changeQty(`${name} (${option})`, 1);
+        if (!name) return alert("메뉴명을 입력하세요");
+        handleOrder(`${name} (${option})`, 1);
         input.value = "";
     }
 
     function clearAllOrders() {
-        if (confirm("모든 주문 내역을 삭제하시겠습니까?")) orderRef.remove();
+        if (confirm("주문 내역을 초기화하시겠습니까?")) orderRef.remove();
     }
 
+    // [실시간 리스트 렌더링]
     orderRef.on('value', (snapshot) => {
         const orders = snapshot.val() || {};
-        const listElement = document.getElementById('order-list');
-        const totalCountElement = document.getElementById('total-count');
-        
-        listElement.innerHTML = "";
+        const listEl = document.getElementById('order-list');
+        const totalEl = document.getElementById('total-count');
+        listEl.innerHTML = "";
         let total = 0;
 
         Object.keys(orders).forEach(key => {
@@ -136,19 +188,16 @@
             li.innerHTML = `
                 <span>${key}</span>
                 <div class="count-controls">
-                    <button class="btn-count" onclick="changeQty('${key}', -1)">-</button>
+                    <button class="btn-count" onclick="handleOrder('${key}', -1)">-</button>
                     <span class="item-count">${count}</span>
-                    <button class="btn-count" onclick="changeQty('${key}', 1)">+</button>
+                    <button class="btn-count" onclick="handleOrder('${key}', 1)">+</button>
                 </div>
             `;
-            listElement.appendChild(li);
+            listEl.appendChild(li);
             total += count;
         });
-
-        if (total === 0) {
-            listElement.innerHTML = '<p style="text-align:center; color:#aaa; margin: 20px 0;">주문 내역이 비어 있습니다.</p>';
-        }
-        totalCountElement.innerText = total;
+        if (total === 0) listEl.innerHTML = '<p style="text-align:center; color:#aaa; margin:15px 0;">주문이 없습니다.</p>';
+        totalEl.innerText = total;
     });
 </script>
 
