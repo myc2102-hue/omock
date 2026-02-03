@@ -179,7 +179,7 @@
     };
 
     function clearAllOrders() {
-        if(confirm("음료별 초기화는 - 버튼을 눌러0 으로 만들어주세요. 정말로 전체 초기화 하시겠습니까? 휴먼??")) db.ref('orders').remove();
+        if(confirm("음료별 초기화는 제품옆 "-"" 버튼을 눌러 "0" 으로 만들어주세요. 정말로 전체 초기화 하시겠습니까? 휴먼??")) db.ref('orders').remove();
     }
 
     db.ref('orders').on('value', (snapshot) => {
