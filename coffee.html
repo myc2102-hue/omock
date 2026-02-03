@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>커피요정찰스 - 실시간 주문</title>
+    <title>커피요정찰스 - 옵션 추가 버전</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
@@ -16,12 +16,18 @@
         .tab.active { background: var(--primary); color: white; }
         .timer-banner { background: #333; color: #fff; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 20px; }
         #time-left { font-size: 1.5rem; font-weight: 800; color: #f1c40f; display: block; }
+        
         .menu-item { border-bottom: 1px solid #f5f5f5; padding: 15px 0; }
-        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        .menu-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .option-label { font-size: 0.85rem; color: #666; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .option-label input { width: 16px; height: 16px; cursor: pointer; }
+
+        .btn-group { display: flex; gap: 10px; }
         button { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1rem; }
         .btn-ice { background: #eef6ff; color: var(--ice); border: 1px solid #cce3ff; }
         .btn-hot { background: #fff5f5; color: var(--hot); border: 1px solid #ffe3e3; }
         button:disabled { background: #f0f0f0 !important; color: #ccc !important; cursor: not-allowed; opacity: 0.6; }
+        
         .order-summary { margin-top: 30px; border: 2px solid var(--primary); padding: 15px; border-radius: 15px; }
         .order-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed #eee; gap: 10px; }
         .btn-count { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #dee2e6; cursor: pointer; background: #fff; }
@@ -39,34 +45,45 @@
         <span id="time-left">00:00:00</span>
         <div id="notice-text" style="font-size:0.75rem; color:#ccc; margin-top:5px;"></div>
     </div>
+
     <div id="menu-container">
         <div class="menu-item">
-            <span style="font-weight:bold;">아메리카노</span>
+            <div class="menu-header">
+                <span style="font-weight:bold;">아메리카노</span>
+                <label class="option-label"><input type="checkbox" id="shot-아메리카노"> 샷 추가 (+)</label>
+            </div>
             <div class="btn-group">
-                <button class="btn-ice order-btn" onclick="addOrder('아메리카노 (Ice)')">Ice</button>
-                <button class="btn-hot order-btn" onclick="addOrder('아메리카노 (Hot)')">Hot</button>
+                <button class="btn-ice order-btn" onclick="addOrder('아메리카노', 'Ice')">Ice</button>
+                <button class="btn-hot order-btn" onclick="addOrder('아메리카노', 'Hot')">Hot</button>
             </div>
         </div>
         <div class="menu-item">
-            <span style="font-weight:bold;">라떼</span>
+            <div class="menu-header">
+                <span style="font-weight:bold;">라떼</span>
+                <label class="option-label"><input type="checkbox" id="shot-라떼"> 샷 추가 (+)</label>
+            </div>
             <div class="btn-group">
-                <button class="btn-ice order-btn" onclick="addOrder('라떼 (Ice)')">Ice</button>
-                <button class="btn-hot order-btn" onclick="addOrder('라떼 (Hot)')">Hot</button>
+                <button class="btn-ice order-btn" onclick="addOrder('라떼', 'Ice')">Ice</button>
+                <button class="btn-hot order-btn" onclick="addOrder('라떼', 'Hot')">Hot</button>
             </div>
         </div>
         <div class="menu-item">
-            <span style="font-weight:bold;">기타 메뉴 직접 입력</span>
-            <input type="text" id="etc-name" style="width:100%; padding:10px; margin-top:10px; border:1px solid #ddd; border-radius:8px;" placeholder="메뉴명을 입력하세요">
+            <div class="menu-header">
+                <span style="font-weight:bold;">기타 메뉴</span>
+                <label class="option-label"><input type="checkbox" id="shot-기타"> 샷 추가 (+)</label>
+            </div>
+            <input type="text" id="etc-name" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;" placeholder="메뉴명을 입력하세요">
             <div class="btn-group">
                 <button class="btn-ice order-btn" onclick="addEtcOrder('Ice')">Ice</button>
                 <button class="btn-hot order-btn" onclick="addEtcOrder('Hot')">Hot</button>
             </div>
         </div>
     </div>
+
     <div class="order-summary">
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <h2 style="font-size:1.1rem; margin:0;">오늘의 주문 🛒</h2>
-            <button style="width:auto; padding:5px 10px; font-size:0.75rem; background:#eee;" onclick="clearAllOrders()">초기화</button>
+            <button style="width:auto; padding:5px 10px; font-size:0.75rem; background:#eee; border-radius:5px; border:1px solid #ddd;" onclick="clearAllOrders()">초기화</button>
         </div>
         <ul id="order-list" style="list-style:none; padding:0; margin:15px 0 0 0;"></ul>
         <div style="text-align:right; font-weight:bold; margin-top:15px; border-top:1px solid #eee; padding-top:10px;">
@@ -132,22 +149,34 @@
         }
     }
 
-    // [중요 수정] Firebase 금지 문자 '[' 와 ']' 제거
-    function addOrder(menuName) {
+    // [샷 추가 옵션 포함 주문 함수]
+    function addOrder(menuName, type) {
+        const curSec = getKSTSeconds();
+        const config = TIMES[currentCategory];
+        if (curSec < config.open || curSec >= config.close) {
+            alert("주문 가능 시간이 아닙니다!");
+            return;
+        }
+
+        // 샷 추가 체크 여부 확인 (기타 메뉴는 ID를 따로 관리)
+        const shotId = menuName === '아메리카노' || menuName === '라떼' ? `shot-${menuName}` : 'shot-기타';
+        const isShotAdded = document.getElementById(shotId).checked;
+        
         const prefix = currentCategory === 'morning' ? "아침_" : "일상_";
-        const fullKey = prefix + menuName;
+        const shotSuffix = isShotAdded ? " (샷추가)" : "";
+        const fullKey = `${prefix}${menuName} (${type})${shotSuffix}`;
+
         db.ref('orders/' + fullKey).transaction((cv) => (cv || 0) + 1);
+        
+        // 주문 후 체크박스 해제 (다음 사람을 위해)
+        document.getElementById(shotId).checked = false;
     }
 
-    function addEtcOrder(opt) {
+    function addEtcOrder(type) {
         const name = document.getElementById('etc-name').value.trim();
-        if(!name) return alert("이름을 입력하세요");
-        addOrder(`${name} (${opt})`);
+        if(!name) return alert("메뉴명을 입력하세요");
+        addOrder(name, type);
         document.getElementById('etc-name').value = "";
-    }
-
-    function clearAllOrders() {
-        if(confirm("초기화하시겠습니까?")) db.ref('orders').remove();
     }
 
     window.adjustQty = function(key, amt) {
@@ -156,6 +185,10 @@
             return nv <= 0 ? null : nv;
         });
     };
+
+    function clearAllOrders() {
+        if(confirm("초기화하시겠습니까?")) db.ref('orders').remove();
+    }
 
     db.ref('orders').on('value', (snapshot) => {
         const orders = snapshot.val() || {};
