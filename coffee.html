@@ -84,7 +84,7 @@
     <div class="order-summary">
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <h2 style="font-size:1.1rem; margin:0;">오늘의 주문 🛒</h2>
-            <button style="width:auto; padding:5px 10px; font-size:0.75rem; background:#eee;" onclick="clearAllOrders()">초기화</button>
+            <button style="width:auto; padding:5px 10px; font-size:0.75rem; background:#eee;" onclick="clearAllOrders()">전체 초기화</button>
         </div>
         <ul id="order-list" style="list-style:none; padding:0; margin:15px 0 0 0;"></ul>
         <div style="text-align:right; font-weight:bold; margin-top:15px; border-top:1px solid #eee; padding-top:10px;">
@@ -94,7 +94,6 @@
 </div>
 
 <script>
-    // 1. Firebase 설정
     const firebaseConfig = {
         apiKey: "AIzaSyBSxM3W_RkCt8poqQJxVhIgYMPqLuZgT6Y",
         authDomain: "menusame-6a326.firebaseapp.com",
@@ -105,7 +104,6 @@
         appId: "1:822750462446:web:1cc67bd3f2b49e52670eff"
     };
 
-    // Firebase 초기화
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
@@ -124,10 +122,8 @@
 
     function switchTab(type) {
         currentCategory = type;
-        const morningTab = document.getElementById('tab-morning');
-        const dailyTab = document.getElementById('tab-daily');
-        if(morningTab) morningTab.classList.toggle('active', type === 'morning');
-        if(dailyTab) dailyTab.classList.toggle('active', type === 'daily');
+        document.getElementById('tab-morning').classList.toggle('active', type === 'morning');
+        document.getElementById('tab-daily').classList.toggle('active', type === 'daily');
         updateTimer();
     }
 
@@ -150,6 +146,7 @@
             const s = (diff%60).toString().padStart(2,'0');
             if(timerEl) timerEl.innerText = `${h}:${m}:${s}`;
         } else {
+            // 영업 종료 상태에서도 리스트 표시는 유지됨 (버튼만 비활성화)
             if(labelEl) labelEl.innerText = curSec < config.open ? "주문 시작 전" : "영업 종료";
             if(timerEl) timerEl.innerText = "00:00:00";
             btns.forEach(b => b.disabled = true);
@@ -160,7 +157,7 @@
         const curSec = getKSTSeconds();
         const config = TIMES[currentCategory];
         if (curSec < config.open || curSec >= config.close) {
-            alert("주문 가능 시간이 아닙니다!");
+            alert("영업 시간이 아닙니다!");
             return;
         }
         const prefix = currentCategory === 'morning' ? "아침_" : "일상_";
@@ -170,7 +167,6 @@
 
     function addEtcOrder(suffix) {
         const etcInput = document.getElementById('etc-name');
-        if(!etcInput) return;
         const name = etcInput.value.trim();
         if(!name) return alert("메뉴명을 입력하세요");
         addOrder(`${name} (${suffix})`);
@@ -178,6 +174,7 @@
     }
 
     window.adjustQty = function(key, amt) {
+        // 수량 조절은 영업 종료와 상관없이 가능하도록 열어둡니다 (관리자용)
         db.ref('orders/' + key).transaction((cv) => {
             const nv = (cv || 0) + amt;
             return nv <= 0 ? null : nv;
@@ -185,10 +182,12 @@
     };
 
     function clearAllOrders() {
-        if(confirm("개별 음료 초기화는 - 버튼을눌러 0을 만들어 취소가 가능합니다. 정말로 전체취소를 하시겠습니까 휴먼???")) db.ref('orders').remove();
+        if(confirm("개별 음료 초기화는 - 버튼을 눌러주세요. 전체 주문을 삭제하시겠습니까?")) {
+            db.ref('orders').remove();
+        }
     }
 
-    // 데이터 리스너
+    // 데이터 리스너: 영업 상태와 무관하게 항상 실행됨
     db.ref('orders').on('value', (snapshot) => {
         const orders = snapshot.val() || {};
         const listEl = document.getElementById('order-list');
@@ -202,7 +201,7 @@
             const count = orders[key];
             const li = document.createElement('li');
             li.className = 'order-item';
-            li.innerHTML = `<span style="font-size:0.9rem;">${key}</span>
+            li.innerHTML = `<span>${key}</span>
                 <div style="display:flex; align-items:center; gap:10px;">
                     <button class="btn-count" onclick="adjustQty('${key}', -1)">-</button>
                     <span style="font-weight:bold; min-width:20px; text-align:center;">${count}</span>
@@ -212,13 +211,11 @@
             total += count;
         });
         if(totalEl) totalEl.innerText = total;
-    }, (error) => {
-        console.error("Firebase 연결 실패:", error);
     });
 
-    // 실행 시작
     window.onload = function() {
         const nowSec = getKSTSeconds();
+        // 07:00 ~ 08:00 사이면 아침탭, 그 외엔 주간탭 자동 선택
         if (nowSec >= TIMES.morning.open && nowSec < TIMES.morning.close) switchTab('morning');
         else switchTab('daily');
         
