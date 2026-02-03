@@ -43,7 +43,7 @@
     <h1>☕ 찰스는커피요정</h1>
     <div class="tabs">
         <div id="tab-morning" class="tab" onclick="switchTab('morning')">아침용</div>
-        <div id="tab-daily" class="tab" onclick="switchTab('daily')">일상용</div>
+        <div id="tab-daily" class="tab" onclick="switchTab('daily')">주간용</div>
     </div>
     <div class="timer-banner">
         <span id="timer-label">로딩 중...</span>
@@ -137,7 +137,7 @@
         document.getElementById('notice-text').innerText = `운영시간: ${config.label}`;
 
         if (curSec >= config.open && curSec < config.close) {
-            labelEl.innerText = "주문 마감까지";
+            labelEl.innerText = "영업시간";
             btns.forEach(b => b.disabled = false);
             const diff = config.close - curSec;
             const h = Math.floor(diff/3600).toString().padStart(2,'0');
