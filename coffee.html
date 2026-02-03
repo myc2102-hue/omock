@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>커피요정찰스 - 스마트 주문</title>
+    <title>커피요정찰스 - 독립 타임 제어</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
@@ -14,7 +14,7 @@
         h1 { text-align: center; color: var(--primary); margin: 0 0 20px 0; font-size: 1.5rem; }
         
         .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
-        .tab { flex: 1; padding: 12px; text-align: center; background: #eee; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 0.95rem; }
+        .tab { flex: 1; padding: 12px; text-align: center; background: #eee; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 0.95rem; transition: 0.2s; }
         .tab.active { background: var(--primary); color: white; }
         .tab.locked { background: #f5f5f5; color: #ccc; }
 
@@ -29,7 +29,7 @@
         
         .btn-ice { background: #eef6ff; color: var(--ice); border: 1px solid #cce3ff; }
         .btn-hot { background: #fff5f5; color: var(--hot); border: 1px solid #ffe3e3; }
-        button:disabled { background: #f0f0f0 !important; color: #ccc !important; cursor: not-allowed; }
+        button:disabled { background: #f0f0f0 !important; color: #ccc !important; cursor: not-allowed; opacity: 0.6; }
         
         input[type="text"] { width: 100%; padding: 12px; margin-top: 10px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; outline: none; }
 
@@ -83,7 +83,8 @@
     };
 
     firebase.initializeApp(firebaseConfig);
-    const orderRef = firebase.database().ref('orders');
+    const db = firebase.database();
+    const orderRef = db.ref('orders');
 
     let currentCategory = 'morning';
     const TIMES = {
@@ -109,23 +110,10 @@
                 <span class="menu-name">기타 메뉴 직접 입력</span>
                 <input type="text" id="etc-name" placeholder="메뉴명을 입력하세요">
                 <div class="btn-group" style="margin-top:10px;">
-                    <button class="btn-ice order-btn" onclick="updateEtcOrder('Ice')">Ice</button>
+                    <button class="btn-ice order-btn" onclick="handleOrderEtc('Ice')">Ice</button>
                     <button class="btn-hot order-btn" onclick="handleOrderEtc('Hot')">Hot</button>
                 </div>
             </div>`;
-    }
-
-    // [시간에 따른 자동 랜딩 로직]
-    function autoLanding() {
-        const now = new Date();
-        const cur = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-        
-        // 아침 시간(07:00 ~ 07:58)이면 아침용, 아니면 일상용
-        if (cur >= TIMES.morning.open && cur < TIMES.morning.close) {
-            switchTab('morning');
-        } else {
-            switchTab('daily');
-        }
     }
 
     function switchTab(type) {
@@ -135,18 +123,19 @@
         updateTimer();
     }
 
-    function checkTimeStatus(type) {
-        const now = new Date();
-        const cur = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-        const config = TIMES[type];
-        if (cur < config.open) return { state: 'BEFORE', diff: config.open - cur, config };
-        if (cur < config.close) return { state: 'OPEN', diff: config.close - cur, config };
-        return { state: 'CLOSED', diff: 0, config };
+    function getSeconds(date) {
+        return date.getHours() * 3600 + date.getMinutes() * 60 + date.getSeconds();
     }
 
     function updateTimer() {
-        const mStatus = checkTimeStatus('morning');
-        const dStatus = checkTimeStatus('daily');
+        const now = new Date();
+        const cur = getSeconds(now);
+        
+        // 1. 아침/일상 탭의 현재 상태를 각각 계산
+        const mStatus = getStatusInfo(cur, TIMES.morning);
+        const dStatus = getStatusInfo(cur, TIMES.daily);
+
+        // 2. 화면에 보여줄 타이머 설정 (현재 탭 기준)
         const currentStatus = (currentCategory === 'morning') ? mStatus : dStatus;
         
         document.getElementById('notice-text').innerText = `운영시간: ${currentStatus.config.label}`;
@@ -166,28 +155,59 @@
             timerEl.innerText = "00:00:00";
             btns.forEach(b => b.disabled = true);
         }
+
+        // 3. 탭 버튼 시각적 효과 (운영 중이 아니면 흐리게)
         document.getElementById('tab-morning').classList.toggle('locked', mStatus.state !== 'OPEN');
         document.getElementById('tab-daily').classList.toggle('locked', dStatus.state !== 'OPEN');
     }
 
-    setInterval(updateTimer, 1000);
+    function getStatusInfo(curSec, config) {
+        if (curSec < config.open) return { state: 'BEFORE', diff: config.open - curSec, config };
+        if (curSec < config.close) return { state: 'OPEN', diff: config.close - curSec, config };
+        return { state: 'CLOSED', diff: 0, config };
+    }
 
     function handleOrder(key, amt) {
-        if (checkTimeStatus(currentCategory).state !== 'OPEN') return alert("현재 주문 시간이 아닙니다!");
+        const now = new Date();
+        const cur = getSeconds(now);
+        const status = getStatusInfo(cur, TIMES[currentCategory]);
+
+        if (status.state !== 'OPEN') {
+            alert("현재 선택된 탭의 주문 시간이 아닙니다!");
+            return;
+        }
+
         const prefix = currentCategory === 'morning' ? "[아침] " : "[일상] ";
-        orderRef.child(prefix + key).transaction(cv => (cv || 0) + amt <= 0 ? null : (cv || 0) + amt);
+        const fullKey = prefix + key;
+
+        orderRef.child(fullKey).transaction(cv => {
+            const nv = (cv || 0) + amt;
+            return nv <= 0 ? null : nv;
+        });
     }
 
     function handleOrderEtc(opt) {
-        const name = document.getElementById('etc-name').value.trim();
+        const input = document.getElementById('etc-name');
+        const name = input.value.trim();
         if(!name) return alert("메뉴명을 입력하세요");
         handleOrder(`${name} (${opt})`, 1);
-        document.getElementById('etc-name').value = "";
+        input.value = "";
     }
-    
-    function updateEtcOrder(opt) { handleOrderEtc(opt); }
 
-    function clearAllOrders() { if(confirm("초기화할까요?")) orderRef.remove(); }
+    function clearAllOrders() {
+        if(confirm("모든 주문을 초기화할까요?")) orderRef.remove();
+    }
+
+    // 초기 랜딩 설정
+    function autoLanding() {
+        const now = new Date();
+        const cur = getSeconds(now);
+        if (cur >= TIMES.morning.open && cur < TIMES.morning.close) {
+            switchTab('morning');
+        } else {
+            switchTab('daily');
+        }
+    }
 
     orderRef.on('value', (snapshot) => {
         const orders = snapshot.val() || {};
@@ -201,9 +221,9 @@
             li.className = 'order-item';
             li.innerHTML = `<span class="item-name">${key}</span>
                 <div class="count-controls">
-                    <button class="btn-count" onclick="firebase.database().ref('orders').child('${key}').transaction(cv=>(cv||0)-1<=0?null:(cv||0)-1)">-</button>
+                    <button class="btn-count" onclick="updateFromList('${key}', -1)">-</button>
                     <span class="item-count">${count}</span>
-                    <button class="btn-count" onclick="firebase.database().ref('orders').child('${key}').transaction(cv=>(cv||0)+1)">+</button>
+                    <button class="btn-count" onclick="updateFromList('${key}', 1)">+</button>
                 </div>`;
             listEl.appendChild(li);
             total += count;
@@ -211,8 +231,16 @@
         totalEl.innerText = total;
     });
 
+    function updateFromList(fullKey, amt) {
+        orderRef.child(fullKey).transaction(cv => {
+            const nv = (cv || 0) + amt;
+            return nv <= 0 ? null : nv;
+        });
+    }
+
     renderMenu();
-    autoLanding(); // 접속 시점에 맞는 탭으로 자동 이동
+    autoLanding();
+    setInterval(updateTimer, 1000);
 </script>
 </body>
 </html>
