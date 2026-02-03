@@ -76,7 +76,6 @@
 </div>
 
 <script>
-    // 1. Firebase 설정
     const firebaseConfig = {
         apiKey: "AIzaSyBSxM3W_RkCt8poqQJxVhIgYMPqLuZgT6Y",
         authDomain: "menusame-6a326.firebaseapp.com",
@@ -89,7 +88,6 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const orderRef = db.ref('orders');
 
     let currentCategory = 'morning';
     const TIMES = {
@@ -97,7 +95,6 @@
         daily: { open: 9*3600, close: 18*3600, label: "일상 (09:00~18:00)" }
     };
 
-    // 한국 시간 초 계산
     function getKSTSeconds() {
         const now = new Date();
         const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
@@ -135,14 +132,11 @@
         }
     }
 
-    // [주문 핵심 함수]
+    // [중요 수정] Firebase 금지 문자 '[' 와 ']' 제거
     function addOrder(menuName) {
-        const prefix = currentCategory === 'morning' ? "[아침] " : "[일상] ";
+        const prefix = currentCategory === 'morning' ? "아침_" : "일상_";
         const fullKey = prefix + menuName;
-        // 가장 확실한 경로 지정 방식
-        db.ref('orders/' + fullKey).transaction((currentValue) => {
-            return (currentValue || 0) + 1;
-        });
+        db.ref('orders/' + fullKey).transaction((cv) => (cv || 0) + 1);
     }
 
     function addEtcOrder(opt) {
@@ -156,7 +150,6 @@
         if(confirm("초기화하시겠습니까?")) db.ref('orders').remove();
     }
 
-    // 수량 조절 버튼 전용 함수
     window.adjustQty = function(key, amt) {
         db.ref('orders/' + key).transaction((cv) => {
             const nv = (cv || 0) + amt;
@@ -164,8 +157,7 @@
         });
     };
 
-    // 데이터 동기화
-    orderRef.on('value', (snapshot) => {
+    db.ref('orders').on('value', (snapshot) => {
         const orders = snapshot.val() || {};
         const listEl = document.getElementById('order-list');
         const totalEl = document.getElementById('total-count');
@@ -188,7 +180,6 @@
         totalEl.innerText = total;
     });
 
-    // 시작 시 자동 탭 설정
     const nowSec = getKSTSeconds();
     if (nowSec >= TIMES.morning.open && nowSec < TIMES.morning.close) switchTab('morning');
     else switchTab('daily');
