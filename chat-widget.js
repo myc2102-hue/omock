@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // --- 1. HTML 주입 ---
 const chatHTML = `
@@ -15,7 +15,7 @@ const chatHTML = `
             <div class="header-left">
                 <span>Team Chat</span>
                 <span class="online-count">
-                    <span class="online-dot"></span> <span id="userCount">1</span>명 접속 중
+                    <span class="online-dot"></span> <span id="userCount">0</span>명 접속 중
                 </span>
             </div>
             <i class="ph ph-x chat-close-btn" onclick="toggleChat()"></i>
@@ -61,6 +61,7 @@ let isChatOpen = false;
 let unreadCount = 0;
 let initialLoad = true;
 let currentUserDocId = null;
+let heartbeatInterval = null;
 
 const chatContainer = document.getElementById('chatContainer');
 const chatBody = document.getElementById('chatBody');
@@ -84,7 +85,6 @@ function filterBadWords(text) {
     return cleanText;
 }
 
-// 화면 함수
 window.toggleChat = function() {
     chatContainer.classList.toggle('active');
     isChatOpen = chatContainer.classList.contains('active');
@@ -94,50 +94,56 @@ window.toggleChat = function() {
         unreadCount = 0;
         updateBadge();
         setTimeout(() => chatBody.scrollTop = chatBody.scrollHeight, 100);
-        
-        if (!loginScreen.classList.contains('hidden')) {
-            nicknameInput.focus();
-        } else {
-            messageInput.focus();
-        }
+        if (!loginScreen.classList.contains('hidden')) nicknameInput.focus();
+        else messageInput.focus();
     } else {
         chatTooltip.classList.remove('hidden');
     }
 }
 
-// 🌟 입장 (시스템 메시지 전송 + 명단 등록)
+// 🌟 입장 (생존 신고 시작)
 window.joinChat = async function() {
     const val = nicknameInput.value.trim();
     if(val) nickname = val;
     loginScreen.classList.add('hidden');
 
     try {
-        // 명단 등록
+        // 1. 명단 등록
         const docRef = await addDoc(collection(db, "online_users"), {
             nickname: nickname,
-            joinedAt: serverTimestamp()
+            joinedAt: serverTimestamp(),
+            lastActive: serverTimestamp()
         });
         currentUserDocId = docRef.id;
 
-        // 입장 메시지는 "내가" 직접 보냄 (이건 성공 확률 높음)
+        // 2. 입장 메시지
         await addDoc(collection(db, "chats"), {
             text: `${nickname}님이 입장하셨습니다.`,
             sender: "System",
             type: "system",
             timestamp: serverTimestamp()
         });
+
+        // 3. 💗 [수정됨] 1초마다 생존 신고 (Heartbeat)
+        // 3초 안에 반응하려면 1초마다 신호를 보내야 안전합니다.
+        heartbeatInterval = setInterval(async () => {
+            if (currentUserDocId) {
+                const userDocRef = doc(db, "online_users", currentUserDocId);
+                // 시간 갱신 (에러 나면 무시)
+                await updateDoc(userDocRef, { lastActive: serverTimestamp() }).catch(() => {});
+            }
+        }, 1000); // 1초 간격
+
     } catch (e) {
         console.error("입장 처리 실패:", e);
     }
 }
 
-// 🌟 퇴장 (가장 중요한 수정 부분)
+// 🌟 퇴장 (브라우저 닫을 때 즉시 삭제 시도)
 window.addEventListener("beforeunload", () => {
     if (currentUserDocId) {
-        // [수정] 퇴장 메시지(addDoc)를 보내지 않습니다! (어차피 실패함)
-        // 오직 '명단 삭제(deleteDoc)'만 시도합니다.
         const userDocRef = doc(db, "online_users", currentUserDocId);
-        deleteDoc(userDocRef); 
+        deleteDoc(userDocRef);
     }
 });
 
@@ -174,18 +180,32 @@ function updateBadge() {
     }
 }
 
-// 🌟 [핵심] 접속자 명단 감시 (누가 나가면 여기서 감지!)
+// 🌟 [핵심] 3초 컷 감지 로직
 onSnapshot(collection(db, "online_users"), (snapshot) => {
-    // 1. 숫자 업데이트
+    // 1. 현재 접속자 수 업데이트
     userCountSpan.innerText = snapshot.size;
 
-    // 2. 변경사항 확인 (누가 들어왔는지, 나갔는지)
+    // 2. 좀비 청소 (Zombie Cleaner)
+    // 모든 접속자가 서로를 감시하며 3초 이상 멈춘 유저를 청소합니다.
+    snapshot.forEach((userDoc) => {
+        const data = userDoc.data();
+        if (data.lastActive) {
+            const lastActiveTime = data.lastActive.toDate().getTime();
+            const now = new Date().getTime();
+            
+            // [수정됨] 3초(3000ms) 이상 신호 없으면 즉시 삭제
+            if (now - lastActiveTime > 3000) {
+                deleteDoc(userDoc.ref).catch(err => {});
+            }
+        }
+    });
+
+    // 3. 퇴장 메시지 띄우기 (명단에서 사라지면 즉시 실행)
     snapshot.docChanges().forEach((change) => {
-        // 누군가 명단에서 삭제됨 -> 즉, 퇴장함
         if (change.type === "removed") {
             const leftUser = change.doc.data().nickname;
             
-            // DB에 저장하지 않고, 내 화면에만 '시스템 메시지'를 띄움 (이게 제일 확실함)
+            // 내 화면에 시스템 메시지 표시
             const msgDiv = document.createElement('div');
             msgDiv.className = "system-msg";
             msgDiv.innerText = `${leftUser}님이 퇴장하셨습니다.`;
@@ -195,7 +215,7 @@ onSnapshot(collection(db, "online_users"), (snapshot) => {
     });
 });
 
-// 채팅 메시지 감시
+// 채팅 메시지 감지
 const q = query(collection(db, "chats"), orderBy("timestamp", "asc"));
 onSnapshot(q, (snapshot) => {
     snapshot.docChanges().forEach((change) => {
