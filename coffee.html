@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>커피요정찰스 - Apple Style</title>
+    <title>커피요정찰스</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        /* 애플 스타일 시스템 폰트 및 컬러 */
         :root { 
-            --primary: #1d1d1f; /* Apple Black */
-            --accent: #0071e3;  /* Apple Blue */
+            --primary: #1d1d1f; 
+            --accent: #0071e3;  
             --ice: #64d2ff; 
             --hot: #ff3b30; 
             --shot: #34c759;
-            --bg: #f5f5f7;      /* Apple Gray */
+            --bg: #f5f5f7;      
             --card: rgba(255, 255, 255, 0.8);
         }
 
@@ -32,71 +31,76 @@
         
         h1 { text-align: center; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; margin: 0 0 20px 0; }
 
-        /* 커스텀 모달 (애플 스타일 알림창) */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 9999; }
-        .modal-box { background: white; padding: 24px; border-radius: 20px; text-align: center; width: 80%; max-width: 300px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
-        .modal-box h2 { font-size: 18px; margin: 0 0 8px 0; }
-        .modal-box p { font-size: 14px; margin-bottom: 20px; color: #86868b; }
-        .modal-box input { width: 100%; padding: 12px; border: 1px solid #d2d2d7; border-radius: 12px; font-size: 16px; text-align: center; outline: none; margin-bottom: 16px; transition: all 0.3s; }
+        /* 커스텀 모달 (정렬 문제 완벽 해결) */
+        .modal-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); 
+            display: flex; align-items: center; justify-content: center; z-index: 9999; 
+        }
+        .modal-box { 
+            background: white; padding: 25px; border-radius: 20px; 
+            text-align: center; width: 85%; max-width: 320px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2); 
+            display: flex; flex-direction: column; align-items: center; box-sizing: border-box;
+        }
+        .modal-box h2 { font-size: 18px; margin: 0 0 8px 0; width: 100%; }
+        .modal-box p { font-size: 14px; margin-bottom: 20px; color: #86868b; width: 100%; }
+        
+        .modal-box input { 
+            width: 100%; padding: 14px; border: 1px solid #d2d2d7; border-radius: 12px; 
+            font-size: 16px; text-align: center; outline: none; margin-bottom: 16px; 
+            box-sizing: border-box; /* 패딩이 너비를 넘지 않도록 고정 */
+        }
         .modal-box input:focus { border-color: var(--accent); }
         
-        .modal-btns { display: flex; gap: 8px; }
-        .modal-btns button { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 15px; }
+        .modal-btns { display: flex; gap: 8px; width: 100%; }
+        .modal-btns button { 
+            flex: 1; padding: 14px; border: none; border-radius: 12px; 
+            font-weight: 600; cursor: pointer; font-size: 15px; box-sizing: border-box;
+        }
         .btn-confirm { background: var(--accent); color: white; }
         .btn-cancel { background: #e8e8ed; color: var(--primary); }
 
-        /* 탭 및 상단 정보 */
         .user-info { text-align: center; font-size: 13px; margin-bottom: 20px; color: #86868b; }
         .user-info span { color: var(--accent); font-weight: 600; cursor: pointer; }
 
         .tabs { display: flex; background: #e8e8ed; padding: 4px; border-radius: 14px; margin-bottom: 24px; }
-        .tab { flex: 1; padding: 10px; text-align: center; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s ease; color: #86868b; }
+        .tab { flex: 1; padding: 10px; text-align: center; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; color: #86868b; }
         .tab.active { background: white; color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 
         .timer-banner { background: var(--primary); color: #fff; padding: 16px; border-radius: 20px; text-align: center; margin-bottom: 24px; }
         #time-left { font-size: 20px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
         #notice-text { font-size: 12px; opacity: 0.6; margin-top: 4px; }
 
-        /* 메뉴 섹션 */
         .menu-item { background: #fff; border-radius: 20px; padding: 20px; margin-bottom: 16px; border: 1px solid #f0f0f2; }
         .menu-name { font-weight: 600; font-size: 17px; display: block; text-align: center; margin-bottom: 16px; }
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         
         button:not(.btn-count, .modal-btns button) { 
             padding: 14px; border: none; border-radius: 14px; cursor: pointer; 
-            font-weight: 600; font-size: 14px; transition: transform 0.1s active, opacity 0.2s; 
+            font-weight: 600; font-size: 14px; transition: transform 0.1s; 
         }
         button:active { transform: scale(0.97); }
         .btn-ice { background: #f2f7ff; color: var(--accent); }
         .btn-hot { background: #fff2f2; color: var(--hot); }
         .btn-shot { border: 1.5px dashed #34c759 !important; background: #f2fff5; }
-        
         button:disabled { background: #f5f5f7 !important; color: #d2d2d7 !important; cursor: not-allowed; }
         
-        #etc-name { 
-            width: 100%; padding: 14px; border: 1px solid #d2d2d7; border-radius: 14px; 
-            margin-bottom: 12px; box-sizing: border-box; font-size: 15px; background: #fff;
-        }
+        #etc-name { width: 100%; padding: 14px; border: 1px solid #d2d2d7; border-radius: 14px; margin-bottom: 12px; box-sizing: border-box; font-size: 15px; }
 
-        /* 요약 섹션 */
         .order-summary { margin-top: 32px; background: #fff; border-radius: 24px; padding: 20px; border: 1px solid #f0f0f2; }
         .group-item { padding: 14px 0; border-bottom: 1px solid #f5f5f7; }
-        .group-item:last-child { border: none; }
-        .group-header { display: flex; justify-content: space-between; font-weight: 600; font-size: 16px; }
+        .group-header { display: flex; justify-content: space-between; font-weight: 600; }
         .group-names { font-size: 13px; color: #86868b; margin-top: 6px; }
-        
-        .btn-count { 
-            width: 28px; height: 28px; border-radius: 50%; border: none; 
-            background: #f5f5f7; color: var(--primary); font-weight: 700; cursor: pointer; 
-        }
+        .btn-count { width: 28px; height: 28px; border-radius: 50%; border: none; background: #f5f5f7; cursor: pointer; }
         
         .btn-my-clear { width: 100%; margin-top: 20px; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 16px; font-weight: 600; font-size: 15px; }
-        .btn-all-clear { width: 100%; margin-top: 10px; padding: 10px; background: transparent; color: #86868b; border: none; font-size: 12px; }
+        .btn-all-clear { width: 100%; margin-top: 10px; padding: 10px; background: transparent; color: #86868b; border: none; font-size: 12px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div id="modal-login" class="modal-overlay" style="display: flex;">
+<div id="modal-login" class="modal-overlay">
     <div class="modal-box">
         <h2>☕ 누구신가요?</h2>
         <p>주문 확인을 위해 성함을 입력해주세요.</p>
