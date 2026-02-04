@@ -11,7 +11,7 @@
         body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 15px; color: #333; overflow-x: hidden; }
         .container { max-width: 500px; margin: 0 auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
         
-        /* 커스텀 모달 공통 스타일 (팝업 차단 안됨) */
+        /* 커스텀 모달 (팝업 차단 방지) */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 9999; }
         .modal-box { background: white; padding: 25px; border-radius: 15px; text-align: center; width: 85%; max-width: 320px; box-sizing: border-box; }
         .modal-box h2 { color: var(--primary); margin: 0 0 15px 0; font-size: 1.2rem; }
@@ -23,22 +23,35 @@
         .btn-confirm { background: var(--primary); color: white; }
         .btn-cancel { background: #eee; color: #666; }
 
-        /* 기존 디자인 유지 */
         h1 { text-align: center; color: var(--primary); margin: 0 0 15px 0; }
+        .user-info { text-align: center; font-size: 0.9rem; margin-bottom: 15px; color: #666; font-weight: bold; }
+        .user-info span { color: var(--primary); text-decoration: underline; cursor: pointer; }
+
         .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
         .tab { flex: 1; padding: 12px; text-align: center; background: #eee; border-radius: 12px; cursor: pointer; font-weight: bold; }
         .tab.active { background: var(--primary); color: white; }
+        
         .timer-banner { background: #333; color: #fff; padding: 12px; border-radius: 12px; text-align: center; margin-bottom: 20px; }
         #time-left { font-size: 1.4rem; font-weight: 800; color: #f1c40f; }
+        
         .menu-item { border-bottom: 1px solid #f5f5f5; padding: 20px 0; }
+        .menu-name { font-weight: bold; font-size: 1.1rem; display: block; text-align: center; margin-bottom: 15px; }
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
         button:not(.btn-count, .modal-btns button) { padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
         .btn-ice { background: #eef6ff; color: var(--ice); border: 1px solid #cce3ff; }
         .btn-hot { background: #fff5f5; color: var(--hot); border: 1px solid #ffe3e3; }
         .btn-shot { border: 1px dashed var(--shot); position: relative; }
         .btn-shot::after { content: " +Shot"; font-size: 0.7rem; vertical-align: top; }
+        button:disabled { background: #f0f0f0 !important; color: #ccc !important; cursor: not-allowed; opacity: 0.6; }
+        
+        #etc-name { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 10px; box-sizing: border-box; outline: none; }
+
         .order-summary { margin-top: 30px; border: 2px solid var(--primary); padding: 15px; border-radius: 15px; }
-        .btn-count { width: 30px; height: 30px; border-radius: 50%; border: 1px solid #dee2e6; cursor: pointer; background: #fff; }
+        .group-item { padding: 12px 0; border-bottom: 1px solid #eee; }
+        .group-header { display: flex; justify-content: space-between; font-weight: bold; }
+        .group-names { font-size: 0.8rem; color: #888; margin-top: 5px; }
+        .btn-count { width: 30px; height: 30px; border-radius: 50%; border: 1px solid #dee2e6; background: #fff; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -81,7 +94,7 @@
 
     <div id="menu-container">
         <div class="menu-item">
-            <span style="font-weight:bold; display:block; text-align:center; margin-bottom:10px;">아메리카노</span>
+            <span class="menu-name">아메리카노</span>
             <div class="btn-grid">
                 <button class="btn-ice order-btn" onclick="openConfirm('아메리카노 (Ice)')">Ice</button>
                 <button class="btn-hot order-btn" onclick="openConfirm('아메리카노 (Hot)')">Hot</button>
@@ -90,12 +103,22 @@
             </div>
         </div>
         <div class="menu-item">
-            <span style="font-weight:bold; display:block; text-align:center; margin-bottom:10px;">라떼</span>
+            <span class="menu-name">라떼</span>
             <div class="btn-grid">
                 <button class="btn-ice order-btn" onclick="openConfirm('라떼 (Ice)')">Ice</button>
                 <button class="btn-hot order-btn" onclick="openConfirm('라떼 (Hot)')">Hot</button>
                 <button class="btn-ice btn-shot order-btn" onclick="openConfirm('라떼 (Ice) +샷')">Ice</button>
                 <button class="btn-hot btn-shot order-btn" onclick="openConfirm('라떼 (Hot) +샷')">Hot</button>
+            </div>
+        </div>
+        <div class="menu-item">
+            <span class="menu-name">기타 메뉴 직접 입력</span>
+            <input type="text" id="etc-name" placeholder="메뉴명을 입력하세요">
+            <div class="btn-grid">
+                <button class="btn-ice order-btn" onclick="addEtcConfirm('Ice')">Ice</button>
+                <button class="btn-hot order-btn" onclick="addEtcConfirm('Hot')">Hot</button>
+                <button class="btn-ice btn-shot order-btn" onclick="addEtcConfirm('Ice +샷')">Ice</button>
+                <button class="btn-hot btn-shot order-btn" onclick="addEtcConfirm('Hot +샷')">Hot</button>
             </div>
         </div>
     </div>
@@ -150,6 +173,14 @@
             addOrder(menu);
             closeConfirm();
         };
+    }
+
+    function addEtcConfirm(suffix) {
+        const input = document.getElementById('etc-name');
+        const menuName = input.value.trim();
+        if(!menuName) return alert("메뉴명을 입력하세요");
+        openConfirm(`${menuName} (${suffix})`);
+        input.value = "";
     }
 
     function closeConfirm() { document.getElementById('modal-confirm').style.display = 'none'; }
