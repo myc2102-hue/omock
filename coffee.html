@@ -26,7 +26,6 @@
         
         h1 { text-align: center; font-size: 24px; font-weight: 700; margin: 0 0 20px 0; }
 
-        /* 모달 시스템 - 초기 상태 display: none 고정 */
         .modal-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); 
@@ -47,7 +46,6 @@
         .btn-confirm { background: var(--accent); color: white; }
         .btn-cancel { background: #e8e8ed; color: var(--primary); }
 
-        /* UI 요소 */
         .tabs { display: flex; background: #e8e8ed; padding: 4px; border-radius: 14px; margin-bottom: 24px; }
         .tab { flex: 1; padding: 10px; text-align: center; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; color: #86868b; }
         .tab.active { background: white; color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
@@ -55,7 +53,8 @@
         #time-left { font-size: 20px; font-weight: 700; }
         .menu-item { background: #fff; border-radius: 20px; padding: 20px; margin-bottom: 16px; border: 1px solid #f0f0f2; }
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button:not(.btn-count, .modal-btns button) { padding: 14px; border: none; border-radius: 14px; cursor: pointer; font-weight: 600; font-size: 14px; }
+        button:not(.btn-count, .modal-btns button) { padding: 14px; border: none; border-radius: 14px; cursor: pointer; font-weight: 600; font-size: 14px; transition: transform 0.1s; }
+        button:active { transform: scale(0.98); }
         .btn-ice { background: #f2f7ff; color: var(--accent); }
         .btn-hot { background: #fff2f2; color: var(--hot); }
         .btn-shot { border: 1.5px dashed #34c759 !important; background: #f2fff5; }
@@ -161,6 +160,7 @@
 
     let userName = "";
     let currentCategory = 'morning';
+    let isAutoCleared = false; // 자동 초기화 방지 변수
     const TIMES = {
         morning: { open: 7*3600, close: 7*3600+58*60, label: "아침 (07:00~07:58)" },
         daily: { open: 9*3600, close: 18*3600, label: "주간 (09:00~18:00)" }
@@ -219,6 +219,16 @@
         const btns = document.querySelectorAll('.order-btn');
         document.getElementById('notice-text').innerText = `운영시간: ${config.label}`;
 
+        // [자동 초기화 로직] 오픈 시간 60초 이내 접속 시 이전 데이터 삭제
+        if (curSec >= config.open && curSec < config.open + 60 && !isAutoCleared) {
+            db.ref('orders').remove();
+            isAutoCleared = true;
+        }
+        // 영업 종료 시간이면 초기화 플래그 리셋
+        if (curSec >= config.close || curSec < config.open) {
+            isAutoCleared = false;
+        }
+
         const isOpen = curSec >= config.open && curSec < config.close;
         if (isOpen) {
             labelEl.innerText = "영업 중";
@@ -228,7 +238,6 @@
             labelEl.innerText = "영업 종료";
             timerEl.innerText = "00:00:00";
         }
-        // 로그인이 완료된 상태에서만 버튼 활성화 여부 결정
         if(userName) btns.forEach(b => b.disabled = !isOpen);
     }
 
@@ -281,7 +290,6 @@
     setInterval(updateTimer, 1000);
     window.onload = () => {
         const s = getKSTSeconds();
-        // 페이지 로드 시 탭만 설정하고, 타이머는 1초 뒤부터 정상 동작
         if (s >= TIMES.morning.open && s < TIMES.morning.close) switchTab('morning');
         else switchTab('daily');
     };
