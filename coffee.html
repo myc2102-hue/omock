@@ -3,67 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>커피요정찰스 - 다이렉트 주문</title>
+    <title>커피요정찰스 - 철벽 보안 주문</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        :root { --primary: #6f4e37; --ice: #007bff; --hot: #dc3545; --bg: #fdfaf7; --shot: #2ecc71; --blue: #007bff; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 15px; color: #333; }
+        :root { --primary: #6f4e37; --ice: #007bff; --hot: #dc3545; --bg: #fdfaf7; --shot: #2ecc71; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 15px; color: #333; overflow-x: hidden; }
         .container { max-width: 500px; margin: 0 auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
         
-        /* 팝업(모달) 정렬 수정 */
-        #login-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 9999; }
-        .modal-content { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 85%; max-width: 320px; display: flex; flex-direction: column; align-items: center; box-sizing: border-box; }
-        .modal-content h2 { color: var(--primary); margin: 0 0 15px 0; }
-        .modal-content input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; font-size: 1.1rem; text-align: center; outline: none; margin-bottom: 20px; box-sizing: border-box; }
-        .modal-content button { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; box-sizing: border-box; }
+        /* 커스텀 모달 공통 스타일 (팝업 차단 안됨) */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 9999; }
+        .modal-box { background: white; padding: 25px; border-radius: 15px; text-align: center; width: 85%; max-width: 320px; box-sizing: border-box; }
+        .modal-box h2 { color: var(--primary); margin: 0 0 15px 0; font-size: 1.2rem; }
+        .modal-box p { font-size: 0.95rem; margin-bottom: 20px; line-height: 1.4; color: #555; }
+        .modal-box input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 20px; font-size: 1.1rem; text-align: center; outline: none; box-sizing: border-box; }
+        
+        .modal-btns { display: flex; gap: 10px; }
+        .modal-btns button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-confirm { background: var(--primary); color: white; }
+        .btn-cancel { background: #eee; color: #666; }
 
+        /* 기존 디자인 유지 */
         h1 { text-align: center; color: var(--primary); margin: 0 0 15px 0; }
-        .user-info { text-align: center; font-size: 0.9rem; margin-bottom: 15px; color: #666; font-weight: bold; }
-        .user-info span { color: var(--primary); text-decoration: underline; cursor: pointer; }
-
         .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
-        .tab { flex: 1; padding: 12px; text-align: center; background: #eee; border-radius: 12px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .tab { flex: 1; padding: 12px; text-align: center; background: #eee; border-radius: 12px; cursor: pointer; font-weight: bold; }
         .tab.active { background: var(--primary); color: white; }
-
         .timer-banner { background: #333; color: #fff; padding: 12px; border-radius: 12px; text-align: center; margin-bottom: 20px; }
         #time-left { font-size: 1.4rem; font-weight: 800; color: #f1c40f; }
-
         .menu-item { border-bottom: 1px solid #f5f5f5; padding: 20px 0; }
-        .menu-name { font-weight: bold; font-size: 1.1rem; display: block; margin-bottom: 15px; text-align: center; }
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button:not(.btn-count) { padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: 0.2s; }
+        button:not(.btn-count, .modal-btns button) { padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
         .btn-ice { background: #eef6ff; color: var(--ice); border: 1px solid #cce3ff; }
         .btn-hot { background: #fff5f5; color: var(--hot); border: 1px solid #ffe3e3; }
         .btn-shot { border: 1px dashed var(--shot); position: relative; }
         .btn-shot::after { content: " +Shot"; font-size: 0.7rem; vertical-align: top; }
-        button:disabled { background: #f0f0f0 !important; color: #ccc !important; cursor: not-allowed; opacity: 0.6; }
-
         .order-summary { margin-top: 30px; border: 2px solid var(--primary); padding: 15px; border-radius: 15px; }
-        .summary-title { font-size: 1.1rem; margin: 0 0 10px 0; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 5px; }
-        .group-item { padding: 12px 0; border-bottom: 1px solid #eee; }
-        .group-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 1rem; }
-        .group-names { font-size: 0.8rem; color: #888; margin-top: 5px; word-break: break-all; line-height: 1.4; }
-        .total-section { text-align: right; font-weight: 800; margin-top: 15px; padding-top: 10px; border-top: 2px solid #eee; font-size: 1.1rem; }
-        
-        .btn-my-clear { width: 100%; margin-top: 15px; padding: 12px; background: var(--blue); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .btn-all-clear { width: 100%; margin-top: 8px; padding: 8px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; font-size: 0.75rem; color: #888; cursor: pointer; }
+        .btn-count { width: 30px; height: 30px; border-radius: 50%; border: 1px solid #dee2e6; cursor: pointer; background: #fff; }
     </style>
 </head>
 <body>
 
-<div id="login-modal">
-    <div class="modal-content">
+<div id="modal-login" class="modal-overlay" style="display: flex;">
+    <div class="modal-box">
         <h2>☕ 누구신가요?</h2>
+        <p>주문 확인을 위해 성함을 입력해주세요.</p>
         <input type="text" id="user-input" placeholder="이름 입력" onkeypress="if(event.keyCode==13) login()">
-        <button onclick="login()">입장하기</button>
+        <button class="btn-confirm" style="width:100%" onclick="login()">입장하기</button>
+    </div>
+</div>
+
+<div id="modal-confirm" class="modal-overlay">
+    <div class="modal-box">
+        <h2>🛒 주문 확인</h2>
+        <p id="confirm-msg"></p>
+        <div class="modal-btns">
+            <button class="btn-cancel" onclick="closeConfirm()">취소</button>
+            <button class="btn-confirm" id="final-order-btn">주문하기</button>
+        </div>
     </div>
 </div>
 
 <div class="container">
     <h1>☕ 찰스는커피요정</h1>
-    <div class="user-info" id="user-display" style="display:none;">
-        <span id="current-user"></span> 님 환영합니다! <span onclick="logout()">(이름수정)</span>
+    <div id="user-display" style="text-align:center; font-size:0.9rem; margin-bottom:15px; display:none;">
+        <b id="current-user"></b> 님 환영합니다! <span onclick="location.reload()" style="text-decoration:underline; cursor:pointer; color:#999; font-size:0.75rem;">(이름변경)</span>
     </div>
 
     <div class="tabs">
@@ -78,43 +81,33 @@
 
     <div id="menu-container">
         <div class="menu-item">
-            <span class="menu-name">아메리카노</span>
+            <span style="font-weight:bold; display:block; text-align:center; margin-bottom:10px;">아메리카노</span>
             <div class="btn-grid">
-                <button class="btn-ice order-btn" onclick="addOrder('아메리카노 (Ice)')">Ice</button>
-                <button class="btn-hot order-btn" onclick="addOrder('아메리카노 (Hot)')">Hot</button>
-                <button class="btn-ice btn-shot order-btn" onclick="addOrder('아메리카노 (Ice) +샷추가')">Ice</button>
-                <button class="btn-hot btn-shot order-btn" onclick="addOrder('아메리카노 (Hot) +샷추가')">Hot</button>
+                <button class="btn-ice order-btn" onclick="openConfirm('아메리카노 (Ice)')">Ice</button>
+                <button class="btn-hot order-btn" onclick="openConfirm('아메리카노 (Hot)')">Hot</button>
+                <button class="btn-ice btn-shot order-btn" onclick="openConfirm('아메리카노 (Ice) +샷')">Ice</button>
+                <button class="btn-hot btn-shot order-btn" onclick="openConfirm('아메리카노 (Hot) +샷')">Hot</button>
             </div>
         </div>
         <div class="menu-item">
-            <span class="menu-name">라떼</span>
+            <span style="font-weight:bold; display:block; text-align:center; margin-bottom:10px;">라떼</span>
             <div class="btn-grid">
-                <button class="btn-ice order-btn" onclick="addOrder('라떼 (Ice)')">Ice</button>
-                <button class="btn-hot order-btn" onclick="addOrder('라떼 (Hot)')">Hot</button>
-                <button class="btn-ice btn-shot order-btn" onclick="addOrder('라떼 (Ice) +샷추가')">Ice</button>
-                <button class="btn-hot btn-shot order-btn" onclick="addOrder('라떼 (Hot) +샷추가')">Hot</button>
-            </div>
-        </div>
-        <div class="menu-item">
-            <span class="menu-name">기타 메뉴 직접 입력</span>
-            <input type="text" id="etc-name" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:10px; box-sizing:border-box;" placeholder="메뉴명을 입력하세요">
-            <div class="btn-grid">
-                <button class="btn-ice order-btn" onclick="addEtcOrder('Ice')">Ice</button>
-                <button class="btn-hot order-btn" onclick="addEtcOrder('Hot')">Hot</button>
-                <button class="btn-ice btn-shot order-btn" onclick="addEtcOrder('Ice +샷추가')">Ice</button>
-                <button class="btn-hot btn-shot order-btn" onclick="addEtcOrder('Hot +샷추가')">Hot</button>
+                <button class="btn-ice order-btn" onclick="openConfirm('라떼 (Ice)')">Ice</button>
+                <button class="btn-hot order-btn" onclick="openConfirm('라떼 (Hot)')">Hot</button>
+                <button class="btn-ice btn-shot order-btn" onclick="openConfirm('라떼 (Ice) +샷')">Ice</button>
+                <button class="btn-hot btn-shot order-btn" onclick="openConfirm('라떼 (Hot) +샷')">Hot</button>
             </div>
         </div>
     </div>
 
     <div class="order-summary">
-        <h2 class="summary-title">주문 요약 현황 🛒</h2>
-        <div id="grouped-list"></div>
-        <div class="total-section">
+        <h2 style="font-size:1.1rem; color:var(--primary); border-bottom:2px solid #eee; padding-bottom:5px;">주문 요약 현황 🛒</h2>
+        <div id="grouped-list" style="margin-top:10px;"></div>
+        <div style="text-align:right; font-weight:800; margin-top:15px; padding-top:10px; border-top:2px solid #eee; font-size:1.1rem;">
             총 수량: <span id="total-count">0</span>개
         </div>
-        <button class="btn-my-clear" onclick="clearMyOrders()">내가 시킨 메뉴 초기화</button>
-        <button class="btn-all-clear" onclick="clearAllOrders()">전체 데이터 초기화 (관리자 전용)</button>
+        <button style="width:100%; margin-top:15px; padding:12px; background:var(--ice); color:white; border:none; border-radius:8px; font-weight:bold;" onclick="clearMyOrders()">내 주문 초기화</button>
+        <button style="width:100%; margin-top:8px; padding:8px; background:#f8f9fa; border:1px solid #ddd; border-radius:8px; font-size:0.75rem; color:#888;" onclick="clearAllOrders()">전체 데이터 초기화</button>
     </div>
 </div>
 
@@ -141,15 +134,25 @@
 
     function login() {
         const input = document.getElementById('user-input').value.trim();
-        if(!input) return alert("이름을 입력해 주세요!");
+        if(!input) return;
         userName = input;
-        document.getElementById('login-modal').style.display = 'none';
+        document.getElementById('modal-login').style.display = 'none';
         document.getElementById('user-display').style.display = 'block';
         document.getElementById('current-user').innerText = userName;
         updateTimer();
     }
 
-    function logout() { if(confirm("이름을 수정하시겠습니까?")) document.getElementById('login-modal').style.display = 'flex'; }
+    function openConfirm(menu) {
+        if(!userName) return;
+        document.getElementById('confirm-msg').innerHTML = `<b>${userName}</b>님,<br>[${menu}]을(를) 주문하시겠습니까?`;
+        document.getElementById('modal-confirm').style.display = 'flex';
+        document.getElementById('final-order-btn').onclick = function() {
+            addOrder(menu);
+            closeConfirm();
+        };
+    }
+
+    function closeConfirm() { document.getElementById('modal-confirm').style.display = 'none'; }
 
     function getKSTSeconds() {
         const now = new Date();
@@ -160,8 +163,8 @@
 
     function switchTab(type) {
         currentCategory = type;
-        document.getElementById('tab-morning').classList.toggle('active', type === 'morning');
-        document.getElementById('tab-daily').classList.toggle('active', type === 'daily');
+        document.getElementById('tab-morning').className = (type === 'morning' ? 'tab active' : 'tab');
+        document.getElementById('tab-daily').className = (type === 'daily' ? 'tab active' : 'tab');
         updateTimer();
     }
 
@@ -179,52 +182,38 @@
             const diff = config.close - curSec;
             timerEl.innerText = `${Math.floor(diff/3600).toString().padStart(2,'0')}:${Math.floor((diff%3600)/60).toString().padStart(2,'0')}:${(diff%60).toString().padStart(2,'0')}`;
         } else {
-            labelEl.innerText = curSec < config.open ? "주문 시작 전" : "영업 종료";
+            labelEl.innerText = "영업 종료";
             timerEl.innerText = "00:00:00";
         }
-        btns.forEach(b => b.disabled = !(userName && isOpen));
+        btns.forEach(b => b.disabled = !isOpen);
     }
 
     function addOrder(menu) {
-        if(!userName) return alert("이름을 입력해주세요!");
         const prefix = currentCategory === 'morning' ? "아침" : "주간";
         const orderKey = `${userName}|${prefix}_${menu}`;
         db.ref('orders/' + orderKey).transaction(cv => (cv || 0) + 1);
     }
 
-    function addEtcOrder(suffix) {
-        const name = document.getElementById('etc-name').value.trim();
-        if(!name) return alert("메뉴명을 입력하세요");
-        addOrder(`${name} (${suffix})`);
-        document.getElementById('etc-name').value = "";
-    }
-
     function clearMyOrders() {
-        if(!userName) return;
-        if(confirm(`${userName}님의 모든 주문을 취소하시겠습니까?`)) {
+        if(confirm("정말 본인의 주문을 모두 삭제하시겠습니까?")) {
             db.ref('orders').once('value', (snapshot) => {
                 const orders = snapshot.val();
                 if(!orders) return;
                 Object.keys(orders).forEach(key => {
-                    if(key.startsWith(userName + "|")) {
-                        db.ref('orders/' + key).remove();
-                    }
+                    if(key.startsWith(userName + "|")) db.ref('orders/' + key).remove();
                 });
             });
         }
     }
 
-    function clearAllOrders() { if(confirm("모든 데이터를 초기화하시겠습니까?")) db.ref('orders').remove(); }
+    function clearAllOrders() { if(confirm("전체 초기화하시겠습니까?")) db.ref('orders').remove(); }
 
     db.ref('orders').on('value', (snapshot) => {
         const rawOrders = snapshot.val() || {};
         const listEl = document.getElementById('grouped-list');
         const totalEl = document.getElementById('total-count');
         listEl.innerHTML = "";
-        
-        let totalQty = 0;
-        let grouped = {};
-
+        let totalQty = 0; let grouped = {};
         Object.keys(rawOrders).forEach(key => {
             const [name, rawMenu] = key.split('|');
             const menu = rawMenu.replace('아침_', '').replace('주간_', '');
@@ -234,15 +223,11 @@
             grouped[menu].names.push(`${name}${count > 1 ? '('+count+')' : ''}`);
             totalQty += count;
         });
-
         Object.keys(grouped).sort().forEach(menu => {
             const item = grouped[menu];
             const div = document.createElement('div');
             div.className = 'group-item';
-            div.innerHTML = `
-                <div class="group-header"><span>${menu}</span><span style="color:var(--primary)">${item.count}잔</span></div>
-                <div class="group-names">${item.names.join(', ')}</div>
-            `;
+            div.innerHTML = `<div style="display:flex; justify-content:space-between;"><b>${menu}</b><span>${item.count}잔</span></div><div style="font-size:0.8rem; color:#888;">${item.names.join(', ')}</div>`;
             listEl.appendChild(div);
         });
         totalEl.innerText = totalQty;
@@ -256,4 +241,4 @@
     };
 </script>
 </body>
-</html> 
+</html>
