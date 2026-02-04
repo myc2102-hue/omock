@@ -7,11 +7,10 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        :root { --primary: #6f4e37; --ice: #007bff; --hot: #dc3545; --bg: #fdfaf7; --shot: #2ecc71; }
+        :root { --primary: #6f4e37; --ice: #007bff; --hot: #dc3545; --bg: #fdfaf7; --shot: #2ecc71; --blue: #007bff; }
         body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 15px; color: #333; }
         .container { max-width: 500px; margin: 0 auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
         
-        /* 팝업 스타일 */
         #login-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 9999; }
         .modal-content { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 85%; max-width: 350px; }
         .modal-content input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 20px; font-size: 1.1rem; text-align: center; outline: none; }
@@ -38,13 +37,16 @@
         .btn-shot::after { content: "+샷"; font-size: 0.6rem; vertical-align: top; margin-left: 2px; }
         button:disabled { background: #f0f0f0 !important; color: #ccc !important; cursor: not-allowed; opacity: 0.6; }
 
-        /* 그룹화된 주문 내역 스타일 */
         .order-summary { margin-top: 30px; border: 2px solid var(--primary); padding: 15px; border-radius: 15px; }
         .summary-title { font-size: 1.1rem; margin: 0 0 10px 0; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 5px; }
         .group-item { padding: 12px 0; border-bottom: 1px solid #eee; }
         .group-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 1rem; }
         .group-names { font-size: 0.8rem; color: #888; margin-top: 5px; word-break: break-all; line-height: 1.4; }
         .total-section { text-align: right; font-weight: 800; margin-top: 15px; padding-top: 10px; border-top: 2px solid #eee; font-size: 1.1rem; }
+        
+        /* 추가된 버튼 스타일 */
+        .btn-my-clear { width: 100%; margin-top: 15px; padding: 12px; background: var(--blue); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-all-clear { width: 100%; margin-top: 8px; padding: 8px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; font-size: 0.75rem; color: #888; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -110,7 +112,8 @@
         <div class="total-section">
             총 수량: <span id="total-count">0</span>개
         </div>
-        <button style="width:100%; margin-top:15px; padding:10px; background:#f8f9fa; border:1px solid #ddd; border-radius:8px; font-size:0.75rem; color:#888;" onclick="clearAllOrders()">전체 데이터 초기화</button>
+        <button class="btn-my-clear" onclick="clearMyOrders()">내가 시킨 메뉴 초기화</button>
+        <button class="btn-all-clear" onclick="clearAllOrders()">전체 데이터 초기화 (관리자 전용)</button>
     </div>
 </div>
 
@@ -145,9 +148,7 @@
         updateTimer();
     }
 
-    function logout() {
-        document.getElementById('login-modal').style.display = 'flex';
-    }
+    function logout() { if(confirm("이름을 수정하시겠습니까?")) document.getElementById('login-modal').style.display = 'flex'; }
 
     function getKSTSeconds() {
         const now = new Date();
@@ -186,7 +187,6 @@
     function addOrder(menu) {
         if(!userName) return alert("이름을 입력해주세요!");
         const prefix = currentCategory === 'morning' ? "아침" : "주간";
-        // 저장 시 키 형태: "이름|메뉴명" (구분자를 넣어 나중에 쪼개기 쉽게 함)
         const orderKey = `${userName}|${prefix}_${menu}`;
         db.ref('orders/' + orderKey).transaction(cv => (cv || 0) + 1);
     }
@@ -198,11 +198,26 @@
         document.getElementById('etc-name').value = "";
     }
 
+    // [내 주문 초기화] 로직
+    function clearMyOrders() {
+        if(!userName) return;
+        if(confirm(`${userName}님의 모든 주문을 취소하시겠습니까?`)) {
+            db.ref('orders').once('value', (snapshot) => {
+                const orders = snapshot.val();
+                if(!orders) return;
+                Object.keys(orders).forEach(key => {
+                    if(key.startsWith(userName + "|")) {
+                        db.ref('orders/' + key).remove();
+                    }
+                });
+            });
+        }
+    }
+
     function clearAllOrders() {
         if(confirm("모든 데이터를 초기화하시겠습니까?")) db.ref('orders').remove();
     }
 
-    // [핵심] 데이터를 메뉴별로 그룹화하여 렌더링
     db.ref('orders').on('value', (snapshot) => {
         const rawOrders = snapshot.val() || {};
         const listEl = document.getElementById('grouped-list');
@@ -210,15 +225,16 @@
         listEl.innerHTML = "";
         
         let totalQty = 0;
-        let grouped = {}; // { "메뉴명": { count: 0, names: [] } }
+        let grouped = {};
 
         Object.keys(rawOrders).forEach(key => {
-            const [name, menu] = key.split('|');
+            const [name, rawMenu] = key.split('|');
+            // 표시할 때는 '아침_', '주간_' 제거
+            const menu = rawMenu.replace('아침_', '').replace('주간_', '');
             const count = rawOrders[key];
             
             if(!grouped[menu]) grouped[menu] = { count: 0, names: [] };
             grouped[menu].count += count;
-            // 이름을 수량만큼 반복해서 넣지 않고, "이름(n)" 형태로 표시
             grouped[menu].names.push(`${name}${count > 1 ? '('+count+')' : ''}`);
             totalQty += count;
         });
@@ -236,7 +252,6 @@
             `;
             listEl.appendChild(div);
         });
-
         totalEl.innerText = totalQty;
     });
 
