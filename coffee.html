@@ -3,55 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>커피요정찰스 - 철벽 보안 주문</title>
+    <title>커피요정찰스 - Apple Style</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
-        :root { --primary: #6f4e37; --ice: #007bff; --hot: #dc3545; --bg: #fdfaf7; --shot: #2ecc71; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 15px; color: #333; overflow-x: hidden; }
-        .container { max-width: 500px; margin: 0 auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
-        
-        /* 커스텀 모달 (팝업 차단 방지) */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 9999; }
-        .modal-box { background: white; padding: 25px; border-radius: 15px; text-align: center; width: 85%; max-width: 320px; box-sizing: border-box; }
-        .modal-box h2 { color: var(--primary); margin: 0 0 15px 0; font-size: 1.2rem; }
-        .modal-box p { font-size: 0.95rem; margin-bottom: 20px; line-height: 1.4; color: #555; }
-        .modal-box input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 20px; font-size: 1.1rem; text-align: center; outline: none; box-sizing: border-box; }
-        
-        .modal-btns { display: flex; gap: 10px; }
-        .modal-btns button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .btn-confirm { background: var(--primary); color: white; }
-        .btn-cancel { background: #eee; color: #666; }
+        /* 애플 스타일 시스템 폰트 및 컬러 */
+        :root { 
+            --primary: #1d1d1f; /* Apple Black */
+            --accent: #0071e3;  /* Apple Blue */
+            --ice: #64d2ff; 
+            --hot: #ff3b30; 
+            --shot: #34c759;
+            --bg: #f5f5f7;      /* Apple Gray */
+            --card: rgba(255, 255, 255, 0.8);
+        }
 
-        h1 { text-align: center; color: var(--primary); margin: 0 0 15px 0; }
-        .user-info { text-align: center; font-size: 0.9rem; margin-bottom: 15px; color: #666; font-weight: bold; }
-        .user-info span { color: var(--primary); text-decoration: underline; cursor: pointer; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro KR", "SF Pro Text", "Helvetica Neue", Arial, sans-serif; 
+            background: var(--bg); margin: 0; padding: 20px; color: var(--primary); 
+            -webkit-font-smoothing: antialiased;
+        }
 
-        .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
-        .tab { flex: 1; padding: 12px; text-align: center; background: #eee; border-radius: 12px; cursor: pointer; font-weight: bold; }
-        .tab.active { background: var(--primary); color: white; }
+        .container { 
+            max-width: 500px; margin: 0 auto; padding: 30px 20px; 
+            background: var(--card); backdrop-filter: blur(20px); 
+            border-radius: 28px; box-shadow: 0 8px 32px rgba(0,0,0,0.05); 
+        }
         
-        .timer-banner { background: #333; color: #fff; padding: 12px; border-radius: 12px; text-align: center; margin-bottom: 20px; }
-        #time-left { font-size: 1.4rem; font-weight: 800; color: #f1c40f; }
+        h1 { text-align: center; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; margin: 0 0 20px 0; }
+
+        /* 커스텀 모달 (애플 스타일 알림창) */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 9999; }
+        .modal-box { background: white; padding: 24px; border-radius: 20px; text-align: center; width: 80%; max-width: 300px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        .modal-box h2 { font-size: 18px; margin: 0 0 8px 0; }
+        .modal-box p { font-size: 14px; margin-bottom: 20px; color: #86868b; }
+        .modal-box input { width: 100%; padding: 12px; border: 1px solid #d2d2d7; border-radius: 12px; font-size: 16px; text-align: center; outline: none; margin-bottom: 16px; transition: all 0.3s; }
+        .modal-box input:focus { border-color: var(--accent); }
         
-        .menu-item { border-bottom: 1px solid #f5f5f5; padding: 20px 0; }
-        .menu-name { font-weight: bold; font-size: 1.1rem; display: block; text-align: center; margin-bottom: 15px; }
+        .modal-btns { display: flex; gap: 8px; }
+        .modal-btns button { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 15px; }
+        .btn-confirm { background: var(--accent); color: white; }
+        .btn-cancel { background: #e8e8ed; color: var(--primary); }
+
+        /* 탭 및 상단 정보 */
+        .user-info { text-align: center; font-size: 13px; margin-bottom: 20px; color: #86868b; }
+        .user-info span { color: var(--accent); font-weight: 600; cursor: pointer; }
+
+        .tabs { display: flex; background: #e8e8ed; padding: 4px; border-radius: 14px; margin-bottom: 24px; }
+        .tab { flex: 1; padding: 10px; text-align: center; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s ease; color: #86868b; }
+        .tab.active { background: white; color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+        .timer-banner { background: var(--primary); color: #fff; padding: 16px; border-radius: 20px; text-align: center; margin-bottom: 24px; }
+        #time-left { font-size: 20px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+        #notice-text { font-size: 12px; opacity: 0.6; margin-top: 4px; }
+
+        /* 메뉴 섹션 */
+        .menu-item { background: #fff; border-radius: 20px; padding: 20px; margin-bottom: 16px; border: 1px solid #f0f0f2; }
+        .menu-name { font-weight: 600; font-size: 17px; display: block; text-align: center; margin-bottom: 16px; }
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         
-        button:not(.btn-count, .modal-btns button) { padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
-        .btn-ice { background: #eef6ff; color: var(--ice); border: 1px solid #cce3ff; }
-        .btn-hot { background: #fff5f5; color: var(--hot); border: 1px solid #ffe3e3; }
-        .btn-shot { border: 1px dashed var(--shot); position: relative; }
-        .btn-shot::after { content: " +Shot"; font-size: 0.7rem; vertical-align: top; }
-        button:disabled { background: #f0f0f0 !important; color: #ccc !important; cursor: not-allowed; opacity: 0.6; }
+        button:not(.btn-count, .modal-btns button) { 
+            padding: 14px; border: none; border-radius: 14px; cursor: pointer; 
+            font-weight: 600; font-size: 14px; transition: transform 0.1s active, opacity 0.2s; 
+        }
+        button:active { transform: scale(0.97); }
+        .btn-ice { background: #f2f7ff; color: var(--accent); }
+        .btn-hot { background: #fff2f2; color: var(--hot); }
+        .btn-shot { border: 1.5px dashed #34c759 !important; background: #f2fff5; }
         
-        #etc-name { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 10px; box-sizing: border-box; outline: none; }
+        button:disabled { background: #f5f5f7 !important; color: #d2d2d7 !important; cursor: not-allowed; }
+        
+        #etc-name { 
+            width: 100%; padding: 14px; border: 1px solid #d2d2d7; border-radius: 14px; 
+            margin-bottom: 12px; box-sizing: border-box; font-size: 15px; background: #fff;
+        }
 
-        .order-summary { margin-top: 30px; border: 2px solid var(--primary); padding: 15px; border-radius: 15px; }
-        .group-item { padding: 12px 0; border-bottom: 1px solid #eee; }
-        .group-header { display: flex; justify-content: space-between; font-weight: bold; }
-        .group-names { font-size: 0.8rem; color: #888; margin-top: 5px; }
-        .btn-count { width: 30px; height: 30px; border-radius: 50%; border: 1px solid #dee2e6; background: #fff; cursor: pointer; }
+        /* 요약 섹션 */
+        .order-summary { margin-top: 32px; background: #fff; border-radius: 24px; padding: 20px; border: 1px solid #f0f0f2; }
+        .group-item { padding: 14px 0; border-bottom: 1px solid #f5f5f7; }
+        .group-item:last-child { border: none; }
+        .group-header { display: flex; justify-content: space-between; font-weight: 600; font-size: 16px; }
+        .group-names { font-size: 13px; color: #86868b; margin-top: 6px; }
+        
+        .btn-count { 
+            width: 28px; height: 28px; border-radius: 50%; border: none; 
+            background: #f5f5f7; color: var(--primary); font-weight: 700; cursor: pointer; 
+        }
+        
+        .btn-my-clear { width: 100%; margin-top: 20px; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 16px; font-weight: 600; font-size: 15px; }
+        .btn-all-clear { width: 100%; margin-top: 10px; padding: 10px; background: transparent; color: #86868b; border: none; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -77,9 +117,9 @@
 </div>
 
 <div class="container">
-    <h1>☕ 찰스는커피요정</h1>
-    <div id="user-display" style="text-align:center; font-size:0.9rem; margin-bottom:15px; display:none;">
-        <b id="current-user"></b> 님 환영합니다! <span onclick="location.reload()" style="text-decoration:underline; cursor:pointer; color:#999; font-size:0.75rem;">(이름변경)</span>
+    <h1>커피요정찰스</h1>
+    <div id="user-display" class="user-info" style="display:none;">
+        <b id="current-user"></b> 님 환영합니다! <span onclick="location.reload()">(이름변경)</span>
     </div>
 
     <div class="tabs">
@@ -88,8 +128,9 @@
     </div>
 
     <div class="timer-banner">
-        <span id="timer-label">연결 중...</span> <span id="time-left">00:00:00</span>
-        <div id="notice-text" style="font-size:0.7rem; color:#ccc; margin-top:3px;"></div>
+        <span id="timer-label" style="font-size: 12px; opacity: 0.8; display: block; margin-bottom: 4px;">연결 중...</span>
+        <span id="time-left">00:00:00</span>
+        <div id="notice-text"></div>
     </div>
 
     <div id="menu-container">
@@ -98,8 +139,8 @@
             <div class="btn-grid">
                 <button class="btn-ice order-btn" onclick="openConfirm('아메리카노 (Ice)')">Ice</button>
                 <button class="btn-hot order-btn" onclick="openConfirm('아메리카노 (Hot)')">Hot</button>
-                <button class="btn-ice btn-shot order-btn" onclick="openConfirm('아메리카노 (Ice) +샷')">Ice</button>
-                <button class="btn-hot btn-shot order-btn" onclick="openConfirm('아메리카노 (Hot) +샷')">Hot</button>
+                <button class="btn-ice btn-shot order-btn" onclick="openConfirm('아메리카노 (Ice) +샷')">Ice +Shot</button>
+                <button class="btn-hot btn-shot order-btn" onclick="openConfirm('아메리카노 (Hot) +샷')">Hot +Shot</button>
             </div>
         </div>
         <div class="menu-item">
@@ -107,8 +148,8 @@
             <div class="btn-grid">
                 <button class="btn-ice order-btn" onclick="openConfirm('라떼 (Ice)')">Ice</button>
                 <button class="btn-hot order-btn" onclick="openConfirm('라떼 (Hot)')">Hot</button>
-                <button class="btn-ice btn-shot order-btn" onclick="openConfirm('라떼 (Ice) +샷')">Ice</button>
-                <button class="btn-hot btn-shot order-btn" onclick="openConfirm('라떼 (Hot) +샷')">Hot</button>
+                <button class="btn-ice btn-shot order-btn" onclick="openConfirm('라떼 (Ice) +샷')">Ice +Shot</button>
+                <button class="btn-hot btn-shot order-btn" onclick="openConfirm('라떼 (Hot) +샷')">Hot +Shot</button>
             </div>
         </div>
         <div class="menu-item">
@@ -117,20 +158,20 @@
             <div class="btn-grid">
                 <button class="btn-ice order-btn" onclick="addEtcConfirm('Ice')">Ice</button>
                 <button class="btn-hot order-btn" onclick="addEtcConfirm('Hot')">Hot</button>
-                <button class="btn-ice btn-shot order-btn" onclick="addEtcConfirm('Ice +샷')">Ice</button>
-                <button class="btn-hot btn-shot order-btn" onclick="addEtcConfirm('Hot +샷')">Hot</button>
+                <button class="btn-ice btn-shot order-btn" onclick="addEtcConfirm('Ice +샷')">Ice +Shot</button>
+                <button class="btn-hot btn-shot order-btn" onclick="addEtcConfirm('Hot +샷')">Hot +Shot</button>
             </div>
         </div>
     </div>
 
     <div class="order-summary">
-        <h2 style="font-size:1.1rem; color:var(--primary); border-bottom:2px solid #eee; padding-bottom:5px;">주문 요약 현황 🛒</h2>
-        <div id="grouped-list" style="margin-top:10px;"></div>
-        <div style="text-align:right; font-weight:800; margin-top:15px; padding-top:10px; border-top:2px solid #eee; font-size:1.1rem;">
+        <h2 style="font-size:18px; font-weight: 700; margin: 0 0 12px 0;">주문 요약 현황 🛒</h2>
+        <div id="grouped-list"></div>
+        <div style="text-align:right; font-weight:700; margin-top:20px; padding-top:12px; border-top:1px solid #f5f5f7; font-size:18px;">
             총 수량: <span id="total-count">0</span>개
         </div>
-        <button style="width:100%; margin-top:15px; padding:12px; background:var(--ice); color:white; border:none; border-radius:8px; font-weight:bold;" onclick="clearMyOrders()">내가한 주문만 쏙쏙 초기화</button>
-        <button style="width:100%; margin-top:8px; padding:8px; background:#f8f9fa; border:1px solid #ddd; border-radius:8px; font-size:0.75rem; color:#888;" onclick="clearAllOrders()">전체 데이터 초기화</button>
+        <button class="btn-my-clear" onclick="clearMyOrders()">내가 한 주문만 쏙쏙 초기화</button>
+        <button class="btn-all-clear" onclick="clearAllOrders()">전체 데이터 초기화</button>
     </div>
 </div>
 
@@ -258,7 +299,7 @@
             const item = grouped[menu];
             const div = document.createElement('div');
             div.className = 'group-item';
-            div.innerHTML = `<div style="display:flex; justify-content:space-between;"><b>${menu}</b><span>${item.count}잔</span></div><div style="font-size:0.8rem; color:#888;">${item.names.join(', ')}</div>`;
+            div.innerHTML = `<div class="group-header"><span>${menu}</span><span style="color:var(--accent)">${item.count}잔</span></div><div class="group-names">${item.names.join(', ')}</div>`;
             listEl.appendChild(div);
         });
         totalEl.innerText = totalQty;
