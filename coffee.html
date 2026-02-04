@@ -3,20 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>커피요정찰스 - 실명 주문제</title>
+    <title>커피요정찰스 - 그룹 주문제</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
         :root { --primary: #6f4e37; --ice: #007bff; --hot: #dc3545; --bg: #fdfaf7; --shot: #2ecc71; }
         body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 15px; color: #333; }
-        .container { max-width: 500px; margin: 0 auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); position: relative; }
+        .container { max-width: 500px; margin: 0 auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
         
-        /* 팝업(모달) 스타일 */
+        /* 팝업 스타일 */
         #login-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 9999; }
         .modal-content { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 85%; max-width: 350px; }
-        .modal-content h2 { color: var(--primary); margin-bottom: 15px; }
-        .modal-content input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 1.1rem; text-align: center; outline: none; margin-bottom: 20px; }
-        .modal-content button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; }
+        .modal-content input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 20px; font-size: 1.1rem; text-align: center; outline: none; }
+        .modal-content button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
 
         h1 { text-align: center; color: var(--primary); margin: 0 0 15px 0; }
         .user-info { text-align: center; font-size: 0.9rem; margin-bottom: 15px; color: #666; font-weight: bold; }
@@ -32,17 +31,19 @@
         .menu-item { border-bottom: 1px solid #f5f5f5; padding: 15px 0; }
         .menu-name { font-weight: bold; font-size: 1.05rem; display: block; margin-bottom: 10px; text-align: center; }
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        button:not(.btn-count) { padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.85rem; transition: 0.2s; }
+        button:not(.btn-count) { padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
         .btn-ice { background: #eef6ff; color: var(--ice); border: 1px solid #cce3ff; }
         .btn-hot { background: #fff5f5; color: var(--hot); border: 1px solid #ffe3e3; }
         .btn-shot { border: 1px dashed var(--shot); }
         .btn-shot::after { content: "+샷"; font-size: 0.6rem; vertical-align: top; margin-left: 2px; }
         button:disabled { background: #f0f0f0 !important; color: #ccc !important; cursor: not-allowed; opacity: 0.6; }
 
+        /* 그룹화된 주문 내역 스타일 */
         .order-summary { margin-top: 30px; border: 2px solid var(--primary); padding: 15px; border-radius: 15px; }
         .summary-title { font-size: 1.1rem; margin: 0 0 10px 0; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 5px; }
-        .order-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 0.9rem; }
-        .btn-count { width: 30px; height: 30px; border-radius: 50%; border: 1px solid #dee2e6; cursor: pointer; background: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .group-item { padding: 12px 0; border-bottom: 1px solid #eee; }
+        .group-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 1rem; }
+        .group-names { font-size: 0.8rem; color: #888; margin-top: 5px; word-break: break-all; line-height: 1.4; }
         .total-section { text-align: right; font-weight: 800; margin-top: 15px; padding-top: 10px; border-top: 2px solid #eee; font-size: 1.1rem; }
     </style>
 </head>
@@ -51,8 +52,7 @@
 <div id="login-modal">
     <div class="modal-content">
         <h2>☕ 누구신가요?</h2>
-        <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">주문을 위해 성함을 입력해 주세요.</p>
-        <input type="text" id="user-input" placeholder="이름 입력 (예: 홍길동)" onkeypress="if(event.keyCode==13) login()">
+        <input type="text" id="user-input" placeholder="이름 입력" onkeypress="if(event.keyCode==13) login()">
         <button onclick="login()">입장하기</button>
     </div>
 </div>
@@ -60,7 +60,7 @@
 <div class="container">
     <h1>☕ 찰스는커피요정</h1>
     <div class="user-info" id="user-display" style="display:none;">
-        <span id="current-user"></span> 님 환영합니다! <span onclick="logout()" style="font-weight:normal; margin-left:10px; font-size:0.75rem;">(이름수정)</span>
+        <span id="current-user"></span> 님 환영합니다! <span onclick="logout()">(이름수정)</span>
     </div>
 
     <div class="tabs">
@@ -105,17 +105,16 @@
     </div>
 
     <div class="order-summary">
-        <h2 class="summary-title">전체 주문 현황 🛒</h2>
-        <ul id="order-list" style="list-style:none; padding:0; margin:0;"></ul>
+        <h2 class="summary-title">주문 요약 현황 🛒</h2>
+        <div id="grouped-list"></div>
         <div class="total-section">
             총 수량: <span id="total-count">0</span>개
         </div>
-        <button style="width:100%; margin-top:15px; padding:10px; background:#f8f9fa; border:1px solid #ddd; border-radius:8px; font-size:0.75rem; color:#888;" onclick="clearAllOrders()">전체 데이터 초기화 (관리자용)</button>
+        <button style="width:100%; margin-top:15px; padding:10px; background:#f8f9fa; border:1px solid #ddd; border-radius:8px; font-size:0.75rem; color:#888;" onclick="clearAllOrders()">전체 데이터 초기화</button>
     </div>
 </div>
 
 <script>
-    // Firebase 설정
     const firebaseConfig = {
         apiKey: "AIzaSyBSxM3W_RkCt8poqQJxVhIgYMPqLuZgT6Y",
         authDomain: "menusame-6a326.firebaseapp.com",
@@ -136,7 +135,6 @@
         daily: { open: 9*3600, close: 18*3600, label: "주간 (09:00~18:00)" }
     };
 
-    // 팝업 로그인 처리
     function login() {
         const input = document.getElementById('user-input').value.trim();
         if(!input) return alert("이름을 입력해 주세요!");
@@ -148,17 +146,14 @@
     }
 
     function logout() {
-        if(confirm("이름을 수정하시겠습니까?")) {
-            document.getElementById('login-modal').style.display = 'flex';
-            document.getElementById('user-input').value = userName;
-        }
+        document.getElementById('login-modal').style.display = 'flex';
     }
 
     function getKSTSeconds() {
         const now = new Date();
         const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-        const krTime = new Date(utc + (9 * 3600000));
-        return krTime.getHours() * 3600 + krTime.getMinutes() * 60 + krTime.getSeconds();
+        const kr = new Date(utc + (9 * 3600000));
+        return kr.getHours() * 3600 + kr.getMinutes() * 60 + kr.getSeconds();
     }
 
     function switchTab(type) {
@@ -177,7 +172,6 @@
         document.getElementById('notice-text').innerText = `운영시간: ${config.label}`;
 
         const isOpen = curSec >= config.open && curSec < config.close;
-
         if (isOpen) {
             labelEl.innerText = "영업 중";
             const diff = config.close - curSec;
@@ -186,15 +180,14 @@
             labelEl.innerText = curSec < config.open ? "주문 시작 전" : "영업 종료";
             timerEl.innerText = "00:00:00";
         }
-        
-        // 이름이 있고 영업 중일 때만 버튼 활성화
         btns.forEach(b => b.disabled = !(userName && isOpen));
     }
 
     function addOrder(menu) {
-        if(!userName) return alert("이름을 먼저 입력해 주세요!");
+        if(!userName) return alert("이름을 입력해주세요!");
         const prefix = currentCategory === 'morning' ? "아침" : "주간";
-        const orderKey = `${userName} (${prefix}_${menu})`;
+        // 저장 시 키 형태: "이름|메뉴명" (구분자를 넣어 나중에 쪼개기 쉽게 함)
+        const orderKey = `${userName}|${prefix}_${menu}`;
         db.ref('orders/' + orderKey).transaction(cv => (cv || 0) + 1);
     }
 
@@ -205,33 +198,46 @@
         document.getElementById('etc-name').value = "";
     }
 
-    window.adjustQty = (key, amt) => db.ref('orders/' + key).transaction(cv => (cv || 0) + amt <= 0 ? null : (cv || 0) + amt);
-
     function clearAllOrders() {
-        if(confirm("정말로 모든 데이터를 초기화하시겠습니까?")) db.ref('orders').remove();
+        if(confirm("모든 데이터를 초기화하시겠습니까?")) db.ref('orders').remove();
     }
 
+    // [핵심] 데이터를 메뉴별로 그룹화하여 렌더링
     db.ref('orders').on('value', (snapshot) => {
-        const orders = snapshot.val() || {};
-        const listEl = document.getElementById('order-list');
+        const rawOrders = snapshot.val() || {};
+        const listEl = document.getElementById('grouped-list');
         const totalEl = document.getElementById('total-count');
         listEl.innerHTML = "";
-        let total = 0;
+        
+        let totalQty = 0;
+        let grouped = {}; // { "메뉴명": { count: 0, names: [] } }
 
-        Object.keys(orders).sort().forEach(key => {
-            const count = orders[key];
-            const li = document.createElement('li');
-            li.className = 'order-item';
-            li.innerHTML = `<span>${key}</span>
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <button class="btn-count" onclick="adjustQty('${key}', -1)">-</button>
-                    <span style="font-weight:bold; width:20px; text-align:center;">${count}</span>
-                    <button class="btn-count" onclick="adjustQty('${key}', 1)">+</button>
-                </div>`;
-            listEl.appendChild(li);
-            total += count;
+        Object.keys(rawOrders).forEach(key => {
+            const [name, menu] = key.split('|');
+            const count = rawOrders[key];
+            
+            if(!grouped[menu]) grouped[menu] = { count: 0, names: [] };
+            grouped[menu].count += count;
+            // 이름을 수량만큼 반복해서 넣지 않고, "이름(n)" 형태로 표시
+            grouped[menu].names.push(`${name}${count > 1 ? '('+count+')' : ''}`);
+            totalQty += count;
         });
-        totalEl.innerText = total;
+
+        Object.keys(grouped).sort().forEach(menu => {
+            const item = grouped[menu];
+            const div = document.createElement('div');
+            div.className = 'group-item';
+            div.innerHTML = `
+                <div class="group-header">
+                    <span>${menu}</span>
+                    <span style="color:var(--primary)">${item.count}잔</span>
+                </div>
+                <div class="group-names">${item.names.join(', ')}</div>
+            `;
+            listEl.appendChild(div);
+        });
+
+        totalEl.innerText = totalQty;
     });
 
     setInterval(updateTimer, 1000);
