@@ -101,7 +101,7 @@ window.toggleChat = function() {
     }
 }
 
-// 🌟 입장 (생존 신고 시작)
+// 🌟 입장
 window.joinChat = async function() {
     const val = nicknameInput.value.trim();
     if(val) nickname = val;
@@ -124,22 +124,21 @@ window.joinChat = async function() {
             timestamp: serverTimestamp()
         });
 
-        // 3. 💗 [수정됨] 1초마다 생존 신고 (Heartbeat)
-        // 3초 안에 반응하려면 1초마다 신호를 보내야 안전합니다.
+        // 3. 심박수(Heartbeat) 전송: 1.5초마다 갱신
         heartbeatInterval = setInterval(async () => {
             if (currentUserDocId) {
                 const userDocRef = doc(db, "online_users", currentUserDocId);
-                // 시간 갱신 (에러 나면 무시)
-                await updateDoc(userDocRef, { lastActive: serverTimestamp() }).catch(() => {});
+                await updateDoc(userDocRef, { lastActive: serverTimestamp() }).catch(e => console.warn("갱신 실패:", e));
             }
-        }, 1000); // 1초 간격
+        }, 1500);
 
     } catch (e) {
         console.error("입장 처리 실패:", e);
+        alert("접속 오류! 파이어베이스 규칙을 확인해주세요.");
     }
 }
 
-// 🌟 퇴장 (브라우저 닫을 때 즉시 삭제 시도)
+// 🌟 퇴장 (브라우저 닫을 때)
 window.addEventListener("beforeunload", () => {
     if (currentUserDocId) {
         const userDocRef = doc(db, "online_users", currentUserDocId);
@@ -180,32 +179,41 @@ function updateBadge() {
     }
 }
 
-// 🌟 [핵심] 3초 컷 감지 로직
+// 🌟 [핵심 수정] 스마트 카운팅 및 청소
 onSnapshot(collection(db, "online_users"), (snapshot) => {
-    // 1. 현재 접속자 수 업데이트
-    userCountSpan.innerText = snapshot.size;
+    
+    // 1. 단순 개수가 아니라, '진짜 살아있는 사람'만 셉니다.
+    const now = new Date().getTime();
+    let activeCount = 0;
 
-    // 2. 좀비 청소 (Zombie Cleaner)
-    // 모든 접속자가 서로를 감시하며 3초 이상 멈춘 유저를 청소합니다.
     snapshot.forEach((userDoc) => {
         const data = userDoc.data();
         if (data.lastActive) {
             const lastActiveTime = data.lastActive.toDate().getTime();
-            const now = new Date().getTime();
-            
-            // [수정됨] 3초(3000ms) 이상 신호 없으면 즉시 삭제
-            if (now - lastActiveTime > 3000) {
-                deleteDoc(userDoc.ref).catch(err => {});
+            const timeDiff = now - lastActiveTime;
+
+            // [중요] 5초 이내에 신호가 있었던 사람만 숫자에 포함!
+            if (timeDiff < 5000) {
+                activeCount++;
             }
+            
+            // 2. 청소는 5초 넘으면 진행 (DB 삭제)
+            if (timeDiff > 5000) {
+                deleteDoc(userDoc.ref).catch(() => {});
+            }
+        } else {
+            // 시간 기록 없으면 그냥 숫자에 포함 (방금 들어온 사람일 수 있음)
+            activeCount++;
         }
     });
 
-    // 3. 퇴장 메시지 띄우기 (명단에서 사라지면 즉시 실행)
+    // 화면 숫자 갱신
+    userCountSpan.innerText = activeCount;
+
+    // 3. 퇴장 메시지 (DB에서 실제로 삭제되었을 때)
     snapshot.docChanges().forEach((change) => {
         if (change.type === "removed") {
             const leftUser = change.doc.data().nickname;
-            
-            // 내 화면에 시스템 메시지 표시
             const msgDiv = document.createElement('div');
             msgDiv.className = "system-msg";
             msgDiv.innerText = `${leftUser}님이 퇴장하셨습니다.`;
