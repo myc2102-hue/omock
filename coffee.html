@@ -3,22 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>커피요정찰스</title>
+    <title>커피요정찰스 - 커피주문기</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
         :root { 
-            --primary: #1d1d1f; 
-            --accent: #0071e3;  
-            --ice: #64d2ff; 
-            --hot: #ff3b30; 
-            --shot: #34c759;
-            --bg: #f5f5f7;      
-            --card: rgba(255, 255, 255, 0.8);
+            --primary: #1d1d1f; --accent: #0071e3;  --ice: #64d2ff; 
+            --hot: #ff3b30; --shot: #34c759; --bg: #f5f5f7; --card: rgba(255, 255, 255, 0.8);
         }
 
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro KR", "SF Pro Text", "Helvetica Neue", Arial, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro KR", sans-serif; 
             background: var(--bg); margin: 0; padding: 20px; color: var(--primary); 
             -webkit-font-smoothing: antialiased;
         }
@@ -29,13 +24,13 @@
             border-radius: 28px; box-shadow: 0 8px 32px rgba(0,0,0,0.05); 
         }
         
-        h1 { text-align: center; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; margin: 0 0 20px 0; }
+        h1 { text-align: center; font-size: 24px; font-weight: 700; margin: 0 0 20px 0; }
 
-        /* 커스텀 모달 (정렬 문제 완벽 해결) */
+        /* 모달 시스템 - 초기 상태 display: none 고정 */
         .modal-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); 
-            display: flex; align-items: center; justify-content: center; z-index: 9999; 
+            display: none; align-items: center; justify-content: center; z-index: 9999; 
         }
         .modal-box { 
             background: white; padding: 25px; border-radius: 20px; 
@@ -43,69 +38,40 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.2); 
             display: flex; flex-direction: column; align-items: center; box-sizing: border-box;
         }
-        .modal-box h2 { font-size: 18px; margin: 0 0 8px 0; width: 100%; }
-        .modal-box p { font-size: 14px; margin-bottom: 20px; color: #86868b; width: 100%; }
-        
         .modal-box input { 
             width: 100%; padding: 14px; border: 1px solid #d2d2d7; border-radius: 12px; 
-            font-size: 16px; text-align: center; outline: none; margin-bottom: 16px; 
-            box-sizing: border-box; /* 패딩이 너비를 넘지 않도록 고정 */
+            font-size: 16px; text-align: center; outline: none; margin-bottom: 16px; box-sizing: border-box; 
         }
-        .modal-box input:focus { border-color: var(--accent); }
-        
         .modal-btns { display: flex; gap: 8px; width: 100%; }
-        .modal-btns button { 
-            flex: 1; padding: 14px; border: none; border-radius: 12px; 
-            font-weight: 600; cursor: pointer; font-size: 15px; box-sizing: border-box;
-        }
+        .modal-btns button { flex: 1; padding: 14px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; }
         .btn-confirm { background: var(--accent); color: white; }
         .btn-cancel { background: #e8e8ed; color: var(--primary); }
 
-        .user-info { text-align: center; font-size: 13px; margin-bottom: 20px; color: #86868b; }
-        .user-info span { color: var(--accent); font-weight: 600; cursor: pointer; }
-
+        /* UI 요소 */
         .tabs { display: flex; background: #e8e8ed; padding: 4px; border-radius: 14px; margin-bottom: 24px; }
         .tab { flex: 1; padding: 10px; text-align: center; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; color: #86868b; }
         .tab.active { background: white; color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-
         .timer-banner { background: var(--primary); color: #fff; padding: 16px; border-radius: 20px; text-align: center; margin-bottom: 24px; }
-        #time-left { font-size: 20px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
-        #notice-text { font-size: 12px; opacity: 0.6; margin-top: 4px; }
-
+        #time-left { font-size: 20px; font-weight: 700; }
         .menu-item { background: #fff; border-radius: 20px; padding: 20px; margin-bottom: 16px; border: 1px solid #f0f0f2; }
-        .menu-name { font-weight: 600; font-size: 17px; display: block; text-align: center; margin-bottom: 16px; }
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        
-        button:not(.btn-count, .modal-btns button) { 
-            padding: 14px; border: none; border-radius: 14px; cursor: pointer; 
-            font-weight: 600; font-size: 14px; transition: transform 0.1s; 
-        }
-        button:active { transform: scale(0.97); }
+        button:not(.btn-count, .modal-btns button) { padding: 14px; border: none; border-radius: 14px; cursor: pointer; font-weight: 600; font-size: 14px; }
         .btn-ice { background: #f2f7ff; color: var(--accent); }
         .btn-hot { background: #fff2f2; color: var(--hot); }
         .btn-shot { border: 1.5px dashed #34c759 !important; background: #f2fff5; }
-        button:disabled { background: #f5f5f7 !important; color: #d2d2d7 !important; cursor: not-allowed; }
-        
-        #etc-name { width: 100%; padding: 14px; border: 1px solid #d2d2d7; border-radius: 14px; margin-bottom: 12px; box-sizing: border-box; font-size: 15px; }
-
         .order-summary { margin-top: 32px; background: #fff; border-radius: 24px; padding: 20px; border: 1px solid #f0f0f2; }
         .group-item { padding: 14px 0; border-bottom: 1px solid #f5f5f7; }
-        .group-header { display: flex; justify-content: space-between; font-weight: 600; }
-        .group-names { font-size: 13px; color: #86868b; margin-top: 6px; }
-        .btn-count { width: 28px; height: 28px; border-radius: 50%; border: none; background: #f5f5f7; cursor: pointer; }
-        
-        .btn-my-clear { width: 100%; margin-top: 20px; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 16px; font-weight: 600; font-size: 15px; }
-        .btn-all-clear { width: 100%; margin-top: 10px; padding: 10px; background: transparent; color: #86868b; border: none; font-size: 12px; cursor: pointer; }
+        .btn-my-clear { width: 100%; margin-top: 20px; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 16px; font-weight: 600; }
     </style>
 </head>
 <body>
 
-<div id="modal-login" class="modal-overlay">
+<div id="modal-login" class="modal-overlay" style="display: flex;">
     <div class="modal-box">
         <h2>☕ 누구신가요?</h2>
-        <p>주문 확인을 위해 성함을 입력해주세요.</p>
+        <p style="font-size:14px; color:#86868b; margin-bottom:20px;">성함을 입력하고 입장해주세요.</p>
         <input type="text" id="user-input" placeholder="이름 입력" onkeypress="if(event.keyCode==13) login()">
-        <button class="btn-confirm" style="width:100%" onclick="login()">입장하기</button>
+        <button class="btn-confirm" style="width:100%; padding:14px; border:none; border-radius:12px; font-weight:600;" onclick="login()">입장하기</button>
     </div>
 </div>
 
@@ -122,8 +88,8 @@
 
 <div class="container">
     <h1>커피요정찰스</h1>
-    <div id="user-display" class="user-info" style="display:none;">
-        <b id="current-user"></b> 님 환영합니다! <span onclick="location.reload()">(이름변경)</span>
+    <div id="user-display" style="text-align:center; font-size:13px; margin-bottom:20px; color:#86868b; display:none;">
+        <b id="current-user"></b> 님 환영합니다! <span onclick="location.reload()" style="color:var(--accent); cursor:pointer; text-decoration:underline;">(이름변경)</span>
     </div>
 
     <div class="tabs">
@@ -134,12 +100,12 @@
     <div class="timer-banner">
         <span id="timer-label" style="font-size: 12px; opacity: 0.8; display: block; margin-bottom: 4px;">연결 중...</span>
         <span id="time-left">00:00:00</span>
-        <div id="notice-text"></div>
+        <div id="notice-text" style="font-size:12px; opacity:0.6; margin-top:4px;"></div>
     </div>
 
     <div id="menu-container">
         <div class="menu-item">
-            <span class="menu-name">아메리카노</span>
+            <span style="font-weight:600; font-size:17px; display:block; text-align:center; margin-bottom:16px;">아메리카노</span>
             <div class="btn-grid">
                 <button class="btn-ice order-btn" onclick="openConfirm('아메리카노 (Ice)')">Ice</button>
                 <button class="btn-hot order-btn" onclick="openConfirm('아메리카노 (Hot)')">Hot</button>
@@ -148,7 +114,7 @@
             </div>
         </div>
         <div class="menu-item">
-            <span class="menu-name">라떼</span>
+            <span style="font-weight:600; font-size:17px; display:block; text-align:center; margin-bottom:16px;">라떼</span>
             <div class="btn-grid">
                 <button class="btn-ice order-btn" onclick="openConfirm('라떼 (Ice)')">Ice</button>
                 <button class="btn-hot order-btn" onclick="openConfirm('라떼 (Hot)')">Hot</button>
@@ -157,8 +123,8 @@
             </div>
         </div>
         <div class="menu-item">
-            <span class="menu-name">기타 메뉴 직접 입력</span>
-            <input type="text" id="etc-name" placeholder="메뉴명을 입력하세요">
+            <span style="font-weight:600; font-size:17px; display:block; text-align:center; margin-bottom:16px;">기타 메뉴 직접 입력</span>
+            <input type="text" id="etc-name" style="width:100%; padding:14px; border:1px solid #d2d2d7; border-radius:14px; margin-bottom:12px; box-sizing:border-box;" placeholder="메뉴명을 입력하세요">
             <div class="btn-grid">
                 <button class="btn-ice order-btn" onclick="addEtcConfirm('Ice')">Ice</button>
                 <button class="btn-hot order-btn" onclick="addEtcConfirm('Hot')">Hot</button>
@@ -169,13 +135,13 @@
     </div>
 
     <div class="order-summary">
-        <h2 style="font-size:18px; font-weight: 700; margin: 0 0 12px 0;">주문 요약 현황 🛒</h2>
+        <h2 style="font-size:18px; font-weight:700; margin-bottom:12px;">주문 요약 현황 🛒</h2>
         <div id="grouped-list"></div>
         <div style="text-align:right; font-weight:700; margin-top:20px; padding-top:12px; border-top:1px solid #f5f5f7; font-size:18px;">
             총 수량: <span id="total-count">0</span>개
         </div>
         <button class="btn-my-clear" onclick="clearMyOrders()">내가 한 주문만 쏙쏙 초기화</button>
-        <button class="btn-all-clear" onclick="clearAllOrders()">전체 데이터 초기화</button>
+        <button style="width:100%; margin-top:10px; padding:10px; background:transparent; color:#86868b; border:none; font-size:12px; cursor:pointer;" onclick="clearAllOrders()">전체 데이터 초기화</button>
     </div>
 </div>
 
@@ -212,8 +178,9 @@
 
     function openConfirm(menu) {
         if(!userName) return;
+        const confirmModal = document.getElementById('modal-confirm');
         document.getElementById('confirm-msg').innerHTML = `<b>${userName}</b>님,<br>[${menu}]을(를) 주문하시겠습니까?`;
-        document.getElementById('modal-confirm').style.display = 'flex';
+        confirmModal.style.display = 'flex';
         document.getElementById('final-order-btn').onclick = function() {
             addOrder(menu);
             closeConfirm();
@@ -239,8 +206,8 @@
 
     function switchTab(type) {
         currentCategory = type;
-        document.getElementById('tab-morning').className = (type === 'morning' ? 'tab active' : 'tab');
-        document.getElementById('tab-daily').className = (type === 'daily' ? 'tab active' : 'tab');
+        document.getElementById('tab-morning').classList.toggle('active', type === 'morning');
+        document.getElementById('tab-daily').classList.toggle('active', type === 'daily');
         updateTimer();
     }
 
@@ -261,7 +228,8 @@
             labelEl.innerText = "영업 종료";
             timerEl.innerText = "00:00:00";
         }
-        btns.forEach(b => b.disabled = !isOpen);
+        // 로그인이 완료된 상태에서만 버튼 활성화 여부 결정
+        if(userName) btns.forEach(b => b.disabled = !isOpen);
     }
 
     function addOrder(menu) {
@@ -288,6 +256,7 @@
         const rawOrders = snapshot.val() || {};
         const listEl = document.getElementById('grouped-list');
         const totalEl = document.getElementById('total-count');
+        if(!listEl) return;
         listEl.innerHTML = "";
         let totalQty = 0; let grouped = {};
         Object.keys(rawOrders).forEach(key => {
@@ -303,7 +272,7 @@
             const item = grouped[menu];
             const div = document.createElement('div');
             div.className = 'group-item';
-            div.innerHTML = `<div class="group-header"><span>${menu}</span><span style="color:var(--accent)">${item.count}잔</span></div><div class="group-names">${item.names.join(', ')}</div>`;
+            div.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:600;"><span>${menu}</span><span style="color:var(--accent)">${item.count}잔</span></div><div style="font-size:13px; color:#86868b; margin-top:6px;">${item.names.join(', ')}</div>`;
             listEl.appendChild(div);
         });
         totalEl.innerText = totalQty;
@@ -312,6 +281,7 @@
     setInterval(updateTimer, 1000);
     window.onload = () => {
         const s = getKSTSeconds();
+        // 페이지 로드 시 탭만 설정하고, 타이머는 1초 뒤부터 정상 동작
         if (s >= TIMES.morning.open && s < TIMES.morning.close) switchTab('morning');
         else switchTab('daily');
     };
