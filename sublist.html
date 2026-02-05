@@ -29,7 +29,7 @@
         header { padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; border-bottom: var(--glass-border); }
         .logo-svg { height: 36px; width: auto; display: block; }
 
-        /* --- 2. [NEW] 서브 비주얼 배너 (sub1과 동일 스타일) --- */
+        /* --- 2. 서브 비주얼 배너 --- */
         .sub-visual-banner {
             position: relative;
             width: 100%;
@@ -55,7 +55,6 @@
         .breadcrumb span.active { font-weight: 700; color: #fff; }
         .page-title { font-size: 2.5rem; font-weight: 800; text-shadow: 0 4px 10px rgba(0,0,0,0.3); letter-spacing: -1px; }
 
-
         /* --- 3. 필터 및 리스트 스타일 --- */
         .filter-bar {
             max-width: 1200px; margin: 0 auto 40px auto; padding: 0 20px;
@@ -73,12 +72,11 @@
         .search-box input { width: 100%; padding: 10px 15px 10px 40px; border-radius: 20px; border: 1px solid #cbd5e1; outline: none; }
         .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
 
-
-        /* 12개 아이템을 위한 그리드 */
+        /* 그리드 스타일 */
         .resource-grid {
             max-width: 1200px; margin: 0 auto; padding: 0 20px 100px 20px;
             display: grid;
-            grid-template-columns: repeat(4, 1fr); /* 4열 */
+            grid-template-columns: repeat(4, 1fr);
             gap: 30px;
         }
 
@@ -177,58 +175,55 @@
         </div>
     </div>
 
-    <div class="resource-grid">
-        
-      
-
-    </div>
+    <div class="resource-grid" id="gridContainer"></div>
 
     <footer>
         &copy; 2026 전략지원팀. All rights reserved.
     </footer>
 
     <script type="module" src="chat-widget.js"></script>
-    <div class="resource-grid" id="gridContainer"></div>
+    
+    <script type="module">
+        import { db } from './data.js';
 
-<script type="module">
-    import { db } from './data.js';
+        // 1. URL에서 카테고리 읽기
+        const params = new URLSearchParams(window.location.search);
+        const category = params.get('category') || 'report'; // 기본값 report
 
-    // 1. URL에서 카테고리 읽기
-    const params = new URLSearchParams(window.location.search);
-    const category = params.get('category') || 'report'; // 기본값 report
+        // 2. 제목 바꾸기 (선택 사항)
+        const titles = {
+            "report": "보고서 에셋",
+            "graphic": "그래픽 디자인",
+            "docs": "문서 템플릿",
+            "icons": "아이콘 에셋",
+            "data": "데이터 시각화",
+            "etc": "기타 자료"
+        };
+        document.querySelector('.page-title').innerText = titles[category] || "리소스 갤러리";
 
-    // 2. 제목 바꾸기 (선택 사항)
-    const titles = {
-        "report": "보고서 에셋",
-        "graphic": "그래픽 디자인",
-        "docs": "문서 템플릿"
-    };
-    document.querySelector('.page-title').innerText = titles[category] || "리소스 갤러리";
+        // 3. 데이터 불러와서 카드 만들기
+        const listData = db[category] || [];
+        const container = document.getElementById('gridContainer');
 
-    // 3. 데이터 불러와서 카드 만들기
-    const listData = db[category] || [];
-    const container = document.getElementById('gridContainer');
-
-    if (listData.length === 0) {
-        container.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:50px;">데이터가 없습니다.</div>`;
-    } else {
-        listData.forEach(item => {
-            const html = `
-                <a href="detail.html?category=${category}&id=${item.id}" class="resource-card">
-                    <div class="card-thumb ${item.colorClass}">
-                        <i class="ph ${item.icon}"></i>
-                        <span class="file-badge">${item.badge}</span>
-                    </div>
-                    <div class="card-info">
-                        <h3 class="card-title">${item.title}</h3>
-                        <div class="card-meta"><span>${item.team}</span><span>${item.date}</span></div>
-                    </div>
-                </a>
-            `;
-            container.insertAdjacentHTML('beforeend', html);
-        });
-    }
-</script>
-
+        if (listData.length === 0) {
+            container.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:50px;">데이터가 없습니다.</div>`;
+        } else {
+            listData.forEach(item => {
+                const html = `
+                    <a href="detail.html?category=${category}&id=${item.id}" class="resource-card">
+                        <div class="card-thumb ${item.colorClass}">
+                            <i class="ph ${item.icon}"></i>
+                            <span class="file-badge">${item.badge}</span>
+                        </div>
+                        <div class="card-info">
+                            <h3 class="card-title">${item.title}</h3>
+                            <div class="card-meta"><span>${item.team}</span><span>${item.date}</span></div>
+                        </div>
+                    </a>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        }
+    </script>
 </body>
 </html>
