@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 페이지 - AI Design Library</title>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="chat.css">
+    
+    <style>
+        body { background-color: #f1f5f9; padding: 40px 0; }
+        .admin-container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
+        
+        .admin-header { text-align: center; margin-bottom: 40px; }
+        .admin-title { font-size: 2rem; font-weight: 800; color: #1e293b; margin-bottom: 10px; }
+        
+        .form-card {
+            background: white; border-radius: 20px; padding: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;
+        }
+
+        .form-group { margin-bottom: 24px; }
+        .form-label { display: block; font-weight: 700; color: #334155; margin-bottom: 8px; font-size: 0.95rem; }
+        
+        .form-input, .form-select, .form-textarea {
+            width: 100%; padding: 12px 16px; border-radius: 12px;
+            border: 1px solid #cbd5e1; font-size: 1rem; transition: 0.2s;
+            font-family: inherit;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            border-color: #2563eb; outline: none; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .form-textarea { height: 120px; resize: vertical; }
+
+        .row { display: flex; gap: 20px; }
+        .col { flex: 1; }
+
+        .file-upload-box {
+            border: 2px dashed #cbd5e1; border-radius: 12px; padding: 30px;
+            text-align: center; cursor: pointer; transition: 0.2s; background: #f8fafc;
+        }
+        .file-upload-box:hover { border-color: #2563eb; background: #eff6ff; }
+        .file-upload-box i { font-size: 2rem; color: #94a3b8; margin-bottom: 10px; }
+        .file-preview { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+        .preview-img { width: 80px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0; }
+
+        .submit-btn {
+            width: 100%; padding: 16px; background: #2563eb; color: white;
+            border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700;
+            cursor: pointer; transition: 0.2s; margin-top: 20px;
+        }
+        .submit-btn:hover { background: #1d4ed8; transform: translateY(-2px); }
+
+    </style>
+</head>
+<body>
+
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1 class="admin-title">🔒 리소스 등록 관리자</h1>
+            <p>새로운 디자인 리소스를 데이터베이스에 등록합니다.</p>
+        </div>
+
+        <div class="form-card">
+            <div class="row">
+                <div class="col form-group">
+                    <label class="form-label">카테고리</label>
+                    <select id="category" class="form-select">
+                        <option value="report">보고서 에셋</option>
+                        <option value="graphic">그래픽 디자인</option>
+                        <option value="docs">문서 템플릿</option>
+                        <option value="icons">아이콘 에셋</option>
+                        <option value="data">데이터 시각화</option>
+                        <option value="etc">기타 자료</option>
+                    </select>
+                </div>
+                <div class="col form-group">
+                    <label class="form-label">ID (자동생성)</label>
+                    <input type="text" id="docId" class="form-input" placeholder="자동 생성됨" disabled style="background:#f1f5f9;">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">제목</label>
+                <input type="text" id="title" class="form-input" placeholder="예: 2026 전략 보고서 양식">
+            </div>
+
+            <div class="row">
+                <div class="col form-group">
+                    <label class="form-label">담당팀</label>
+                    <input type="text" id="team" class="form-input" placeholder="예: 디자인팀">
+                </div>
+                <div class="col form-group">
+                    <label class="form-label">등록일</label>
+                    <input type="text" id="date" class="form-input" placeholder="예: 05.20">
+                </div>
+                <div class="col form-group">
+                    <label class="form-label">뱃지 (확장자)</label>
+                    <input type="text" id="badge" class="form-input" placeholder="PPTX">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">상세 설명</label>
+                <textarea id="desc" class="form-textarea" placeholder="상세 페이지에 들어갈 설명을 적어주세요."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">특징 (쉼표로 구분)</label>
+                <input type="text" id="features" class="form-input" placeholder="예: 16:9 비율, 전용 폰트, 벡터 아이콘">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">구글 드라이브 다운로드 링크</label>
+                <input type="text" id="fileUrl" class="form-input" placeholder="https://drive.google.com/...">
+            </div>
+
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #e2e8f0;">
+
+            <div class="form-group">
+                <label class="form-label">썸네일 이미지 (1장)</label>
+                <div class="file-upload-box" onclick="document.getElementById('thumbInput').click()">
+                    <i class="ph ph-image"></i>
+                    <p>클릭하여 썸네일 업로드</p>
+                    <input type="file" id="thumbInput" style="display:none" accept="image/*" onchange="previewImage(this, 'thumbPreview')">
+                </div>
+                <div id="thumbPreview" class="file-preview"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">상세 슬라이드 이미지 (여러장 가능)</label>
+                <div class="file-upload-box" onclick="document.getElementById('slideInput').click()">
+                    <i class="ph ph-images"></i>
+                    <p>클릭하여 슬라이드 업로드 (다중 선택)</p>
+                    <input type="file" id="slideInput" style="display:none" accept="image/*" multiple onchange="previewImages(this, 'slidePreview')">
+                </div>
+                <div id="slidePreview" class="file-preview"></div>
+            </div>
+
+            <button class="submit-btn" onclick="uploadData()">리소스 등록하기</button>
+        </div>
+    </div>
+
+    <script>
+        // 간단한 미리보기 스크립트 (기능 작동은 아직 안 함)
+        function previewImage(input, targetId) {
+            const target = document.getElementById(targetId);
+            target.innerHTML = '';
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    target.innerHTML = `<img src="${e.target.result}" class="preview-img">`;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        function previewImages(input, targetId) {
+            const target = document.getElementById(targetId);
+            target.innerHTML = '';
+            if (input.files) {
+                Array.from(input.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        target.innerHTML += `<img src="${e.target.result}" class="preview-img">`;
+                    }
+                    reader.readAsDataURL(file);
+                });
+            }
+        }
+
+        function uploadData() {
+            alert("⚠️ 현재는 디자인만 된 상태입니다.\n실제로 작동하려면 파이어베이스 저장소 연결 작업이 필요합니다!");
+        }
+    </script>
+</body>
+</html>
