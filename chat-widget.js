@@ -1,5 +1,4 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-// 🌟 getDoc이 추가되었습니다.
 import { getFirestore, collection, addDoc, deleteDoc, updateDoc, getDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // --- 1. HTML 주입 ---
@@ -86,15 +85,20 @@ function filterBadWords(text) {
     return cleanText;
 }
 
+// 🌟 [핵심 수정 1] 채팅창 열고 닫을 때 상태 저장
 window.toggleChat = function() {
     chatContainer.classList.toggle('active');
     isChatOpen = chatContainer.classList.contains('active');
+
+    // 상태 저장 (open 또는 closed)
+    sessionStorage.setItem('chat_ui_state', isChatOpen ? 'open' : 'closed');
 
     if (isChatOpen) {
         chatTooltip.classList.add('hidden');
         unreadCount = 0;
         updateBadge();
         setTimeout(() => chatBody.scrollTop = chatBody.scrollHeight, 100);
+        
         if (loginScreen.classList.contains('hidden')) messageInput.focus();
         else nicknameInput.focus();
     } else {
@@ -102,10 +106,8 @@ window.toggleChat = function() {
     }
 }
 
-// 🌟 입장 함수 (ID 재사용 로직 추가)
+// 입장 함수
 window.joinChat = async function(isAutoLogin = false) {
-    
-    // 1. 닉네임 처리
     if (!isAutoLogin) {
         const val = nicknameInput.value.trim();
         if(val) nickname = val;
@@ -117,25 +119,19 @@ window.joinChat = async function(isAutoLogin = false) {
     loginScreen.classList.add('hidden');
 
     try {
-        // 🌟 [핵심] 기존에 쓰던 ID가 있는지 확인
         const savedDocId = sessionStorage.getItem('chat_doc_id');
         let shouldCreateNew = true;
 
         if (savedDocId) {
-            // 기존 ID가 있다면 DB에 살아있는지 확인
             const docRef = doc(db, "online_users", savedDocId);
             const docSnap = await getDoc(docRef);
-
             if (docSnap.exists()) {
-                // 살아있다면? -> 재사용! (입장 메시지 안 보냄)
                 currentUserDocId = savedDocId;
                 await updateDoc(docRef, { lastActive: serverTimestamp() });
                 shouldCreateNew = false;
-                console.log("기존 접속 유지:", nickname);
             }
         }
 
-        // 기존 ID가 없거나 죽었으면 -> 새로 생성
         if (shouldCreateNew) {
             const docRef = await addDoc(collection(db, "online_users"), {
                 nickname: nickname,
@@ -143,10 +139,8 @@ window.joinChat = async function(isAutoLogin = false) {
                 lastActive: serverTimestamp()
             });
             currentUserDocId = docRef.id;
-            // 🌟 새 ID를 세션에 저장
             sessionStorage.setItem('chat_doc_id', currentUserDocId);
 
-            // 입장 메시지 전송 (새로 왔을 때만)
             await addDoc(collection(db, "chats"), {
                 text: `${nickname}님이 입장하셨습니다.`,
                 sender: "System",
@@ -155,7 +149,6 @@ window.joinChat = async function(isAutoLogin = false) {
             });
         }
 
-        // 4. 심박수(Heartbeat) 시작 (1초 간격)
         if (heartbeatInterval) clearInterval(heartbeatInterval);
         heartbeatInterval = setInterval(async () => {
             if (currentUserDocId) {
@@ -169,12 +162,8 @@ window.joinChat = async function(isAutoLogin = false) {
     }
 }
 
-// 🌟 [중요] 페이지 이동 시 '삭제' 로직을 제거했습니다!
-// 브라우저를 닫으면 Heartbeat가 멈추고, 3초 뒤에 '좀비 청소'에 의해 퇴장 처리됩니다.
-window.addEventListener("beforeunload", () => {
-    // 아무것도 하지 않음 (유지)
-});
-
+// 퇴장 방지 (페이지 이동 시 유지)
+window.addEventListener("beforeunload", () => {});
 
 // 메시지 전송
 window.sendMessage = async function() {
@@ -209,30 +198,19 @@ function updateBadge() {
     }
 }
 
-// 스마트 카운팅 및 좀비 청소
+// 카운팅 및 청소
 onSnapshot(collection(db, "online_users"), (snapshot) => {
     const now = new Date().getTime();
     let activeCount = 0;
-
     snapshot.forEach((userDoc) => {
         const data = userDoc.data();
         if (data.lastActive) {
-            const timeDiff = now - data.lastActive.toDate().getTime();
-            // 3초 이내 신호만 인정
-            if (timeDiff < 3000) {
-                activeCount++;
-            } else {
-                // 3초 지나면 삭제 (좀비 청소)
-                deleteDoc(userDoc.ref).catch(() => {});
-            }
-        } else {
-            activeCount++;
-        }
+            if (now - data.lastActive.toDate().getTime() < 3000) activeCount++;
+            else deleteDoc(userDoc.ref).catch(() => {});
+        } else activeCount++;
     });
-
     userCountSpan.innerText = activeCount;
 
-    // 퇴장 메시지 처리
     snapshot.docChanges().forEach((change) => {
         if (change.type === "removed") {
             const leftUser = change.doc.data().nickname;
@@ -245,21 +223,17 @@ onSnapshot(collection(db, "online_users"), (snapshot) => {
     });
 });
 
-// 채팅 메시지 감지
-const q = query(collection(db, "chats"), orderBy("timestamp", "asc"));
-onSnapshot(q, (snapshot) => {
+onSnapshot(query(collection(db, "chats"), orderBy("timestamp", "asc")), (snapshot) => {
     snapshot.docChanges().forEach((change) => {
         if (change.type === "added") {
             const data = change.doc.data();
             const msgDiv = document.createElement('div');
-            
             if (data.type === "system") {
                 msgDiv.className = "system-msg";
                 msgDiv.innerText = data.text;
             } else {
                 const isMyMsg = data.sender === nickname;
                 msgDiv.className = `message ${isMyMsg ? 'my-msg' : 'other-msg'}`;
-                
                 if (!isMyMsg) {
                     msgDiv.innerHTML = `<span class="message-info">${data.sender}</span>${data.text}`;
                     if (!isChatOpen && !initialLoad) {
@@ -278,11 +252,21 @@ onSnapshot(q, (snapshot) => {
 });
 
 
-// 자동 로그인 체크
-(function checkAutoLogin() {
+// 🌟 [핵심 수정 2] 초기화 로직 (자동 로그인 + 채팅창 상태 복구)
+(function initChat() {
+    // 1. 닉네임 있으면 자동 로그인
     const savedNickname = sessionStorage.getItem('chat_nickname');
     if (savedNickname) {
         nickname = savedNickname;
-        joinChat(true); 
+        joinChat(true);
+    }
+
+    // 2. 아까 채팅창 열어놨으면 자동으로 열기
+    const uiState = sessionStorage.getItem('chat_ui_state');
+    if (uiState === 'open') {
+        // 약간의 딜레이를 주어 자연스럽게 열리도록 (선택사항)
+        setTimeout(() => {
+            if (!isChatOpen) toggleChat();
+        }, 100);
     }
 })();
