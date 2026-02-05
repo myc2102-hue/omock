@@ -94,21 +94,36 @@ window.toggleChat = function() {
         unreadCount = 0;
         updateBadge();
         setTimeout(() => chatBody.scrollTop = chatBody.scrollHeight, 100);
-        if (!loginScreen.classList.contains('hidden')) nicknameInput.focus();
-        else messageInput.focus();
+        
+        // 로그인 상태면 메시지 입력창으로, 아니면 닉네임 입력창으로
+        if (loginScreen.classList.contains('hidden')) messageInput.focus();
+        else nicknameInput.focus();
+
     } else {
         chatTooltip.classList.remove('hidden');
     }
 }
 
-// 🌟 입장
-window.joinChat = async function() {
-    const val = nicknameInput.value.trim();
-    if(val) nickname = val;
+// 🌟 입장 함수 (자동 로그인 지원)
+// isAutoLogin: 페이지 이동으로 인한 자동 접속인지 여부
+window.joinChat = async function(isAutoLogin = false) {
+    
+    // 1. 닉네임 처리
+    if (!isAutoLogin) {
+        // 직접 입력해서 들어온 경우
+        const val = nicknameInput.value.trim();
+        if(val) nickname = val;
+        // 🌟 브라우저 저장소에 닉네임 저장 (페이지 이동해도 기억함!)
+        sessionStorage.setItem('chat_nickname', nickname);
+    } else {
+        // 자동 로그인인 경우 저장소에서 가져옴
+        nickname = sessionStorage.getItem('chat_nickname');
+    }
+
     loginScreen.classList.add('hidden');
 
     try {
-        // 1. 명단 등록
+        // 2. 명단 등록
         const docRef = await addDoc(collection(db, "online_users"), {
             nickname: nickname,
             joinedAt: serverTimestamp(),
@@ -116,34 +131,40 @@ window.joinChat = async function() {
         });
         currentUserDocId = docRef.id;
 
-        // 2. 입장 메시지
-        await addDoc(collection(db, "chats"), {
-            text: `${nickname}님이 입장하셨습니다.`,
-            sender: "System",
-            type: "system",
-            timestamp: serverTimestamp()
-        });
+        // 3. 입장 메시지 전송
+        // 🌟 페이지 이동할 때마다 "입장했습니다" 뜨면 시끄러우니까, 처음 로그인할 때만 뜨게 함
+        if (!isAutoLogin) {
+            await addDoc(collection(db, "chats"), {
+                text: `${nickname}님이 입장하셨습니다.`,
+                sender: "System",
+                type: "system",
+                timestamp: serverTimestamp()
+            });
+        }
 
-        // 3. 심박수(Heartbeat) 전송: 1.5초마다 갱신
+        // 4. 심박수(Heartbeat) 시작
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
         heartbeatInterval = setInterval(async () => {
             if (currentUserDocId) {
                 const userDocRef = doc(db, "online_users", currentUserDocId);
-                await updateDoc(userDocRef, { lastActive: serverTimestamp() }).catch(e => console.warn("갱신 실패:", e));
+                await updateDoc(userDocRef, { lastActive: serverTimestamp() }).catch(() => {});
             }
         }, 1500);
 
     } catch (e) {
         console.error("입장 처리 실패:", e);
-        alert("접속 오류! 파이어베이스 규칙을 확인해주세요.");
     }
 }
 
-// 🌟 퇴장 (브라우저 닫을 때)
+// 🌟 퇴장 처리
 window.addEventListener("beforeunload", () => {
     if (currentUserDocId) {
         const userDocRef = doc(db, "online_users", currentUserDocId);
         deleteDoc(userDocRef);
     }
+    // 주의: 페이지 이동 시에는 sessionStorage를 지우지 않습니다.
+    // 그래야 다음 페이지에서 기억하니까요!
+    // 만약 '로그아웃' 버튼을 만든다면 그때 sessionStorage.removeItem('chat_nickname')을 해야 합니다.
 });
 
 // 메시지 전송
@@ -179,41 +200,32 @@ function updateBadge() {
     }
 }
 
-// 🌟 [핵심 수정] 스마트 카운팅 및 청소
+// 접속자 카운팅 (스마트 로직)
 onSnapshot(collection(db, "online_users"), (snapshot) => {
-    
-    // 1. 단순 개수가 아니라, '진짜 살아있는 사람'만 셉니다.
     const now = new Date().getTime();
     let activeCount = 0;
 
     snapshot.forEach((userDoc) => {
         const data = userDoc.data();
         if (data.lastActive) {
-            const lastActiveTime = data.lastActive.toDate().getTime();
-            const timeDiff = now - lastActiveTime;
-
-            // [중요] 5초 이내에 신호가 있었던 사람만 숫자에 포함!
-            if (timeDiff < 5000) {
-                activeCount++;
-            }
-            
-            // 2. 청소는 5초 넘으면 진행 (DB 삭제)
-            if (timeDiff > 5000) {
-                deleteDoc(userDoc.ref).catch(() => {});
-            }
+            const timeDiff = now - data.lastActive.toDate().getTime();
+            if (timeDiff < 5000) activeCount++;
+            else deleteDoc(userDoc.ref).catch(() => {});
         } else {
-            // 시간 기록 없으면 그냥 숫자에 포함 (방금 들어온 사람일 수 있음)
             activeCount++;
         }
     });
 
-    // 화면 숫자 갱신
     userCountSpan.innerText = activeCount;
 
-    // 3. 퇴장 메시지 (DB에서 실제로 삭제되었을 때)
+    // 퇴장 메시지 처리
     snapshot.docChanges().forEach((change) => {
         if (change.type === "removed") {
             const leftUser = change.doc.data().nickname;
+            
+            // 🌟 페이지 이동 중에는 '퇴장' 메시지가 뜰 수 있지만, 
+            // 닉네임이 같으면 무시하거나 그냥 두는 게 자연스럽습니다.
+            // 여기서는 심플하게 그냥 띄웁니다.
             const msgDiv = document.createElement('div');
             msgDiv.className = "system-msg";
             msgDiv.innerText = `${leftUser}님이 퇴장하셨습니다.`;
@@ -254,3 +266,15 @@ onSnapshot(q, (snapshot) => {
     });
     initialLoad = false;
 });
+
+
+// 🌟 [핵심] 페이지 로드 시 자동 로그인 체크
+// 스크립트가 실행되자마자 저장된 닉네임이 있는지 확인합니다.
+(function checkAutoLogin() {
+    const savedNickname = sessionStorage.getItem('chat_nickname');
+    if (savedNickname) {
+        console.log("자동 로그인 시도:", savedNickname);
+        nickname = savedNickname;
+        joinChat(true); // true = "이건 자동 로그인이야" 라고 알려줌
+    }
+})();
