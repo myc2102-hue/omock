@@ -208,21 +208,27 @@
         if (listData.length === 0) {
             container.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:50px;">데이터가 없습니다.</div>`;
         } else {
+            // sublist.html 스크립트 부분 수정
+
             listData.forEach(item => {
-                const html = `
-                    <a href="detail.html?category=${category}&id=${item.id}" class="resource-card">
-                        <div class="card-thumb ${item.colorClass}">
-                            <i class="ph ${item.icon}"></i>
-                            <span class="file-badge">${item.badge}</span>
-                        </div>
-                        <div class="card-info">
-                            <h3 class="card-title">${item.title}</h3>
-                            <div class="card-meta"><span>${item.team}</span><span>${item.date}</span></div>
-                        </div>
-                    </a>
-                `;
-                container.insertAdjacentHTML('beforeend', html);
-            });
+            // 🌟 이미지 경로 자동 생성 (규칙: images/폴더/thumb_아이디.jpg)
+              // 에러 대비: 이미지가 없으면 기본 회색박스(onerror)가 뜨게 함
+             const thumbPath = `images/thumb_${item.id}.jpg`;
+
+             const html = `
+                   <a href="detail.html?category=${category}&id=${item.id}" class="resource-card">
+                   <div class="card-thumb">
+                    <img src="${thumbPath}" alt="${item.title}" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentNode.style.backgroundColor='#cbd5e1'; this.style.display='none';">
+                    <span class="file-badge">${item.badge}</span>
+                     </div>
+            <div class="card-info">
+                <h3 class="card-title">${item.title}</h3>
+                <div class="card-meta"><span>${item.team}</span><span>${item.date}</span></div>
+            </div>
+              </a>
+             `;
+                  container.insertAdjacentHTML('beforeend', html);
+            });  
         }
     </script>
 </body>

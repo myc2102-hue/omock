@@ -12,7 +12,7 @@ export const db = {
             icon: "ph-file-ppt",
             desc: "AI 분석 데이터를 가장 효과적으로 보여주는 레이아웃입니다. 임원 보고용으로 최적화된 폰트 크기와 컬러셋이 적용되어 있습니다.",
             features: ["16:9 와이드 포맷", "전용 픽토그램 아이콘", "엑셀 연동 차트"],
-            slides: ["#3b82f6", "#2563eb", "#1d4ed8"] // 슬라이드 예시 색상 (나중엔 이미지 경로로 변경)
+            slideCount: 3, // 슬라이더 갯수
         },
         { 
             id: 102, 
@@ -24,7 +24,7 @@ export const db = {
             icon: "ph-presentation-chart",
             desc: "월간 KPI 달성률과 채널별 성과를 시각적으로 요약한 보고서입니다.",
             features: ["성과 지표 대시보드", "마케팅 퍼널 다이어그램", "경쟁사 비교 차트"],
-            slides: ["#f97316", "#ea580c", "#c2410c"]
+            slideCount: 4, // 슬라이더 갯수
         },
         { 
             id: 103, 
@@ -36,7 +36,7 @@ export const db = {
             icon: "ph-book-open-text",
             desc: "신규 입사자를 위한 회사 생활 가이드북입니다. 사내 시스템 접속 방법 및 복리후생 안내가 포함되어 있습니다.",
             features: ["회사 생활 A to Z", "조직도 및 비상연락망", "사내 메신저 사용법"],
-            slides: ["#22c55e", "#16a34a", "#15803d"]
+            slideCount: 8, // 슬라이더 갯수
         },
         { 
             id: 104, 

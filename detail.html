@@ -59,12 +59,12 @@
         .detail-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 20px 60px 20px; /* 하단 여백 줄임 */
+            padding: 0 20px 60px 20px;
             display: grid;
             grid-template-columns: 1.5fr 1fr;
             gap: 50px;
             align-items: start;
-            border-bottom: 1px solid #e2e8f0; /* 섹션 구분선 */
+            border-bottom: 1px solid #e2e8f0;
         }
 
         /* 슬라이더 영역 */
@@ -74,7 +74,7 @@
             aspect-ratio: 16 / 9; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 15px;
         }
         .slides { display: flex; width: 100%; height: 100%; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
-        .slide { min-width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #fff; }
+        .slide { min-width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f1f5f9; }
         
         /* 슬라이드 화살표 */
         .slider-btn {
@@ -89,7 +89,7 @@
         /* 썸네일 리스트 */
         .thumbnail-list { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
         .thumb-item { width: 80px; height: 50px; border-radius: 8px; cursor: pointer; opacity: 0.5; transition: all 0.3s; background-color: #ddd; overflow: hidden; border: 2px solid transparent; }
-        .thumb-item img, .thumb-item div { width: 100%; height: 100%; object-fit: cover; }
+        .thumb-item img { width: 100%; height: 100%; object-fit: cover; }
         .thumb-item.active { opacity: 1; border-color: var(--primary-color); transform: translateY(-2px); }
         .thumb-item:hover { opacity: 0.8; }
 
@@ -112,7 +112,7 @@
         .btn-secondary:hover { background: #f1f5f9; }
 
 
-        /* --- 🌟 4. [NEW] 하단 연관 갤러리 (4컬럼) --- */
+        /* --- 🌟 하단 연관 갤러리 --- */
         .related-gallery {
             max-width: 1200px;
             margin: 0 auto;
@@ -131,7 +131,7 @@
 
         .gallery-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr); /* 4컬럼 */
+            grid-template-columns: repeat(4, 1fr);
             gap: 24px;
         }
 
@@ -161,7 +161,6 @@
             font-size: 2rem;
         }
         
-        /* 썸네일 이미지 예시 색상 */
         .bg-1 { background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); color: #0ea5e9; }
         .bg-2 { background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%); color: #db2777; }
         .bg-3 { background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); color: #16a34a; }
@@ -174,21 +173,15 @@
 
         footer { text-align: center; padding: 60px 20px; color: var(--text-sub); border-top: 1px solid #e2e8f0; margin-top: 0; }
 
-        /* 반응형 */
         @media (max-width: 1024px) {
             .detail-container { grid-template-columns: 1fr; gap: 40px; }
             .info-card { position: static; }
             .sub-visual-banner { height: 240px; }
-            
-            /* 4컬럼 -> 2컬럼 */
             .gallery-grid { grid-template-columns: repeat(2, 1fr); }
         }
-
         @media (max-width: 768px) {
             .page-title { font-size: 1.8rem; }
             .detail-container { padding-bottom: 40px; }
-            
-            /* 2컬럼 -> 1컬럼 */
             .gallery-grid { grid-template-columns: 1fr; }
         }
     </style>
@@ -234,46 +227,22 @@
         <div class="slider-area">
             <div class="slider-wrapper">
                 <div class="slides" id="slides">
-                    <div class="slide">
-                        <div style="background:#3b82f6; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">Slide 1 (Blue)</div>
-                    </div>
-                    <div class="slide">
-                        <div style="background:#f97316; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">Slide 2 (Orange)</div>
-                    </div>
-                    <div class="slide">
-                        <div style="background:#8b5cf6; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">Slide 3 (Purple)</div>
-                    </div>
+                    <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#64748b;">이미지 로딩 중...</div>
                 </div>
                 <button class="slider-btn prev-btn" onclick="moveSlide(-1)"><i class="ph ph-caret-left"></i></button>
                 <button class="slider-btn next-btn" onclick="moveSlide(1)"><i class="ph ph-caret-right"></i></button>
             </div>
 
             <div class="thumbnail-list">
-                <div class="thumb-item active" onclick="jumpToSlide(0)">
-                    <div style="background:#3b82f6;"></div>
                 </div>
-                <div class="thumb-item" onclick="jumpToSlide(1)">
-                    <div style="background:#f97316;"></div>
-                </div>
-                <div class="thumb-item" onclick="jumpToSlide(2)">
-                    <div style="background:#8b5cf6;"></div>
-                </div>
-            </div>
         </div>
 
         <aside class="info-area">
             <div class="info-card">
-                <span class="category-tag">PPT Template</span>
-                <h2 class="info-title">2026 전략기획팀<br>표준 보고서 양식</h2>
-                <p class="info-desc">
-                    AI 분석 데이터를 가장 효과적으로 보여주는 레이아웃입니다.
-                    임원 보고용으로 최적화된 폰트 크기와 컬러셋이 적용되어 있습니다.
-                </p>
-                <ul class="feature-list">
-                    <li><i class="ph ph-check-circle"></i> 16:9 와이드 포맷</li>
-                    <li><i class="ph ph-check-circle"></i> 전용 픽토그램 아이콘</li>
-                    <li><i class="ph ph-check-circle"></i> 엑셀 연동 차트</li>
-                </ul>
+                <span class="category-tag">Template</span>
+                <h2 class="info-title">제목 로딩 중...</h2>
+                <p class="info-desc">설명 로딩 중...</p>
+                <ul class="feature-list"></ul>
                 <div class="btn-group">
                     <button class="action-btn btn-primary" onclick="alert('다운로드 시작!')">
                         <i class="ph ph-download-simple"></i> 템플릿 다운로드
@@ -294,43 +263,20 @@
 
         <div class="gallery-grid">
             <div class="gallery-item" onclick="alert('페이지 이동')">
-                <div class="gallery-thumb bg-1">
-                    <i class="ph ph-chart-bar"></i>
-                </div>
-                <div class="gallery-info">
-                    <h4>데이터 시각화 킷</h4>
-                    <p>복잡한 차트를 심플하게</p>
-                </div>
+                <div class="gallery-thumb bg-1"><i class="ph ph-chart-bar"></i></div>
+                <div class="gallery-info"><h4>데이터 시각화 킷</h4><p>복잡한 차트를 심플하게</p></div>
             </div>
-            
             <div class="gallery-item" onclick="alert('페이지 이동')">
-                <div class="gallery-thumb bg-2">
-                    <i class="ph ph-images"></i>
-                </div>
-                <div class="gallery-info">
-                    <h4>SNS 홍보 배너</h4>
-                    <p>인스타그램 사이즈 최적화</p>
-                </div>
+                <div class="gallery-thumb bg-2"><i class="ph ph-images"></i></div>
+                <div class="gallery-info"><h4>SNS 홍보 배너</h4><p>인스타그램 사이즈 최적화</p></div>
             </div>
-
             <div class="gallery-item" onclick="alert('페이지 이동')">
-                <div class="gallery-thumb bg-3">
-                    <i class="ph ph-files"></i>
-                </div>
-                <div class="gallery-info">
-                    <h4>회의록 양식</h4>
-                    <p>업무 효율을 높이는 문서</p>
-                </div>
+                <div class="gallery-thumb bg-3"><i class="ph ph-files"></i></div>
+                <div class="gallery-info"><h4>회의록 양식</h4><p>업무 효율을 높이는 문서</p></div>
             </div>
-
             <div class="gallery-item" onclick="alert('페이지 이동')">
-                <div class="gallery-thumb bg-4">
-                    <i class="ph ph-shapes"></i>
-                </div>
-                <div class="gallery-info">
-                    <h4>3D 아이콘 팩</h4>
-                    <p>트렌디한 입체 아이콘</p>
-                </div>
+                <div class="gallery-thumb bg-4"><i class="ph ph-shapes"></i></div>
+                <div class="gallery-info"><h4>3D 아이콘 팩</h4><p>트렌디한 입체 아이콘</p></div>
             </div>
         </div>
     </div>
@@ -339,89 +285,92 @@
         &copy; 2026 전략지원팀. All rights reserved.
     </footer>
 
-   <script type="module">
-    import { db } from './data.js';
-    import './chat-widget.js'; // 채팅 위젯도 같이 로드
+    <script type="module">
+        import { db } from './data.js';
+        import './chat-widget.js';
 
-    // 1. URL 정보 읽기
-    const params = new URLSearchParams(window.location.search);
-    const category = params.get('category');
-    const id = parseInt(params.get('id'));
+        // 1. URL 정보 읽기
+        const params = new URLSearchParams(window.location.search);
+        const category = params.get('category');
+        const id = parseInt(params.get('id'));
 
-    // 2. 데이터 찾기
-    const item = db[category]?.find(i => i.id === id);
+        // 2. 데이터 찾기
+        const item = db[category]?.find(i => i.id === id);
 
-    if (!item) {
-        alert("해당 자료를 찾을 수 없습니다.");
-        window.location.href = 'sublist.html'; // 튕겨내기
-    } else {
-        // 3. 화면 내용 채우기 (DOM 조작)
-        document.querySelector('.page-title').innerText = item.title; // 상단 배너 제목
-        document.querySelector('.info-title').innerText = item.title; // 우측 카드 제목
-        document.querySelector('.category-tag').innerText = item.badge + " Template";
-        document.querySelector('.info-desc').innerText = item.desc;
-        
-        // 특징 리스트 생성
-        const featureList = document.querySelector('.feature-list');
-        featureList.innerHTML = item.features.map(feat => 
-            `<li><i class="ph ph-check-circle"></i> ${feat}</li>`
-        ).join('');
+        if (!item) {
+            alert("해당 자료를 찾을 수 없습니다.");
+            window.location.href = 'sublist.html';
+        } else {
+            // 3. 텍스트 정보 채우기
+            document.querySelector('.page-title').innerText = item.title;
+            document.querySelector('.info-title').innerText = item.title;
+            document.querySelector('.category-tag').innerText = item.badge + " Template";
+            document.querySelector('.info-desc').innerText = item.desc;
+            
+            const featureList = document.querySelector('.feature-list');
+            featureList.innerHTML = item.features.map(feat => 
+                `<li><i class="ph ph-check-circle"></i> ${feat}</li>`
+            ).join('');
 
-        // 4. 슬라이더 생성 (데이터에 있는 색상으로)
-        const slidesContainer = document.getElementById('slides');
-        const thumbsContainer = document.querySelector('.thumbnail-list');
-        
-        // 기존 하드코딩 삭제
-        slidesContainer.innerHTML = '';
-        thumbsContainer.innerHTML = '';
+            // 4. 슬라이더 생성 (이미지 기반)
+            const slidesContainer = document.getElementById('slides');
+            const thumbsContainer = document.querySelector('.thumbnail-list');
+            
+            slidesContainer.innerHTML = '';
+            thumbsContainer.innerHTML = '';
 
-        item.slides.forEach((color, index) => {
-            // 큰 슬라이드
-            slidesContainer.innerHTML += `
-                <div class="slide">
-                    <div style="background:${color}; width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:white; font-size:1.5rem;">
-                        Slide ${index + 1}
+            // 슬라이드 개수 (데이터에 없으면 기본 3장으로 처리)
+            const slideCount = item.slideCount || 3;
+
+            for (let i = 1; i <= slideCount; i++) {
+                // 이미지 경로 규칙: images/slide_아이디_순서.jpg
+                const imgPath = `images/slide_${item.id}_${i}.jpg`;
+
+                // 큰 슬라이드 추가
+                slidesContainer.innerHTML += `
+                    <div class="slide">
+                        <img src="${imgPath}" style="width:100%; height:100%; object-fit:contain;" onerror="this.parentNode.style.backgroundColor='#f1f5f9'; this.style.display='none'; this.parentNode.innerHTML='<div style=\'display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:#64748b;\'>이미지 준비중 (${i})</div>'">
                     </div>
-                </div>
-            `;
-            // 썸네일
-            thumbsContainer.innerHTML += `
-                <div class="thumb-item ${index === 0 ? 'active' : ''}" onclick="window.jumpToSlide(${index})">
-                    <div style="background:${color};"></div>
-                </div>
-            `;
-        });
-    }
+                `;
 
-    // 5. 슬라이더 로직 (모듈 안에서도 작동하도록 window에 부착)
-    let currentIndex = 0;
-    
-    window.updateSlider = function() {
-        const slides = document.getElementById('slides');
-        const thumbs = document.querySelectorAll('.thumb-item');
-        const totalSlides = thumbs.length;
+                // 썸네일 추가
+                thumbsContainer.innerHTML += `
+                    <div class="thumb-item ${i === 1 ? 'active' : ''}" onclick="window.jumpToSlide(${i - 1})">
+                        <img src="${imgPath}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.parentNode.style.backgroundColor='#cbd5e1';">
+                    </div>
+                `;
+            }
+        }
 
-        const offset = -currentIndex * 100;
-        slides.style.transform = `translateX(${offset}%)`;
+        // 5. 슬라이더 동작 로직 (window에 등록)
+        let currentIndex = 0;
+        
+        window.updateSlider = function() {
+            const slides = document.getElementById('slides');
+            const thumbs = document.querySelectorAll('.thumb-item');
+            const totalSlides = thumbs.length;
 
-        thumbs.forEach((thumb, index) => {
-            if (index === currentIndex) thumb.classList.add('active');
-            else thumb.classList.remove('active');
-        });
-    }
+            const offset = -currentIndex * 100;
+            slides.style.transform = `translateX(${offset}%)`;
 
-    window.moveSlide = function(direction) {
-        const totalSlides = document.querySelectorAll('.thumb-item').length;
-        currentIndex += direction;
-        if (currentIndex < 0) currentIndex = totalSlides - 1;
-        else if (currentIndex >= totalSlides) currentIndex = 0;
-        window.updateSlider();
-    }
+            thumbs.forEach((thumb, index) => {
+                if (index === currentIndex) thumb.classList.add('active');
+                else thumb.classList.remove('active');
+            });
+        }
 
-    window.jumpToSlide = function(index) {
-        currentIndex = index;
-        window.updateSlider();
-    }
-</script>
+        window.moveSlide = function(direction) {
+            const totalSlides = document.querySelectorAll('.thumb-item').length;
+            currentIndex += direction;
+            if (currentIndex < 0) currentIndex = totalSlides - 1;
+            else if (currentIndex >= totalSlides) currentIndex = 0;
+            window.updateSlider();
+        }
+
+        window.jumpToSlide = function(index) {
+            currentIndex = index;
+            window.updateSlider();
+        }
+    </script>
 </body>
 </html>
