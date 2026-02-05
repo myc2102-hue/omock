@@ -13,6 +13,8 @@ export const db = {
             desc: "AI 분석 데이터를 가장 효과적으로 보여주는 레이아웃입니다. 임원 보고용으로 최적화된 폰트 크기와 컬러셋이 적용되어 있습니다.",
             features: ["16:9 와이드 포맷", "전용 픽토그램 아이콘", "엑셀 연동 차트"],
             slideCount: 3, // 슬라이더 갯수
+            // 👇 여기에 구글 드라이브 링크를 넣으세요!
+            fileUrl: "https://drive.google.com/file/d/1234abcd/view?usp=sharing"
         },
         { 
             id: 102, 
