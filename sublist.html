@@ -179,137 +179,7 @@
 
     <div class="resource-grid">
         
-        <a href="detail.html" class="resource-card">
-            <div class="card-thumb bg-blue">
-                <i class="ph ph-file-ppt"></i>
-                <span class="file-badge">PPTX</span>
-            </div>
-            <div class="card-info">
-                <h3 class="card-title">2026 전략 보고서 양식</h3>
-                <div class="card-meta"><span>전략팀</span><span>01.24</span></div>
-            </div>
-        </a>
-
-        <div class="resource-card" onclick="alert('준비 중입니다')">
-            <div class="card-thumb bg-orange">
-                <i class="ph ph-chart-pie-slice"></i>
-                <span class="file-badge">XLSX</span>
-            </div>
-            <div class="card-info">
-                <h3 class="card-title">데이터 시각화 차트 킷</h3>
-                <div class="card-meta"><span>디자인팀</span><span>02.10</span></div>
-            </div>
-        </div>
-
-        <div class="resource-card" onclick="alert('준비 중입니다')">
-            <div class="card-thumb bg-purple">
-                <i class="ph ph-cube"></i>
-                <span class="file-badge">PNG</span>
-            </div>
-            <div class="card-info">
-                <h3 class="card-title">3D 아이콘 라이브러리</h3>
-                <div class="card-meta"><span>브랜드팀</span><span>02.15</span></div>
-            </div>
-        </div>
-
-        <div class="resource-card" onclick="alert('준비 중입니다')">
-            <div class="card-thumb bg-green">
-                <i class="ph ph-image"></i>
-                <span class="file-badge">PSD</span>
-            </div>
-            <div class="card-info">
-                <h3 class="card-title">SNS 홍보 배너 템플릿</h3>
-                <div class="card-meta"><span>마케팅팀</span><span>03.01</span></div>
-            </div>
-        </div>
-
-        <div class="resource-card" onclick="alert('준비 중입니다')">
-            <div class="card-thumb bg-gray">
-                <i class="ph ph-file-text"></i>
-                <span class="file-badge">DOCX</span>
-            </div>
-            <div class="card-info">
-                <h3 class="card-title">회의록 표준 서식</h3>
-                <div class="card-meta"><span>인사팀</span><span>03.05</span></div>
-            </div>
-        </div>
-
-        <div class="resource-card" onclick="alert('준비 중입니다')">
-            <div class="card-thumb bg-blue">
-                <i class="ph ph-book-open-text"></i>
-                <span class="file-badge">PDF</span>
-            </div>
-            <div class="card-info">
-                <h3 class="card-title">2026 브랜드 가이드</h3>
-                <div class="card-meta"><span>BX팀</span><span>03.10</span></div>
-            </div>
-        </div>
-
-        <div class="resource-card" onclick="alert('준비 중입니다')">
-            <div class="card-thumb bg-purple">
-                <i class="ph ph-star-four"></i>
-                <span class="file-badge">AI</span>
-            </div>
-            <div class="card-info">
-                <h3 class="card-title">공식 로고 원본 모음</h3>
-                <div class="card-meta"><span>BX팀</span><span>03.12</span></div>
-            </div>
-        </div>
-
-        <div class="resource-card" onclick="alert('준비 중입니다')">
-            <div class="card-thumb bg-orange">
-                <i class="ph ph-tree-structure"></i>
-                <span class="file-badge">EPS</span>
-            </div>
-            <div class="card-info">
-                <h3 class="card-title">인포그래픽 소스</h3>
-                <div class="card-meta"><span>디자인팀</span><span>03.20</span></div>
-            </div>
-        </div>
-
-        <div class="resource-card" onclick="alert('준비 중입니다')">
-            <div class="card-thumb bg-gray">
-                <i class="ph ph-signature"></i>
-                <span class="file-badge">HTML</span>
-            </div>
-            <div class="card-info">
-                <h3 class="card-title">이메일 서명 디자인</h3>
-                <div class="card-meta"><span>인사팀</span><span>04.01</span></div>
-            </div>
-        </div>
-
-        <div class="resource-card" onclick="alert('준비 중입니다')">
-            <div class="card-thumb bg-green">
-                <i class="ph ph-address-book"></i>
-                <span class="file-badge">INDD</span>
-            </div>
-            <div class="card-info">
-                <h3 class="card-title">임직원 명함 템플릿</h3>
-                <div class="card-meta"><span>총무팀</span><span>04.05</span></div>
-            </div>
-        </div>
-
-        <div class="resource-card" onclick="alert('준비 중입니다')">
-            <div class="card-thumb bg-blue">
-                <i class="ph ph-layout"></i>
-                <span class="file-badge">FIG</span>
-            </div>
-            <div class="card-info">
-                <h3 class="card-title">모바일 앱 UI 키트</h3>
-                <div class="card-meta"><span>개발팀</span><span>04.15</span></div>
-            </div>
-        </div>
-
-        <div class="resource-card" onclick="alert('준비 중입니다')">
-            <div class="card-thumb bg-purple">
-                <i class="ph ph-text-aa"></i>
-                <span class="file-badge">ZIP</span>
-            </div>
-            <div class="card-info">
-                <h3 class="card-title">전용 폰트 패키지</h3>
-                <div class="card-meta"><span>BX팀</span><span>04.20</span></div>
-            </div>
-        </div>
+      
 
     </div>
 
@@ -318,6 +188,47 @@
     </footer>
 
     <script type="module" src="chat-widget.js"></script>
+    <div class="resource-grid" id="gridContainer"></div>
+
+<script type="module">
+    import { db } from './data.js';
+
+    // 1. URL에서 카테고리 읽기
+    const params = new URLSearchParams(window.location.search);
+    const category = params.get('category') || 'report'; // 기본값 report
+
+    // 2. 제목 바꾸기 (선택 사항)
+    const titles = {
+        "report": "보고서 에셋",
+        "graphic": "그래픽 디자인",
+        "docs": "문서 템플릿"
+    };
+    document.querySelector('.page-title').innerText = titles[category] || "리소스 갤러리";
+
+    // 3. 데이터 불러와서 카드 만들기
+    const listData = db[category] || [];
+    const container = document.getElementById('gridContainer');
+
+    if (listData.length === 0) {
+        container.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:50px;">데이터가 없습니다.</div>`;
+    } else {
+        listData.forEach(item => {
+            const html = `
+                <a href="detail.html?category=${category}&id=${item.id}" class="resource-card">
+                    <div class="card-thumb ${item.colorClass}">
+                        <i class="ph ${item.icon}"></i>
+                        <span class="file-badge">${item.badge}</span>
+                    </div>
+                    <div class="card-info">
+                        <h3 class="card-title">${item.title}</h3>
+                        <div class="card-meta"><span>${item.team}</span><span>${item.date}</span></div>
+                    </div>
+                </a>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+        });
+    }
+</script>
 
 </body>
 </html>
