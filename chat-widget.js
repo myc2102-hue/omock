@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+// 🌟 getDoc이 추가되었습니다.
+import { getFirestore, collection, addDoc, deleteDoc, updateDoc, getDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // --- 1. HTML 주입 ---
 const chatHTML = `
@@ -94,46 +95,58 @@ window.toggleChat = function() {
         unreadCount = 0;
         updateBadge();
         setTimeout(() => chatBody.scrollTop = chatBody.scrollHeight, 100);
-        
-        // 로그인 상태면 메시지 입력창으로, 아니면 닉네임 입력창으로
         if (loginScreen.classList.contains('hidden')) messageInput.focus();
         else nicknameInput.focus();
-
     } else {
         chatTooltip.classList.remove('hidden');
     }
 }
 
-// 🌟 입장 함수 (자동 로그인 지원)
-// isAutoLogin: 페이지 이동으로 인한 자동 접속인지 여부
+// 🌟 입장 함수 (ID 재사용 로직 추가)
 window.joinChat = async function(isAutoLogin = false) {
     
     // 1. 닉네임 처리
     if (!isAutoLogin) {
-        // 직접 입력해서 들어온 경우
         const val = nicknameInput.value.trim();
         if(val) nickname = val;
-        // 🌟 브라우저 저장소에 닉네임 저장 (페이지 이동해도 기억함!)
         sessionStorage.setItem('chat_nickname', nickname);
     } else {
-        // 자동 로그인인 경우 저장소에서 가져옴
         nickname = sessionStorage.getItem('chat_nickname');
     }
 
     loginScreen.classList.add('hidden');
 
     try {
-        // 2. 명단 등록
-        const docRef = await addDoc(collection(db, "online_users"), {
-            nickname: nickname,
-            joinedAt: serverTimestamp(),
-            lastActive: serverTimestamp()
-        });
-        currentUserDocId = docRef.id;
+        // 🌟 [핵심] 기존에 쓰던 ID가 있는지 확인
+        const savedDocId = sessionStorage.getItem('chat_doc_id');
+        let shouldCreateNew = true;
 
-        // 3. 입장 메시지 전송
-        // 🌟 페이지 이동할 때마다 "입장했습니다" 뜨면 시끄러우니까, 처음 로그인할 때만 뜨게 함
-        if (!isAutoLogin) {
+        if (savedDocId) {
+            // 기존 ID가 있다면 DB에 살아있는지 확인
+            const docRef = doc(db, "online_users", savedDocId);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                // 살아있다면? -> 재사용! (입장 메시지 안 보냄)
+                currentUserDocId = savedDocId;
+                await updateDoc(docRef, { lastActive: serverTimestamp() });
+                shouldCreateNew = false;
+                console.log("기존 접속 유지:", nickname);
+            }
+        }
+
+        // 기존 ID가 없거나 죽었으면 -> 새로 생성
+        if (shouldCreateNew) {
+            const docRef = await addDoc(collection(db, "online_users"), {
+                nickname: nickname,
+                joinedAt: serverTimestamp(),
+                lastActive: serverTimestamp()
+            });
+            currentUserDocId = docRef.id;
+            // 🌟 새 ID를 세션에 저장
+            sessionStorage.setItem('chat_doc_id', currentUserDocId);
+
+            // 입장 메시지 전송 (새로 왔을 때만)
             await addDoc(collection(db, "chats"), {
                 text: `${nickname}님이 입장하셨습니다.`,
                 sender: "System",
@@ -142,30 +155,26 @@ window.joinChat = async function(isAutoLogin = false) {
             });
         }
 
-        // 4. 심박수(Heartbeat) 시작
+        // 4. 심박수(Heartbeat) 시작 (1초 간격)
         if (heartbeatInterval) clearInterval(heartbeatInterval);
         heartbeatInterval = setInterval(async () => {
             if (currentUserDocId) {
                 const userDocRef = doc(db, "online_users", currentUserDocId);
                 await updateDoc(userDocRef, { lastActive: serverTimestamp() }).catch(() => {});
             }
-        }, 1500);
+        }, 1000);
 
     } catch (e) {
         console.error("입장 처리 실패:", e);
     }
 }
 
-// 🌟 퇴장 처리
+// 🌟 [중요] 페이지 이동 시 '삭제' 로직을 제거했습니다!
+// 브라우저를 닫으면 Heartbeat가 멈추고, 3초 뒤에 '좀비 청소'에 의해 퇴장 처리됩니다.
 window.addEventListener("beforeunload", () => {
-    if (currentUserDocId) {
-        const userDocRef = doc(db, "online_users", currentUserDocId);
-        deleteDoc(userDocRef);
-    }
-    // 주의: 페이지 이동 시에는 sessionStorage를 지우지 않습니다.
-    // 그래야 다음 페이지에서 기억하니까요!
-    // 만약 '로그아웃' 버튼을 만든다면 그때 sessionStorage.removeItem('chat_nickname')을 해야 합니다.
+    // 아무것도 하지 않음 (유지)
 });
+
 
 // 메시지 전송
 window.sendMessage = async function() {
@@ -200,7 +209,7 @@ function updateBadge() {
     }
 }
 
-// 접속자 카운팅 (스마트 로직)
+// 스마트 카운팅 및 좀비 청소
 onSnapshot(collection(db, "online_users"), (snapshot) => {
     const now = new Date().getTime();
     let activeCount = 0;
@@ -209,8 +218,13 @@ onSnapshot(collection(db, "online_users"), (snapshot) => {
         const data = userDoc.data();
         if (data.lastActive) {
             const timeDiff = now - data.lastActive.toDate().getTime();
-            if (timeDiff < 5000) activeCount++;
-            else deleteDoc(userDoc.ref).catch(() => {});
+            // 3초 이내 신호만 인정
+            if (timeDiff < 3000) {
+                activeCount++;
+            } else {
+                // 3초 지나면 삭제 (좀비 청소)
+                deleteDoc(userDoc.ref).catch(() => {});
+            }
         } else {
             activeCount++;
         }
@@ -222,10 +236,6 @@ onSnapshot(collection(db, "online_users"), (snapshot) => {
     snapshot.docChanges().forEach((change) => {
         if (change.type === "removed") {
             const leftUser = change.doc.data().nickname;
-            
-            // 🌟 페이지 이동 중에는 '퇴장' 메시지가 뜰 수 있지만, 
-            // 닉네임이 같으면 무시하거나 그냥 두는 게 자연스럽습니다.
-            // 여기서는 심플하게 그냥 띄웁니다.
             const msgDiv = document.createElement('div');
             msgDiv.className = "system-msg";
             msgDiv.innerText = `${leftUser}님이 퇴장하셨습니다.`;
@@ -268,13 +278,11 @@ onSnapshot(q, (snapshot) => {
 });
 
 
-// 🌟 [핵심] 페이지 로드 시 자동 로그인 체크
-// 스크립트가 실행되자마자 저장된 닉네임이 있는지 확인합니다.
+// 자동 로그인 체크
 (function checkAutoLogin() {
     const savedNickname = sessionStorage.getItem('chat_nickname');
     if (savedNickname) {
-        console.log("자동 로그인 시도:", savedNickname);
         nickname = savedNickname;
-        joinChat(true); // true = "이건 자동 로그인이야" 라고 알려줌
+        joinChat(true); 
     }
 })();
