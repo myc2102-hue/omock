@@ -78,6 +78,18 @@ export const db = {
             features: ["고해상도 PNG", "다양한 각도 제공", "상업적 이용 가능"],
             slides: ["#c084fc", "#a855f7", "#9333ea"]
         }
+                { 
+            id: 203, 
+            title: "3D 아이콘 라이브러리", 
+            team: "BX팀", 
+            date: "03.05", 
+            badge: "PNG", 
+            colorClass: "bg-purple", 
+            icon: "ph-cube",
+            desc: "트렌디한 3D 스타일의 업무용 아이콘 모음입니다. 배경이 투명하여 바로 사용할 수 있습니다.",
+            features: ["고해상도 PNG", "다양한 각도 제공", "상업적 이용 가능"],
+            slides: ["#c084fc", "#a855f7", "#9333ea"]
+        }
     ],
 
     // 3. 문서 템플릿 (Docs) - 데이터가 없으면 비워둬도 됨
