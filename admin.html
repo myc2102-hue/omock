@@ -4,145 +4,224 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>관리자 페이지 - AI Design Library</title>
+    
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="chat.css">
-    
     <style>
-        body { background-color: #f1f5f9; padding: 40px 0; }
-        .admin-container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
-        
-        .admin-header { text-align: center; margin-bottom: 40px; }
-        .admin-title { font-size: 2rem; font-weight: 800; color: #1e293b; margin-bottom: 10px; }
-        
-        .form-card {
-            background: white; border-radius: 20px; padding: 40px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;
+        :root {
+            --primary-color: #2563eb;
+            --brand-orange: #FC5E20;
+            --bg-color: #f8fafc;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; }
+        a { text-decoration: none; color: inherit; }
+
+        /* 헤더 (메인과 동일) */
+        header { padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; border-bottom: var(--glass-border); }
+        .logo-area { display: flex; align-items: center; }
+        .logo-svg { height: 36px; width: auto; }
+
+        /* 관리자 컨테이너 */
+        .admin-container {
+            max-width: 900px; margin: 60px auto 100px auto; padding: 0 20px;
         }
 
-        .form-group { margin-bottom: 24px; }
-        .form-label { display: block; font-weight: 700; color: #334155; margin-bottom: 8px; font-size: 0.95rem; }
+        .page-header { text-align: center; margin-bottom: 40px; }
+        .admin-badge {
+            display: inline-block; background: #fee2e2; color: #ef4444; 
+            padding: 6px 14px; border-radius: 30px; font-size: 0.85rem; font-weight: 700; margin-bottom: 15px;
+        }
+        .page-title { font-size: 2.2rem; font-weight: 800; color: #1e293b; letter-spacing: -1px; margin-bottom: 10px; }
+        .page-desc { color: var(--text-sub); }
+
+        /* 폼 카드 스타일 */
+        .form-card {
+            background: white; border-radius: 24px; padding: 40px;
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;
+        }
+
+        /* 섹션 타이틀 */
+        .section-label {
+            font-size: 1.1rem; font-weight: 700; color: #1e293b; margin-bottom: 20px;
+            display: flex; align-items: center; gap: 8px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;
+        }
+        .section-label i { color: var(--primary-color); }
+
+        /* 그리드 시스템 (반응형) */
+        .form-grid { display: grid; gap: 24px; grid-template-columns: repeat(12, 1fr); margin-bottom: 40px; }
         
+        .col-12 { grid-column: span 12; }
+        .col-6 { grid-column: span 6; }
+        .col-4 { grid-column: span 4; }
+        .col-3 { grid-column: span 3; }
+
+        /* 입력 필드 스타일 */
+        .form-group label { display: block; font-size: 0.9rem; font-weight: 600; color: #475569; margin-bottom: 8px; }
         .form-input, .form-select, .form-textarea {
-            width: 100%; padding: 12px 16px; border-radius: 12px;
-            border: 1px solid #cbd5e1; font-size: 1rem; transition: 0.2s;
-            font-family: inherit;
+            width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #cbd5e1;
+            font-size: 1rem; transition: all 0.2s ease; background: #f8fafc; font-family: inherit;
         }
         .form-input:focus, .form-select:focus, .form-textarea:focus {
-            border-color: #2563eb; outline: none; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            background: white; border-color: var(--primary-color); outline: none;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
         }
         .form-textarea { height: 120px; resize: vertical; }
 
-        .row { display: flex; gap: 20px; }
-        .col { flex: 1; }
-
-        .file-upload-box {
-            border: 2px dashed #cbd5e1; border-radius: 12px; padding: 30px;
+        /* 파일 업로드 박스 */
+        .upload-zone {
+            border: 2px dashed #cbd5e1; border-radius: 16px; padding: 30px;
             text-align: center; cursor: pointer; transition: 0.2s; background: #f8fafc;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
         }
-        .file-upload-box:hover { border-color: #2563eb; background: #eff6ff; }
-        .file-upload-box i { font-size: 2rem; color: #94a3b8; margin-bottom: 10px; }
-        .file-preview { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
-        .preview-img { width: 80px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .upload-zone:hover { border-color: var(--primary-color); background: #eff6ff; }
+        .upload-icon { font-size: 2.5rem; color: #94a3b8; transition: 0.2s; }
+        .upload-zone:hover .upload-icon { color: var(--primary-color); transform: scale(1.1); }
+        .upload-text { font-size: 0.95rem; color: #64748b; }
+        .upload-text b { color: var(--primary-color); }
 
+        .preview-area { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .preview-img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+        /* 버튼 */
         .submit-btn {
-            width: 100%; padding: 16px; background: #2563eb; color: white;
-            border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700;
-            cursor: pointer; transition: 0.2s; margin-top: 20px;
+            width: 100%; padding: 18px; background: var(--text-main); color: white;
+            border: none; border-radius: 14px; font-size: 1.1rem; font-weight: 700;
+            cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px;
         }
-        .submit-btn:hover { background: #1d4ed8; transform: translateY(-2px); }
+        .submit-btn:hover { background: var(--primary-color); transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.3); }
 
+        /* 반응형 처리 */
+        @media (max-width: 768px) {
+            .col-6, .col-4, .col-3 { grid-column: span 12; } /* 모바일은 무조건 1줄 */
+            .admin-container { padding: 0 15px; margin-top: 30px; }
+            .form-card { padding: 25px; }
+            header { padding: 15px 20px; }
+        }
     </style>
 </head>
 <body>
 
+    <header>
+        <a href="home.html" class="logo-area">
+             <svg class="logo-svg" viewBox="0 0 800 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M191.797 43.0686L150.793 157.26H174.807L182.322 135.532H227.737L235.252 157.26H259.43L218.425 43.0686H191.797ZM188.53 117.235L205.03 69.5332L221.529 117.235H188.53Z" fill="black"/>
+                <path d="M343.069 121.483L291.283 43.0686H268.412V157.26H291.283V79.0081L343.069 157.26H365.94V43.0686H343.069V121.483Z" fill="black"/>
+                <path d="M419.602 67.0015C424.773 63.8971 430.682 62.3456 437.327 62.3456C443.535 62.3456 449.007 63.708 453.745 66.4286C458.482 69.1535 462.158 73.2365 464.772 78.682H491.074C487.26 67.1391 480.562 58.0981 470.979 51.5633C461.395 45.0291 450.233 41.7617 437.49 41.7617C426.599 41.7617 416.768 44.2403 408.003 49.1947C399.235 54.1513 392.32 61.0664 387.256 69.9423C382.192 78.8196 379.66 88.8667 379.66 100.081C379.66 111.3 382.192 121.319 387.256 130.141C392.32 138.962 399.235 145.852 408.003 150.807C416.768 155.762 426.599 158.24 437.49 158.24C450.34 158.24 461.53 154.999 471.061 148.519C480.59 142.041 487.26 132.974 491.074 121.319H464.772C462.158 126.766 458.482 130.876 453.745 133.652C449.007 136.43 443.535 137.819 437.327 137.819C430.682 137.819 424.773 136.267 419.602 133.162C414.428 130.058 410.397 125.647 407.513 119.929C404.626 114.212 403.183 107.596 403.183 100.081C403.183 92.4593 404.626 85.8151 407.513 80.1516C410.398 74.491 414.428 70.1045 419.602 67.0015Z" fill="black"/>
+                <path d="M585.904 49.1123C577.026 44.1042 567.199 41.5974 556.417 41.5974C545.742 41.5974 535.941 44.1042 527.012 49.1123C518.08 54.1231 511.002 61.0665 505.775 69.9417C500.547 78.8196 497.933 88.8103 497.933 99.9192C497.933 111.137 500.547 121.184 505.775 130.058C511.001 138.936 518.08 145.88 527.012 150.887C535.941 155.898 545.742 158.401 556.417 158.401C567.089 158.401 576.892 155.897 585.822 150.887C594.751 145.879 601.803 138.936 606.978 130.058C612.149 121.184 614.738 111.137 614.738 99.9192C614.738 88.8103 612.149 78.8196 606.978 69.9417C601.803 61.0672 594.779 54.1231 585.904 49.1123ZM586.803 120.013C583.862 125.786 579.778 130.223 574.55 133.327C569.323 136.43 563.277 137.982 556.417 137.982C549.556 137.982 543.483 136.431 538.202 133.327C532.919 130.223 528.809 125.786 525.869 120.013C522.929 114.241 521.458 107.543 521.458 99.92C521.458 92.2971 522.929 85.6247 525.869 79.9069C528.81 74.1898 532.919 69.8069 538.202 66.7568C543.483 63.7081 549.556 62.182 556.417 62.182C563.278 62.182 569.323 63.7081 574.55 66.7568C579.778 69.8069 583.862 74.1898 586.803 79.9069C589.743 85.6247 591.213 92.2971 591.213 99.92C591.213 107.543 589.743 114.241 586.803 120.013Z" fill="black"/>
+                <path d="M726.965 43.2314L690.7 128.017L654.432 43.2314H628.457V157.26H651.328V83.0932L682.04 157.26H699.357L729.906 83.0932V157.26H752.777V43.2314H726.965Z" fill="black"/>
+                <path d="M70.0813 43.2314H47.2228V87.8909H70.0813V43.2314Z" fill="black"/>
+                <path d="M70.0813 110.768H47.2228V157.259H70.0813V110.768Z" fill="black"/>
+                <path d="M141.809 43.2314H118.951V87.8909H141.809V43.2314Z" fill="black"/>
+                <path d="M141.809 87.8994H70.0813V110.757H141.809V87.8994Z" fill="#FC5E20"/>
+                <path d="M141.809 110.768H118.951V157.259H141.809V110.768Z" fill="black"/>
+            </svg>
+        </a>
+        <nav>
+            <a href="home.html" style="font-weight: 600; font-size: 0.95rem;">Logout</a>
+        </nav>
+    </header>
+
     <div class="admin-container">
-        <div class="admin-header">
-            <h1 class="admin-title">🔒 리소스 등록 관리자</h1>
-            <p>새로운 디자인 리소스를 데이터베이스에 등록합니다.</p>
+        <div class="page-header">
+            <span class="admin-badge">ADMIN ONLY</span>
+            <h1 class="page-title">신규 리소스 등록</h1>
+            <p class="page-desc">디자인 자산을 데이터베이스에 안전하게 저장합니다.</p>
         </div>
 
         <div class="form-card">
-            <div class="row">
-                <div class="col form-group">
-                    <label class="form-label">카테고리</label>
+            
+            <div class="section-label"><i class="ph-fill ph-info"></i> 기본 정보</div>
+            <div class="form-grid">
+                <div class="col-4 form-group">
+                    <label>카테고리 선택</label>
                     <select id="category" class="form-select">
-                        <option value="report">보고서 에셋</option>
-                        <option value="graphic">그래픽 디자인</option>
-                        <option value="docs">문서 템플릿</option>
-                        <option value="icons">아이콘 에셋</option>
-                        <option value="data">데이터 시각화</option>
-                        <option value="etc">기타 자료</option>
+                        <option value="report">보고서 에셋 (Report)</option>
+                        <option value="graphic">그래픽 디자인 (Graphic)</option>
+                        <option value="docs">문서 템플릿 (Docs)</option>
+                        <option value="icons">아이콘 에셋 (Icons)</option>
+                        <option value="data">데이터 시각화 (Data)</option>
+                        <option value="etc">기타 자료 (Etc)</option>
                     </select>
                 </div>
-                <div class="col form-group">
-                    <label class="form-label">ID (자동생성)</label>
-                    <input type="text" id="docId" class="form-input" placeholder="자동 생성됨" disabled style="background:#f1f5f9;">
+                
+                <div class="col-4 form-group">
+                    <label>ID (자동생성)</label>
+                    <input type="text" class="form-input" placeholder="AUTO_GENERATED" disabled style="background:#f1f5f9; color:#94a3b8; cursor:not-allowed;">
+                </div>
+
+                <div class="col-4 form-group">
+                    <label>등록일</label>
+                    <input type="text" class="form-input" placeholder="예: 05.20">
+                </div>
+
+                <div class="col-12 form-group">
+                    <label>리소스 제목</label>
+                    <input type="text" class="form-input" placeholder="예: 2026 전략기획팀 표준 보고서 양식">
+                </div>
+
+                <div class="col-6 form-group">
+                    <label>담당 팀</label>
+                    <input type="text" class="form-input" placeholder="예: 디자인팀">
+                </div>
+                
+                <div class="col-6 form-group">
+                    <label>파일 형식 (뱃지)</label>
+                    <input type="text" class="form-input" placeholder="예: PPTX, PDF, AI">
+                </div>
+                
+                <div class="col-12 form-group">
+                    <label>상세 설명</label>
+                    <textarea class="form-textarea" placeholder="상세 페이지에 노출될 설명을 입력하세요."></textarea>
+                </div>
+                
+                <div class="col-12 form-group">
+                    <label>주요 특징 (쉼표로 구분)</label>
+                    <input type="text" class="form-input" placeholder="예: 16:9 비율, 전용 폰트 포함, 엑셀 연동">
+                </div>
+
+                <div class="col-12 form-group">
+                    <label>구글 드라이브 링크 (fileUrl)</label>
+                    <input type="text" class="form-input" placeholder="https://drive.google.com/...">
                 </div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">제목</label>
-                <input type="text" id="title" class="form-input" placeholder="예: 2026 전략 보고서 양식">
-            </div>
-
-            <div class="row">
-                <div class="col form-group">
-                    <label class="form-label">담당팀</label>
-                    <input type="text" id="team" class="form-input" placeholder="예: 디자인팀">
+            <div class="section-label"><i class="ph-fill ph-image"></i> 이미지 업로드</div>
+            <div class="form-grid">
+                <div class="col-12 form-group">
+                    <label>썸네일 이미지 (1장)</label>
+                    <div class="upload-zone" onclick="document.getElementById('thumbInput').click()">
+                        <i class="ph ph-image upload-icon"></i>
+                        <p class="upload-text"><b>클릭해서 업로드</b>하거나 파일을 드래그하세요.</p>
+                        <input type="file" id="thumbInput" style="display:none" accept="image/*" onchange="previewImage(this, 'thumbPreview')">
+                    </div>
+                    <div id="thumbPreview" class="preview-area"></div>
                 </div>
-                <div class="col form-group">
-                    <label class="form-label">등록일</label>
-                    <input type="text" id="date" class="form-input" placeholder="예: 05.20">
+
+                <div class="col-12 form-group">
+                    <label>상세 슬라이드 (다중 선택 가능)</label>
+                    <div class="upload-zone" onclick="document.getElementById('slideInput').click()">
+                        <i class="ph ph-images upload-icon"></i>
+                        <p class="upload-text">상세페이지 슬라이더에 들어갈 이미지를 모두 선택하세요.</p>
+                        <input type="file" id="slideInput" style="display:none" accept="image/*" multiple onchange="previewImages(this, 'slidePreview')">
+                    </div>
+                    <div id="slidePreview" class="preview-area"></div>
                 </div>
-                <div class="col form-group">
-                    <label class="form-label">뱃지 (확장자)</label>
-                    <input type="text" id="badge" class="form-input" placeholder="PPTX">
-                </div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">상세 설명</label>
-                <textarea id="desc" class="form-textarea" placeholder="상세 페이지에 들어갈 설명을 적어주세요."></textarea>
-            </div>
+            <button class="submit-btn" onclick="alert('⚠️ 지금은 UI만 구현된 상태입니다.\n파이어베이스 연동 작업 후 실제로 작동합니다!')">
+                <i class="ph-bold ph-upload-simple"></i> 리소스 등록 완료
+            </button>
 
-            <div class="form-group">
-                <label class="form-label">특징 (쉼표로 구분)</label>
-                <input type="text" id="features" class="form-input" placeholder="예: 16:9 비율, 전용 폰트, 벡터 아이콘">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">구글 드라이브 다운로드 링크</label>
-                <input type="text" id="fileUrl" class="form-input" placeholder="https://drive.google.com/...">
-            </div>
-
-            <hr style="margin: 30px 0; border: none; border-top: 1px solid #e2e8f0;">
-
-            <div class="form-group">
-                <label class="form-label">썸네일 이미지 (1장)</label>
-                <div class="file-upload-box" onclick="document.getElementById('thumbInput').click()">
-                    <i class="ph ph-image"></i>
-                    <p>클릭하여 썸네일 업로드</p>
-                    <input type="file" id="thumbInput" style="display:none" accept="image/*" onchange="previewImage(this, 'thumbPreview')">
-                </div>
-                <div id="thumbPreview" class="file-preview"></div>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">상세 슬라이드 이미지 (여러장 가능)</label>
-                <div class="file-upload-box" onclick="document.getElementById('slideInput').click()">
-                    <i class="ph ph-images"></i>
-                    <p>클릭하여 슬라이드 업로드 (다중 선택)</p>
-                    <input type="file" id="slideInput" style="display:none" accept="image/*" multiple onchange="previewImages(this, 'slidePreview')">
-                </div>
-                <div id="slidePreview" class="file-preview"></div>
-            </div>
-
-            <button class="submit-btn" onclick="uploadData()">리소스 등록하기</button>
         </div>
     </div>
 
     <script>
-        // 간단한 미리보기 스크립트 (기능 작동은 아직 안 함)
+        // 간단한 이미지 미리보기 스크립트 (UI 확인용)
         function previewImage(input, targetId) {
             const target = document.getElementById(targetId);
             target.innerHTML = '';
@@ -167,10 +246,6 @@
                     reader.readAsDataURL(file);
                 });
             }
-        }
-
-        function uploadData() {
-            alert("⚠️ 현재는 디자인만 된 상태입니다.\n실제로 작동하려면 파이어베이스 저장소 연결 작업이 필요합니다!");
         }
     </script>
 </body>
