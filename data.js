@@ -36,7 +36,7 @@ export const db = {
             icon: "ph-book-open-text",
             desc: "신규 입사자를 위한 회사 생활 가이드북입니다. 사내 시스템 접속 방법 및 복리후생 안내가 포함되어 있습니다.",
             features: ["회사 생활 A to Z", "조직도 및 비상연락망", "사내 메신저 사용법"],
-            slideCount: 8, // 슬라이더 갯수
+            slideCount: 8, // 슬라이더 갯수 맥시멈수량 8
         },
         { 
             id: 104, 
