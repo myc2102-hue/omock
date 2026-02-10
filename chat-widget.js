@@ -1,153 +1,145 @@
 import { db } from './data.js';
 
 // ============================================================
-// 1. [데모 모드] 설정
+// 1. [설정] 가짜 데이터 (나중에 API 연결 시 삭제)
 // ============================================================
-// API 키 필요 없음!
 const MOCK_ANSWERS = [
-    "네, <strong>101번 '2026 전략 보고서'</strong>가 가장 적합해 보입니다!",
-    "해당 자료는 <strong>그래픽 디자인(Graphic)</strong> 카테고리에 있습니다.",
-    "죄송해요, 그 자료는 아직 업데이트되지 않았습니다. 😅",
-    "<strong>다운로드 버튼</strong>을 누르시면 구글 드라이브로 연결됩니다.",
-    "디자인 팀에 요청하시면 3일 내로 제작 가능합니다."
+    "네, <strong>101번 '2026 전략 보고서'</strong>가 가장 적합해 보입니다. <br>상세 페이지에서 바로 다운로드 가능합니다.",
+    "해당 자료는 <strong>[Graphic] 카테고리</strong>에 있습니다. <br>썸네일을 클릭하면 원본(PSD)을 확인하실 수 있어요.",
+    "<strong>다운로드 버튼</strong>을 누르시면 구글 드라이브 뷰어가 새 창으로 열립니다.",
+    "죄송해요, 그 자료는 아직 업데이트되지 않았습니다. 😅 <br>대신 비슷한 <strong>201번 템플릿</strong>은 어떠신가요?"
 ];
 
 
 // ============================================================
-// 2. 스타일 & HTML (말풍선 + 뱃지 + 펄스 효과 추가)
+// 2. [스타일] 프롬프트 창 디자인 (Notion AI / Spotlight 스타일)
 // ============================================================
 const style = `
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;700&display=swap');
 
-    /* 1. 버튼 (두근거리는 애니메이션 추가) */
-    .chat-btn {
+    /* 1. 런처 버튼 (우측 하단 플로팅) */
+    .ai-fab {
         position: fixed; bottom: 30px; right: 30px;
-        width: 60px; height: 60px; border-radius: 50%;
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
-        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
-        display: flex; align-items: center; justify-content: center;
-        cursor: pointer; z-index: 9999;
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        /* 💓 심장 박동 효과 */
-        animation: pulse-blue 2s infinite;
+        background: black; color: white;
+        padding: 12px 24px; border-radius: 30px;
+        display: flex; align-items: center; gap: 8px;
+        font-family: 'Pretendard', sans-serif; font-weight: 700;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        cursor: pointer; z-index: 9000;
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    
-    .chat-btn:hover {
-        transform: scale(1.1) rotate(-5deg);
-        box-shadow: 0 15px 30px rgba(37, 99, 235, 0.5);
-        animation: none; /* 호버 시 박동 멈춤 */
-    }
+    .ai-fab:hover { transform: scale(1.05); }
+    .ai-fab span { font-size: 0.95rem; }
+    .ai-icon { width: 20px; height: 20px; }
 
-    @keyframes pulse-blue {
-        0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
-        70% { box-shadow: 0 0 0 15px rgba(37, 99, 235, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
-    }
-
-    .chat-btn i { font-size: 32px; color: white; }
-
-    /* 2. 🔴 알림 뱃지 (안 읽은 메시지 느낌) */
-    .noti-badge {
-        position: absolute; top: 0; right: 0;
-        background: #ef4444; color: white;
-        width: 22px; height: 22px; border-radius: 50%;
-        font-size: 0.75rem; font-weight: 700;
-        display: flex; align-items: center; justify-content: center;
-        border: 2px solid white;
-        animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        opacity: 0; transform: scale(0);
-        animation-delay: 1.5s; /* 1.5초 뒤에 뿅! */
-    }
-
-    @keyframes popIn { to { opacity: 1; transform: scale(1); } }
-
-    /* 3. 💬 유혹하는 말풍선 (Tooltip) */
-    .chat-tooltip {
-        position: fixed; bottom: 100px; right: 40px;
-        background: white; color: #1e293b;
-        padding: 12px 18px; border-radius: 12px;
-        border-bottom-right-radius: 2px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        font-size: 0.9rem; font-weight: 600;
+    /* 2. 배경 깔기 (Dimmed) */
+    .prompt-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(5px); /* 뒤에 흐리게 */
         z-index: 9998;
-        opacity: 0; transform: translateY(10px);
-        transition: all 0.4s ease;
-        pointer-events: none; /* 클릭 방해 안 함 */
-        font-family: 'Pretendard', sans-serif;
-        white-space: nowrap;
+        display: none; opacity: 0;
+        transition: opacity 0.3s ease;
     }
+
+    /* 3. 프롬프트 창 (중앙 정렬) */
+    .prompt-modal {
+        position: fixed; top: 20%; left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        width: 600px; max-width: 90%;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        z-index: 9999;
+        display: none; flex-direction: column;
+        overflow: hidden;
+        font-family: 'Pretendard', sans-serif;
+        transition: all 0.3s ease;
+    }
+
+    /* 입력 영역 */
+    .input-area {
+        display: flex; align-items: center; padding: 20px 24px;
+        border-bottom: 1px solid transparent;
+    }
+    .input-area.has-result { border-bottom: 1px solid #f1f5f9; } /* 결과 있으면 구분선 */
     
-    .chat-tooltip.show { opacity: 1; transform: translateY(0); }
+    .magic-icon { font-size: 1.5rem; margin-right: 15px; color: #64748b; animation: spin-slow 10s infinite linear; }
+    
+    .prompt-input {
+        flex: 1; border: none; outline: none;
+        font-size: 1.2rem; font-weight: 500; color: #1e293b;
+        background: transparent;
+    }
+    .prompt-input::placeholder { color: #cbd5e1; }
 
-    /* 창, 헤더, 바디 등 기존 스타일 유지 */
-    .chat-window { position: fixed; bottom: 100px; right: 30px; width: 380px; height: 600px; background: #ffffff; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.8); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15); display: none; flex-direction: column; overflow: hidden; z-index: 9999; font-family: 'Pretendard', sans-serif; animation: slideUp 0.3s ease-out; }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    .chat-header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 20px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
-    .header-title { font-weight: 800; font-size: 1.1rem; color: #1e293b; display: flex; align-items: center; gap: 8px; }
-    .status-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2); }
-    .close-btn { cursor: pointer; color: #94a3b8; transition: 0.2s; font-size: 1.2rem; display: flex; align-items: center; }
-    .close-btn:hover { color: #ef4444; transform: rotate(90deg); }
-    .chat-body { flex: 1; padding: 20px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; }
-    .chat-body::-webkit-scrollbar { width: 6px; }
-    .chat-body::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-    .msg { max-width: 85%; padding: 12px 16px; border-radius: 18px; font-size: 0.95rem; line-height: 1.6; word-break: break-word; box-shadow: 0 2px 5px rgba(0,0,0,0.03); position: relative; }
-    .msg strong { color: #2563eb; font-weight: 700; }
-    .bot { background: white; color: #334155; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid #e2e8f0; }
-    .user { background: #2563eb; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-    .typing-indicator { align-self: flex-start; background: white; border: 1px solid #e2e8f0; padding: 12px 16px; border-radius: 18px; border-bottom-left-radius: 4px; display: none; align-items: center; gap: 5px; width: fit-content; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
-    .dot { width: 6px; height: 6px; background: #94a3b8; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
-    .dot:nth-child(1) { animation-delay: -0.32s; } .dot:nth-child(2) { animation-delay: -0.16s; }
-    @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
-    .chat-footer { padding: 15px; background: white; border-top: 1px solid #e2e8f0; display: flex; align-items: center; gap: 10px; }
-    .chat-input { flex: 1; padding: 12px 15px; border: 1px solid #e2e8f0; border-radius: 12px; outline: none; font-size: 0.95rem; transition: 0.2s; background: #f8fafc; font-family: 'Pretendard', sans-serif; }
-    .chat-input:focus { background: white; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
-    .send-btn { background: #2563eb; color: white; border: none; width: 42px; height: 42px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; font-size: 1.2rem; }
-    .send-btn:hover { background: #1d4ed8; transform: translateY(-2px); }
-    .send-btn:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; }
+    /* 결과 영역 */
+    .result-area {
+        background: #f8fafc;
+        padding: 0; max-height: 0; /* 처음엔 숨김 */
+        overflow-y: auto;
+        transition: max-height 0.4s ease, padding 0.4s ease;
+    }
+    .result-content {
+        font-size: 1rem; line-height: 1.7; color: #334155;
+        white-space: pre-wrap;
+    }
+    .result-area.show {
+        padding: 24px;
+        max-height: 300px; /* 결과 나오면 펼쳐짐 */
+    }
 
-    @media (max-width: 480px) { .chat-window { width: 90%; height: 80vh; bottom: 20px; right: 5%; border-radius: 20px; } }
+    /* 추천 칩 (Chips) */
+    .chips-area {
+        padding: 12px 24px 20px 24px; display: flex; gap: 8px; flex-wrap: wrap;
+    }
+    .chip {
+        background: white; border: 1px solid #e2e8f0; border-radius: 20px;
+        padding: 6px 14px; font-size: 0.85rem; color: #64748b; cursor: pointer;
+        transition: 0.2s; display: flex; align-items: center; gap: 6px;
+    }
+    .chip:hover { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
+    .chip i { font-size: 1rem; }
+
+    /* 로딩 애니메이션 */
+    @keyframes spin-slow { 100% { transform: rotate(360deg); } }
+    .blinking-cursor { display: inline-block; width: 6px; height: 18px; background: #2563eb; animation: blink 1s infinite; vertical-align: middle; margin-left: 4px; }
+    @keyframes blink { 50% { opacity: 0; } }
+
 </style>
 `;
 document.head.insertAdjacentHTML('beforeend', style);
 
-// HTML (툴팁, 뱃지 추가)
+
+// ============================================================
+// 3. HTML 렌더링
+// ============================================================
 const html = `
-    <div class="chat-tooltip" id="chatTooltip">
-        찾으시는 자료가 있나요? AI가 찾아드릴게요! 🤖
+    <div class="ai-fab" onclick="openPrompt()">
+        <i class="ph-fill ph-sparkle ai-icon"></i>
+        <span>Ask AI</span>
     </div>
 
-    <div class="chat-btn" onclick="toggleChat()">
-        <i class="ph-fill ph-chat-teardrop-dots"></i>
-        <div class="noti-badge" id="notiBadge">1</div>
-    </div>
+    <div class="prompt-overlay" id="promptOverlay" onclick="closePrompt()"></div>
 
-    <div class="chat-window" id="chatWindow">
-        <div class="chat-header">
-            <div class="header-title">
-                <span class="status-dot"></span> AI Design Helper
-            </div>
-            <div class="close-btn" onclick="toggleChat()">
-                <i class="ph ph-x"></i>
-            </div>
+    <div class="prompt-modal" id="promptModal">
+        
+        <div class="input-area" id="inputArea">
+            <i class="ph-fill ph-sparkle magic-icon"></i>
+            <input type="text" class="prompt-input" id="promptInput" 
+                   placeholder="AI에게 필요한 자료를 물어보세요..." 
+                   autocomplete="off" onkeypress="handleEnter(event)">
         </div>
 
-        <div class="chat-body" id="chatBody">
-            <div class="msg bot">
-                안녕하세요! 👋<br>
-                <strong>AI 디자인 라이브러리</strong>입니다.<br>
-                무엇을 도와드릴까요? (데모 버전)
-            </div>
-            <div class="typing-indicator" id="typingIndicator">
-                <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-            </div>
+        <div class="chips-area" id="chipsArea">
+            <div class="chip" onclick="askChip('전략 보고서 찾아줘')"><i class="ph ph-magnifying-glass"></i> 전략 보고서</div>
+            <div class="chip" onclick="askChip('PPT 템플릿 있어?')"><i class="ph ph-presentation"></i> PPT 템플릿</div>
+            <div class="chip" onclick="askChip('다운로드 오류 해결법')"><i class="ph ph-warning-circle"></i> 다운로드 오류</div>
         </div>
 
-        <div class="chat-footer">
-            <input type="text" class="chat-input" id="chatInput" placeholder="메시지를 입력하세요..." onkeypress="handleEnter(event)">
-            <button class="send-btn" id="sendBtn" onclick="sendMessage()">
-                <i class="ph-fill ph-paper-plane-right"></i>
-            </button>
+        <div class="result-area" id="resultArea">
+            <div class="result-content" id="resultContent"></div>
         </div>
     </div>
 `;
@@ -155,124 +147,116 @@ document.body.insertAdjacentHTML('beforeend', html);
 
 
 // ============================================================
-// 3. 로직
+// 4. 로직 (Logic)
 // ============================================================
 
-document.addEventListener('DOMContentLoaded', () => {
-    const isChatOpen = localStorage.getItem('isChatOpen') === 'true';
-    const savedHistory = localStorage.getItem('chatHistory');
-    const chatWindow = document.getElementById('chatWindow');
-    const chatBody = document.getElementById('chatBody');
-    const typingIndicator = document.getElementById('typingIndicator');
-    const tooltip = document.getElementById('chatTooltip');
-    const badge = document.getElementById('notiBadge');
+const overlay = document.getElementById('promptOverlay');
+const modal = document.getElementById('promptModal');
+const input = document.getElementById('promptInput');
+const resultArea = document.getElementById('resultArea');
+const resultContent = document.getElementById('resultContent');
+const chipsArea = document.getElementById('chipsArea');
 
-    // 채팅창이 닫혀있을 때만 말풍선 보여주기 (2초 뒤)
-    if (!isChatOpen) {
-        setTimeout(() => {
-            tooltip.classList.add('show');
-        }, 2000);
-    } else {
-        // 이미 열려있으면 뱃지랑 툴팁 숨김
-        badge.style.display = 'none';
-        tooltip.style.display = 'none';
-    }
-
-    if (isChatOpen) {
-        chatWindow.style.display = 'flex';
-        chatWindow.style.animation = 'none'; 
-    }
-    if (savedHistory) {
-        chatBody.innerHTML = savedHistory;
-        chatBody.appendChild(typingIndicator);
-        scrollToBottom();
-    }
-});
-
-window.toggleChat = function() {
-    const chat = document.getElementById('chatWindow');
-    const tooltip = document.getElementById('chatTooltip');
-    const badge = document.getElementById('notiBadge');
+// 1. 창 열기
+window.openPrompt = function() {
+    overlay.style.display = 'block';
+    modal.style.display = 'flex';
     
-    const isHidden = chat.style.display === 'none' || chat.style.display === '';
-    
-    if (isHidden) {
-        // 열 때: 창 보여주고, 툴팁/뱃지 숨기기
-        chat.style.display = 'flex';
-        chat.style.animation = 'slideUp 0.3s ease-out';
-        tooltip.classList.remove('show'); // 말풍선 제거
-        badge.style.display = 'none';     // 뱃지 제거
-        document.getElementById('chatInput').focus();
-    } else {
-        // 닫을 때: 창 숨기기
-        chat.style.display = 'none';
-    }
-
-    localStorage.setItem('isChatOpen', isHidden);
+    // 애니메이션 딜레이
+    setTimeout(() => {
+        overlay.style.opacity = '1';
+        modal.style.transform = 'translateX(-50%) translateY(0)';
+        modal.style.opacity = '1';
+        input.focus();
+    }, 10);
 }
 
-window.handleEnter = function(e) { if (e.key === 'Enter') sendMessage(); }
-
-window.sendMessage = async function() {
-    const input = document.getElementById('chatInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const text = input.value.trim();
-
-    if (!text) return;
-
-    addMsg(text, 'user');
-    input.value = '';
-    
-    input.disabled = true;
-    sendBtn.disabled = true;
-    showTyping(true);
+// 2. 창 닫기
+window.closePrompt = function() {
+    overlay.style.opacity = '0';
+    modal.style.opacity = '0';
+    modal.style.transform = 'translateX(-50%) translateY(20px)';
 
     setTimeout(() => {
-        let reply = MOCK_ANSWERS[Math.floor(Math.random() * MOCK_ANSWERS.length)];
+        overlay.style.display = 'none';
+        modal.style.display = 'none';
+        resetPrompt(); // 닫으면 초기화
+    }, 300);
+}
 
-        if (text.includes("보고서") || text.includes("PPT")) {
-            reply = "보고서 자료를 찾으시는군요! <strong>[Report]</strong> 메뉴에 4개의 자료가 있습니다.";
-        } else if (text.includes("안녕")) {
-            reply = "반갑습니다! 오늘도 좋은 하루 되세요. 🍀";
-        } else if (text.includes("다운") || text.includes("파일")) {
-            reply = "다운로드가 안 되시나요? <strong>새로고침(F5)</strong> 후 다시 시도해 주세요.";
-        }
+// 3. 엔터키 처리
+window.handleEnter = function(e) {
+    if (e.key === 'Enter') runAI();
+}
 
-        addMsg(reply, 'bot');
+// 4. 칩 클릭 처리
+window.askChip = function(question) {
+    input.value = question;
+    runAI();
+}
+
+// 5. AI 실행 (데모)
+function runAI() {
+    const text = input.value.trim();
+    if (!text) return;
+
+    // UI 변경
+    chipsArea.style.display = 'none'; // 칩 숨김
+    document.getElementById('inputArea').classList.add('has-result'); // 구분선 추가
+    resultArea.classList.add('show'); // 결과창 펼치기
+    resultContent.innerHTML = '<span style="color:#64748b">AI가 데이터를 분석 중입니다... <span class="blinking-cursor"></span></span>';
+
+    // 1.5초 딜레이 후 답변 출력 (스트리밍 효과 흉내)
+    setTimeout(() => {
+        let answer = MOCK_ANSWERS[Math.floor(Math.random() * MOCK_ANSWERS.length)];
         
-        input.disabled = false;
-        sendBtn.disabled = false;
-        showTyping(false);
-        input.focus();
+        // 간단한 키워드 매칭
+        if (text.includes("보고서") || text.includes("전략")) answer = MOCK_ANSWERS[0];
+        else if (text.includes("그래픽") || text.includes("디자인")) answer = MOCK_ANSWERS[1];
+        else if (text.includes("다운")) answer = MOCK_ANSWERS[2];
 
-    }, 1000);
+        // 타이핑 효과 함수 호출
+        typeWriter(answer);
+    }, 1200);
 }
 
-
-function addMsg(text, type) {
-    const chatBody = document.getElementById('chatBody');
-    const typingIndicator = document.getElementById('typingIndicator');
+// 6. 타이핑 효과 (한 글자씩 출력)
+function typeWriter(htmlText) {
+    resultContent.innerHTML = ""; // 초기화
+    let i = 0;
     
-    const div = document.createElement('div');
-    div.className = `msg ${type}`;
-    div.innerHTML = text;
+    // HTML 태그가 있어서 그냥 innerText로 하면 안됨.
+    // 여기서는 간단하게 통째로 넣고 Fade In 효과를 줍시다.
+    resultContent.style.opacity = 0;
+    resultContent.innerHTML = htmlText;
     
-    chatBody.insertBefore(div, typingIndicator);
-    scrollToBottom();
-
-    const msgs = chatBody.querySelectorAll('.msg');
-    let historyHTML = "";
-    msgs.forEach(msg => historyHTML += msg.outerHTML);
-    localStorage.setItem('chatHistory', historyHTML);
+    // 페이드 인
+    let op = 0.1;
+    let timer = setInterval(function () {
+        if (op >= 1){
+            clearInterval(timer);
+        }
+        resultContent.style.opacity = op;
+        resultContent.style.filter = `blur(${(1-op)*5}px)`; // 블러 효과도 살짝
+        op += op * 0.1;
+    }, 30);
 }
 
-function showTyping(show) {
-    const indicator = document.getElementById('typingIndicator');
-    indicator.style.display = show ? 'flex' : 'none';
-    scrollToBottom();
+// 7. 초기화
+function resetPrompt() {
+    input.value = '';
+    resultArea.classList.remove('show');
+    document.getElementById('inputArea').classList.remove('has-result');
+    chipsArea.style.display = 'flex';
+    resultContent.innerHTML = '';
 }
 
-function scrollToBottom() {
-    const chatBody = document.getElementById('chatBody');
-    chatBody.scrollTop = chatBody.scrollHeight;
-}
+// 단축키 (Cmd/Ctrl + K) 지원
+document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        if (modal.style.display === 'flex') closePrompt();
+        else openPrompt();
+    }
+    if (e.key === 'Escape') closePrompt();
+});
