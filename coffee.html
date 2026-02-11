@@ -218,18 +218,19 @@
         const btns = document.querySelectorAll('.order-btn');
         document.getElementById('notice-text').innerText = `운영시간: ${config.label}`;
 
-        // [버그 수정된 자동 초기화 로직]
+        // [핵심 해결책: localStorage 활용]
         const todayStr = new Date().toLocaleDateString();
         const clearKey = `cleared_${currentCategory}_${todayStr}`;
         const alreadyCleared = localStorage.getItem(clearKey);
 
+        // 오늘 아직 초기화를 안 했다면 영업 시작 후 최초 접속 시 1회 초기화
         if (curSec >= config.open && curSec < config.close && !alreadyCleared) {
             db.ref('orders').once('value', (snapshot) => {
                 if (snapshot.exists()) {
                     db.ref('orders').remove();
                     console.log(`${currentCategory} 세션 최초 1회 초기화 완료`);
                 }
-                // 삭제를 했든, 이미 비어있었든 '오늘 체크완료' 기록을 남겨 새로고침 시 삭제 방지
+                // 삭제 완료 후 로컬에 기록 (새로고침해도 다시 지워지지 않음)
                 localStorage.setItem(clearKey, 'true');
             });
         }
