@@ -160,7 +160,7 @@
 
     let userName = "";
     let currentCategory = 'morning';
-    let isAutoCleared = false; // 자동 초기화 방지 변수
+    let isAutoCleared = false; 
     const TIMES = {
         morning: { open: 7*3600, close: 7*3600+58*60, label: "아침 (07:00~07:58)" },
         daily: { open: 9*3600, close: 18*3600, label: "주간 (09:00~18:00)" }
@@ -206,6 +206,7 @@
 
     function switchTab(type) {
         currentCategory = type;
+        isAutoCleared = false; // 탭 변경 시 초기화 체크 다시 활성화
         document.getElementById('tab-morning').classList.toggle('active', type === 'morning');
         document.getElementById('tab-daily').classList.toggle('active', type === 'daily');
         updateTimer();
@@ -219,12 +220,22 @@
         const btns = document.querySelectorAll('.order-btn');
         document.getElementById('notice-text').innerText = `운영시간: ${config.label}`;
 
-        // [자동 초기화 로직] 오픈 시간 60초 이내 접속 시 이전 데이터 삭제
-        if (curSec >= config.open && curSec < config.open + 60 && !isAutoCleared) {
-            db.ref('orders').remove();
-            isAutoCleared = true;
+        // [강화된 자동 초기화 로직]
+        // 영업 시간 중(open ~ close 사이) 접속했는데 아직 초기화 플래그가 꺼져있다면
+        if (curSec >= config.open && curSec < config.close && !isAutoCleared) {
+            db.ref('orders').once('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    // 데이터가 존재하는데, 그 데이터 중에 현재 카테고리와 다른 데이터가 섞여있거나 
+                    // 그냥 영업 시작 후 첫 접속이라면 싹 비웁니다.
+                    db.ref('orders').remove();
+                    console.log("새 영업 시간을 위해 데이터를 정리했습니다.");
+                }
+            });
+            isAutoCleared = true; // 접속 중에는 한 번만 체크함
         }
-        // 영업 종료 시간이면 초기화 플래그 리셋
+
+        // 영업 시간이 아닐 때는 초기화 플래그 리셋
         if (curSec >= config.close || curSec < config.open) {
             isAutoCleared = false;
         }
