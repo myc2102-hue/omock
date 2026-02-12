@@ -218,18 +218,19 @@
         const btns = document.querySelectorAll('.order-btn');
         document.getElementById('notice-text').innerText = `운영시간: ${config.label}`;
 
-        // [핵심 해결책: localStorage 활용]
         const todayStr = new Date().toLocaleDateString();
         const clearKey = `cleared_${currentCategory}_${todayStr}`;
         const alreadyCleared = localStorage.getItem(clearKey);
 
         const isOpen = curSec >= config.open && curSec < config.close;
 
-        // 오늘 영업 시작 후 최초 접속 시 1회만 초기화
-        if (isOpen && !alreadyCleared) {
+        // [버그 수정된 안전 초기화 로직]
+        // 영업 시작 후 5분(300초) 이내에만 초기화 기회를 줌. 그 이후 접속자는 초기화 불가.
+        if (curSec >= config.open && curSec < config.open + 300 && !alreadyCleared) {
             db.ref('orders').once('value', (snapshot) => {
                 if (snapshot.exists()) {
                     db.ref('orders').remove();
+                    console.log("세션 시작 - 초기화 완료");
                 }
                 localStorage.setItem(clearKey, 'true');
             });
@@ -244,7 +245,6 @@
             timerEl.innerText = "00:00:00";
         }
         
-        // 버튼 활성화 처리 (영업중 & 로그인됨)
         btns.forEach(b => b.disabled = !(isOpen && userName !== ""));
     }
 
