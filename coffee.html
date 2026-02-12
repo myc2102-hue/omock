@@ -1,149 +1,3 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>커피요정찰스 - 커피주문기</title>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-    <style>
-        :root { 
-            --primary: #1d1d1f; --accent: #0071e3;  --ice: #64d2ff; 
-            --hot: #ff3b30; --shot: #34c759; --bg: #f5f5f7; --card: rgba(255, 255, 255, 0.8);
-        }
-
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro KR", sans-serif; 
-            background: var(--bg); margin: 0; padding: 20px; color: var(--primary); 
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .container { 
-            max-width: 500px; margin: 0 auto; padding: 30px 20px; 
-            background: var(--card); backdrop-filter: blur(20px); 
-            border-radius: 28px; box-shadow: 0 8px 32px rgba(0,0,0,0.05); 
-        }
-        
-        h1 { text-align: center; font-size: 24px; font-weight: 700; margin: 0 0 20px 0; }
-
-        .modal-overlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); 
-            display: none; align-items: center; justify-content: center; z-index: 9999; 
-        }
-        .modal-box { 
-            background: white; padding: 25px; border-radius: 20px; 
-            text-align: center; width: 85%; max-width: 320px; 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2); 
-            display: flex; flex-direction: column; align-items: center; box-sizing: border-box;
-        }
-        .modal-box input { 
-            width: 100%; padding: 14px; border: 1px solid #d2d2d7; border-radius: 12px; 
-            font-size: 16px; text-align: center; outline: none; margin-bottom: 16px; box-sizing: border-box; 
-        }
-        .modal-btns { display: flex; gap: 8px; width: 100%; }
-        .modal-btns button { flex: 1; padding: 14px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; }
-        .btn-confirm { background: var(--accent); color: white; }
-        .btn-cancel { background: #e8e8ed; color: var(--primary); }
-
-        .tabs { display: flex; background: #e8e8ed; padding: 4px; border-radius: 14px; margin-bottom: 24px; }
-        .tab { flex: 1; padding: 10px; text-align: center; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; color: #86868b; }
-        .tab.active { background: white; color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .timer-banner { background: var(--primary); color: #fff; padding: 16px; border-radius: 20px; text-align: center; margin-bottom: 24px; }
-        #time-left { font-size: 20px; font-weight: 700; }
-        .menu-item { background: #fff; border-radius: 20px; padding: 20px; margin-bottom: 16px; border: 1px solid #f0f0f2; }
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button:not(.btn-count, .modal-btns button) { padding: 14px; border: none; border-radius: 14px; cursor: pointer; font-weight: 600; font-size: 14px; transition: transform 0.1s; }
-        button:active { transform: scale(0.98); }
-        .btn-ice { background: #f2f7ff; color: var(--accent); }
-        .btn-hot { background: #fff2f2; color: var(--hot); }
-        .btn-shot { border: 1.5px dashed #34c759 !important; background: #f2fff5; }
-        .order-summary { margin-top: 32px; background: #fff; border-radius: 24px; padding: 20px; border: 1px solid #f0f0f2; }
-        .group-item { padding: 14px 0; border-bottom: 1px solid #f5f5f7; }
-        .btn-my-clear { width: 100%; margin-top: 20px; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 16px; font-weight: 600; }
-    </style>
-</head>
-<body>
-
-<div id="modal-login" class="modal-overlay" style="display: flex;">
-    <div class="modal-box">
-        <h2>☕ 누구신가요?</h2>
-        <p style="font-size:14px; color:#86868b; margin-bottom:20px;">성함을 입력하고 입장해주세요.</p>
-        <input type="text" id="user-input" placeholder="이름 입력" onkeypress="if(event.keyCode==13) login()">
-        <button class="btn-confirm" style="width:100%; padding:14px; border:none; border-radius:12px; font-weight:600;" onclick="login()">입장하기</button>
-    </div>
-</div>
-
-<div id="modal-confirm" class="modal-overlay">
-    <div class="modal-box">
-        <h2>🛒 주문 확인</h2>
-        <p id="confirm-msg"></p>
-        <div class="modal-btns">
-            <button class="btn-cancel" onclick="closeConfirm()">취소</button>
-            <button class="btn-confirm" id="final-order-btn">주문하기</button>
-        </div>
-    </div>
-</div>
-
-<div class="container">
-    <h1>커피요정찰스</h1>
-    <div id="user-display" style="text-align:center; font-size:13px; margin-bottom:20px; color:#86868b; display:none;">
-        <b id="current-user"></b> 님 환영합니다! <span onclick="location.reload()" style="color:var(--accent); cursor:pointer; text-decoration:underline;">(이름변경)</span>
-    </div>
-
-    <div class="tabs">
-        <div id="tab-morning" class="tab" onclick="switchTab('morning')">아침용</div>
-        <div id="tab-daily" class="tab" onclick="switchTab('daily')">주간용</div>
-    </div>
-
-    <div class="timer-banner">
-        <span id="timer-label" style="font-size: 12px; opacity: 0.8; display: block; margin-bottom: 4px;">연결 중...</span>
-        <span id="time-left">00:00:00</span>
-        <div id="notice-text" style="font-size:12px; opacity:0.6; margin-top:4px;"></div>
-    </div>
-
-    <div id="menu-container">
-        <div class="menu-item">
-            <span style="font-weight:600; font-size:17px; display:block; text-align:center; margin-bottom:16px;">아메리카노</span>
-            <div class="btn-grid">
-                <button class="btn-ice order-btn" onclick="openConfirm('아메리카노 (Ice)')">Ice</button>
-                <button class="btn-hot order-btn" onclick="openConfirm('아메리카노 (Hot)')">Hot</button>
-                <button class="btn-ice btn-shot order-btn" onclick="openConfirm('아메리카노 (Ice) +샷')">Ice +Shot</button>
-                <button class="btn-hot btn-shot order-btn" onclick="openConfirm('아메리카노 (Hot) +샷')">Hot +Shot</button>
-            </div>
-        </div>
-        <div class="menu-item">
-            <span style="font-weight:600; font-size:17px; display:block; text-align:center; margin-bottom:16px;">라떼</span>
-            <div class="btn-grid">
-                <button class="btn-ice order-btn" onclick="openConfirm('라떼 (Ice)')">Ice</button>
-                <button class="btn-hot order-btn" onclick="openConfirm('라떼 (Hot)')">Hot</button>
-                <button class="btn-ice btn-shot order-btn" onclick="openConfirm('라떼 (Ice) +샷')">Ice +Shot</button>
-                <button class="btn-hot btn-shot order-btn" onclick="openConfirm('라떼 (Hot) +샷')">Hot +Shot</button>
-            </div>
-        </div>
-        <div class="menu-item">
-            <span style="font-weight:600; font-size:17px; display:block; text-align:center; margin-bottom:16px;">기타 메뉴 직접 입력</span>
-            <input type="text" id="etc-name" style="width:100%; padding:14px; border:1px solid #d2d2d7; border-radius:14px; margin-bottom:12px; box-sizing:border-box;" placeholder="메뉴명을 입력하세요">
-            <div class="btn-grid">
-                <button class="btn-ice order-btn" onclick="addEtcConfirm('Ice')">Ice</button>
-                <button class="btn-hot order-btn" onclick="addEtcConfirm('Hot')">Hot</button>
-                <button class="btn-ice btn-shot order-btn" onclick="addEtcConfirm('Ice +샷')">Ice +Shot</button>
-                <button class="btn-hot btn-shot order-btn" onclick="addEtcConfirm('Hot +샷')">Hot +Shot</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="order-summary">
-        <h2 style="font-size:18px; font-weight:700; margin-bottom:12px;">주문 요약 현황 🛒</h2>
-        <div id="grouped-list"></div>
-        <div style="text-align:right; font-weight:700; margin-top:20px; padding-top:12px; border-top:1px solid #f5f5f7; font-size:18px;">
-            총 수량: <span id="total-count">0</span>개
-        </div>
-        <button class="btn-my-clear" onclick="clearMyOrders()">내가 한 주문만 쏙쏙 초기화</button>
-        <button style="width:100%; margin-top:10px; padding:10px; background:transparent; color:#86868b; border:none; font-size:12px; cursor:pointer;" onclick="clearAllOrders()">전체 데이터 초기화</button>
-    </div>
-</div>
-
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyBSxM3W_RkCt8poqQJxVhIgYMPqLuZgT6Y",
@@ -172,11 +26,17 @@
         document.getElementById('modal-login').style.display = 'none';
         document.getElementById('user-display').style.display = 'block';
         document.getElementById('current-user').innerText = userName;
+        // 로그인 성공 시 즉시 버튼 상태 업데이트
         updateTimer();
     }
 
     function openConfirm(menu) {
-        if(!userName) return;
+        // 이름이 없으면 주문창을 띄우지 않음
+        if(!userName) {
+            alert("이름을 입력해야 주문이 가능합니다.");
+            location.reload();
+            return;
+        }
         const confirmModal = document.getElementById('modal-confirm');
         document.getElementById('confirm-msg').innerHTML = `<b>${userName}</b>님,<br>[${menu}]을(를) 주문하시겠습니까?`;
         confirmModal.style.display = 'flex';
@@ -186,28 +46,24 @@
         };
     }
 
-    function addEtcConfirm(suffix) {
-        const input = document.getElementById('etc-name');
-        const menuName = input.value.trim();
-        if(!menuName) return alert("메뉴명을 입력하세요");
-        openConfirm(`${menuName} (${suffix})`);
-        input.value = "";
-    }
+    function addOrder(menu) {
+        const prefix = currentCategory === 'morning' ? "아침" : "주간";
+        const orderKey = `${userName}|${prefix}_${menu}`;
+        
+        // 1. 카운팅이 안 될 때를 대비해 알림 표시
+        console.log("주문 시도:", orderKey);
 
-    function closeConfirm() { document.getElementById('modal-confirm').style.display = 'none'; }
-
-    function getKSTSeconds() {
-        const now = new Date();
-        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-        const kr = new Date(utc + (9 * 3600000));
-        return kr.getHours() * 3600 + kr.getMinutes() * 60 + kr.getSeconds();
-    }
-
-    function switchTab(type) {
-        currentCategory = type;
-        document.getElementById('tab-morning').classList.toggle('active', type === 'morning');
-        document.getElementById('tab-daily').classList.toggle('active', type === 'daily');
-        updateTimer();
+        db.ref('orders/' + orderKey).transaction((cv) => {
+            return (cv || 0) + 1;
+        }, (error, committed, snapshot) => {
+            if (error) {
+                alert("주문 전송 오류: " + error.message);
+            } else if (!committed) {
+                console.log("주문이 중단되었습니다.");
+            } else {
+                console.log("주문 성공!");
+            }
+        });
     }
 
     function updateTimer() {
@@ -215,27 +71,18 @@
         const config = TIMES[currentCategory];
         const timerEl = document.getElementById('time-left');
         const labelEl = document.getElementById('timer-label');
-        const btns = document.querySelectorAll('.order-btn');
-        document.getElementById('notice-text').innerText = `운영시간: ${config.label}`;
-
-        // [핵심 해결책: localStorage 활용]
-        const todayStr = new Date().toLocaleDateString();
-        const clearKey = `cleared_${currentCategory}_${todayStr}`;
-        const alreadyCleared = localStorage.getItem(clearKey);
-
-        // 오늘 아직 초기화를 안 했다면 영업 시작 후 최초 접속 시 1회 초기화
-        if (curSec >= config.open && curSec < config.close && !alreadyCleared) {
-            db.ref('orders').once('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    db.ref('orders').remove();
-                    console.log(`${currentCategory} 세션 최초 1회 초기화 완료`);
-                }
-                // 삭제 완료 후 로컬에 기록 (새로고침해도 다시 지워지지 않음)
-                localStorage.setItem(clearKey, 'true');
-            });
-        }
+        const btns = document.querySelectorAll('.order-btn'); // 모든 주문 버튼 대상
 
         const isOpen = curSec >= config.open && curSec < config.close;
+        
+        // 버튼 활성화 로직 보강
+        btns.forEach(btn => {
+            // 1. 영업 시간이고 2. 이름이 입력된 상태여야 클릭 가능
+            btn.disabled = !(isOpen && userName !== "");
+            // 디버깅용: 버튼 클릭이 안 되면 이유를 투명도로 표시
+            btn.style.opacity = btn.disabled ? "0.5" : "1";
+        });
+
         if (isOpen) {
             labelEl.innerText = "영업 중";
             const diff = config.close - curSec;
@@ -244,61 +91,18 @@
             labelEl.innerText = "영업 종료";
             timerEl.innerText = "00:00:00";
         }
-        if(userName) btns.forEach(b => b.disabled = !isOpen);
-    }
 
-    function addOrder(menu) {
-        const prefix = currentCategory === 'morning' ? "아침" : "주간";
-        const orderKey = `${userName}|${prefix}_${menu}`;
-        db.ref('orders/' + orderKey).transaction(cv => (cv || 0) + 1);
-    }
-
-    function clearMyOrders() {
-        if(confirm("정말 본인의 주문을 모두 삭제하시겠습니까?")) {
+        // [자동 초기화 로직 유지]
+        const todayStr = new Date().toLocaleDateString();
+        const clearKey = `cleared_${currentCategory}_${todayStr}`;
+        if (isOpen && !localStorage.getItem(clearKey)) {
             db.ref('orders').once('value', (snapshot) => {
-                const orders = snapshot.val();
-                if(!orders) return;
-                Object.keys(orders).forEach(key => {
-                    if(key.startsWith(userName + "|")) db.ref('orders/' + key).remove();
-                });
+                if (snapshot.exists()) db.ref('orders').remove();
+                localStorage.setItem(clearKey, 'true');
             });
         }
     }
 
-    function clearAllOrders() { if(confirm("전체 초기화하시겠습니까?")) db.ref('orders').remove(); }
-
-    db.ref('orders').on('value', (snapshot) => {
-        const rawOrders = snapshot.val() || {};
-        const listEl = document.getElementById('grouped-list');
-        const totalEl = document.getElementById('total-count');
-        if(!listEl) return;
-        listEl.innerHTML = "";
-        let totalQty = 0; let grouped = {};
-        Object.keys(rawOrders).forEach(key => {
-            const [name, rawMenu] = key.split('|');
-            const menu = rawMenu.replace('아침_', '').replace('주간_', '');
-            const count = rawOrders[key];
-            if(!grouped[menu]) grouped[menu] = { count: 0, names: [] };
-            grouped[menu].count += count;
-            grouped[menu].names.push(`${name}${count > 1 ? '('+count+')' : ''}`);
-            totalQty += count;
-        });
-        Object.keys(grouped).sort().forEach(menu => {
-            const item = grouped[menu];
-            const div = document.createElement('div');
-            div.className = 'group-item';
-            div.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:600;"><span>${menu}</span><span style="color:var(--accent)">${item.count}잔</span></div><div style="font-size:13px; color:#86868b; margin-top:6px;">${item.names.join(', ')}</div>`;
-            listEl.appendChild(div);
-        });
-        totalEl.innerText = totalQty;
-    });
-
+    // ... 기타 함수(getKSTSeconds, switchTab 등) 동일 ...
     setInterval(updateTimer, 1000);
-    window.onload = () => {
-        const s = getKSTSeconds();
-        if (s >= TIMES.morning.open && s < TIMES.morning.close) switchTab('morning');
-        else switchTab('daily');
-    };
 </script>
-</body>
-</html>
