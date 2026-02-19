@@ -35,8 +35,6 @@
         /* 카드 스타일 */
         .card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(5px); padding: 35px; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; }
         .card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px -10px rgba(37, 99, 235, 0.15); border-color: rgba(255, 255, 255, 0.8); background: #ffffff; }
-        
-        /* 🌟 [추가] 링크(a태그)로 변한 카드가 디자인이 깨지지 않게 설정 */
         a.card { text-decoration: none; color: inherit; }
 
         .icon-box { width: 56px; height: 56px; background: #f1f5f9; color: #475569; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; transition: background 0.3s ease, color 0.3s ease; }
@@ -45,6 +43,13 @@
         .card h3 { font-size: 1.35rem; margin-bottom: 10px; font-weight: 700; color: #1e293b; }
         .card p { color: var(--text-sub); font-size: 0.95rem; line-height: 1.6; word-break: keep-all; }
         footer { text-align: center; padding: 60px 20px; color: var(--text-sub); background: #f1f5f9; font-size: 0.9rem; border-top: 1px solid #e2e8f0; }
+
+        /* 🌟 [추가] 헤더 우측 유저 정보 스타일 */
+        .header-nav { display: flex; align-items: center; gap: 20px; }
+        .user-greeting { font-size: 0.9rem; font-weight: 500; color: #334155; display: none; } /* 로그인 전엔 숨김 */
+        .user-greeting strong { color: var(--primary-color); font-weight: 700; }
+        .btn-logout { background: #e2e8f0; color: #475569; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: 0.2s; display: none; }
+        .btn-logout:hover { background: #cbd5e1; color: #1e293b; }
 
         /* 반응형 */
         @media (max-width: 1024px) {
@@ -62,6 +67,7 @@
             .logo-svg { height: 28px; }
             .container { margin-top: 0; padding-top: 0; } 
             .section-header-glass { width: 100%; justify-content: space-between; margin-bottom: 20px;}
+            .user-greeting { display: none !important; } /* 모바일에선 글씨가 길어서 숨김 처리 */
         }
     </style>
 </head>
@@ -83,8 +89,12 @@
             </svg>
         </a>
 
-        <nav>
+        <nav class="header-nav">
+            <div id="userGreeting" class="user-greeting">
+                <strong id="userEmailDisplay"></strong>님 환영합니다
+            </div>
             <a href="/omock/admin.html" style="font-weight: 600; font-size: 0.95rem;">Admin</a>
+            <button class="btn-logout" id="logoutBtn" onclick="handleLogout()">로그아웃</button>
         </nav>
     </header>
 
@@ -105,41 +115,40 @@
         
         <div class="grid-wrapper">
             <a href="sublist.html?category=report" class="card">
-            <div class="icon-box"><i class="ph ph-file-text"></i></div>
-            <h3>보고서 에셋</h3>
-             <p>AI가 제안하는 레이아웃과 함께, 전문적인 보고서를 빠르게 작성할 수 있는 디자인 양식입니다.</p>
-             </a>
+                <div class="icon-box"><i class="ph ph-file-text"></i></div>
+                <h3>보고서 에셋</h3>
+                <p>AI가 제안하는 레이아웃과 함께, 전문적인 보고서를 빠르게 작성할 수 있는 디자인 양식입니다.</p>
+            </a>
 
-             <a href="sublist.html?category=graphic" class="card">
-              <div class="icon-box"><i class="ph ph-palette"></i></div>
-           <h3>그래픽 디자인</h3>
-           <p>배너, SNS 콘텐츠, 홍보물 제작을 위해 즉시 활용 가능한 고퀄리티 그래픽 소스 모음입니다.</p>
-             </a>
+            <a href="sublist.html?category=graphic" class="card">
+                <div class="icon-box"><i class="ph ph-palette"></i></div>
+                <h3>그래픽 디자인</h3>
+                <p>배너, SNS 콘텐츠, 홍보물 제작을 위해 즉시 활용 가능한 고퀄리티 그래픽 소스 모음입니다.</p>
+            </a>
 
-    <a href="sublist.html?category=docs" class="card">
-        <div class="icon-box"><i class="ph ph-files"></i></div>
-        <h3>문서 템플릿</h3>
-        <p>기획서, 제안서, 회의록 등 실무 표준에 맞춘 다양한 포맷의 문서 템플릿입니다.</p>
-    </a>
+            <a href="sublist.html?category=docs" class="card">
+                <div class="icon-box"><i class="ph ph-files"></i></div>
+                <h3>문서 템플릿</h3>
+                <p>기획서, 제안서, 회의록 등 실무 표준에 맞춘 다양한 포맷의 문서 템플릿입니다.</p>
+            </a>
 
-    <a href="sublist.html?category=icons" class="card">
-        <div class="icon-box"><i class="ph ph-shapes"></i></div>
-        <h3>아이콘 에셋</h3>
-        <p>직관적인 UI와 인포그래픽 구성을 도와주는 다양한 스타일의 벡터 아이콘 라이브러리입니다.</p>
-    </a>
+            <a href="sublist.html?category=icons" class="card">
+                <div class="icon-box"><i class="ph ph-shapes"></i></div>
+                <h3>아이콘 에셋</h3>
+                <p>직관적인 UI와 인포그래픽 구성을 도와주는 다양한 스타일의 벡터 아이콘 라이브러리입니다.</p>
+            </a>
 
-    <a href="sublist.html?category=data" class="card">
-        <div class="icon-box"><i class="ph ph-chart-bar"></i></div>
-        <h3>데이터 시각화 자료</h3>
-        <p>복잡한 수치를 한눈에 파악할 수 있도록 돕는 차트, 도표 및 인포그래픽 디자인 킷입니다.</p>
-    </a>
+            <a href="sublist.html?category=data" class="card">
+                <div class="icon-box"><i class="ph ph-chart-bar"></i></div>
+                <h3>데이터 시각화 자료</h3>
+                <p>복잡한 수치를 한눈에 파악할 수 있도록 돕는 차트, 도표 및 인포그래픽 디자인 킷입니다.</p>
+            </a>
 
-    <a href="sublist.html?category=etc" class="card">
-        <div class="icon-box"><i class="ph ph-folder-open"></i></div>
-        <h3>기타 자료</h3>
-        <p>폰트 가이드, 로고 파일, 브랜드 컬러 팔레트 등 업무에 필요한 모든 추가 리소스입니다.</p>
-    </a>
-            </div>
+            <a href="sublist.html?category=etc" class="card">
+                <div class="icon-box"><i class="ph ph-folder-open"></i></div>
+                <h3>기타 자료</h3>
+                <p>폰트 가이드, 로고 파일, 브랜드 컬러 팔레트 등 업무에 필요한 모든 추가 리소스입니다.</p>
+            </a>
         </div>
     </div>
 
@@ -148,6 +157,7 @@
     </footer>
 
     <script type="module" src="chat-widget.js"></script>
+    <script type="module" src="login.js"></script>
 
 </body>
 </html>
