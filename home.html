@@ -1,51 +1,74 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+    <link rel="icon" href="/omock/favicon.ico">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Design Library</title>
+    
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="badwords.js"></script>
+    <link rel="stylesheet" href="chat.css">
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+    
     <style>
-        :root { --primary-color: #2563eb; --gradient-text: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%); --bg-color: #f8fafc; --text-main: #0f172a; --text-sub: #64748b; }
+        :root { --primary-color: #2563eb; --brand-orange: #FC5E20; --gradient-text: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%); --bg-color: #f8fafc; --text-main: #0f172a; --text-sub: #64748b; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
-        body { background-color: var(--bg-color); min-height: 100vh; }
+        body { background-color: var(--bg-color); color: var(--text-main); overflow-x: hidden; min-height: 100vh; display: flex; flex-direction: column; }
         
-        header { padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        header { padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(255, 255, 255, 0.5); }
         .logo-area { display: flex; align-items: center; cursor: pointer; }
-        .logo-svg { height: 32px; width: auto; } /* 🌟 여기에 로고 크기 조절 */
-        
+        .logo-svg { height: 36px; width: auto; }
         .header-nav { display: flex; align-items: center; gap: 20px; }
-        .user-greeting { font-size: 0.9rem; font-weight: 500; display: none; }
-        .btn-logout { background: #f1f5f9; color: #475569; border: none; padding: 6px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: none; }
+        .user-greeting { font-size: 0.9rem; font-weight: 500; color: #334155; display: none; }
+        .btn-logout { background: #e2e8f0; color: #475569; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: none; transition: 0.2s; }
+        .btn-logout:hover { background: #cbd5e1; }
 
-        /* 주입 콘텐츠 레이아웃 */
-        #mainContent { display: none; width: 100%; }
-        .text-hero { max-width: 800px; margin: 0 auto; padding: 80px 20px 40px; text-align: center; }
-        .hero-title { font-size: 3rem; font-weight: 800; margin-bottom: 20px; background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.2; }
-        .hero-subtitle { font-size: 1.1rem; color: var(--text-sub); }
-        .main-visual-full { width: 100%; height: 450px; background: #e2e8f0 url('https://raw.githubusercontent.com/myc2102-hue/omock/refs/heads/main/images/mainvisual.jpg') center/cover fixed; position: relative; }
-        .container { max-width: 1200px; margin: -80px auto 0; padding: 0 20px 100px; position: relative; z-index: 10; }
+        /* 🌟 주입될 콘텐츠의 정렬을 잡아주는 핵심 CSS */
+        #mainContent { display: none; width: 100%; flex: 1; }
+        .text-hero { max-width: 800px; margin: 0 auto; padding: 100px 20px 60px 20px; text-align: center; }
+        .hero-title { font-size: 3.5rem; font-weight: 800; margin-bottom: 20px; letter-spacing: -1.5px; line-height: 1.1; background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-subtitle { font-size: 1.25rem; color: var(--text-sub); font-weight: 500; }
+        .main-visual-full { width: 100%; height: 600px; background-image: url('https://raw.githubusercontent.com/myc2102-hue/omock/refs/heads/main/images/mainvisual.jpg'); background-size: cover; background-position: center; background-attachment: fixed; position: relative; }
+        .visual-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 150px; background: linear-gradient(to bottom, rgba(248,250,252,0) 0%, rgba(248,250,252,1) 100%); }
         
-        /* 🌟 그리드 정렬 복구 */
-        .grid-wrapper { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; width: 100%; }
-        .card { background: white; padding: 30px; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.04); transition: 0.3s; cursor: pointer; text-decoration: none; color: inherit; display: flex; flex-direction: column; }
-        .card:hover { transform: translateY(-8px); border-color: var(--primary-color); }
-        .icon-box { width: 48px; height: 48px; background: #f1f5f9; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+        .container { max-width: 1200px; margin: -120px auto 0; padding: 0 20px 100px; position: relative; z-index: 10; width: 100%; }
+        .section-header-glass { display: inline-flex; align-items: center; margin-bottom: 40px; background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.4); padding: 12px 24px; border-radius: 50px; }
+        .section-title { font-size: 1.5rem; font-weight: 700; color: #1e293b; }
+        .section-badge { margin-left: 15px; background: rgba(255, 241, 235, 0.8); color: var(--brand-orange); padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+        
+        .grid-wrapper { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; width: 100%; }
+        .card { background: rgba(255, 255, 255, 0.9); padding: 35px; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: 0.3s; cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; text-decoration: none; color: inherit; height: 100%; }
+        .card:hover { transform: translateY(-8px); background: #fff; border-color: var(--primary-color); box-shadow: 0 20px 40px rgba(37, 99, 235, 0.1); }
+        .icon-box { width: 56px; height: 56px; background: #f1f5f9; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
+        .icon-box i { font-size: 1.8rem; color: #475569; }
+        .card h3 { font-size: 1.35rem; margin-bottom: 10px; font-weight: 700; color: #1e293b; }
+        .card p { color: var(--text-sub); font-size: 0.95rem; line-height: 1.6; word-break: keep-all; }
+
+        footer { text-align: center; padding: 60px 20px; color: var(--text-sub); background: #f1f5f9; font-size: 0.9rem; border-top: 1px solid #e2e8f0; width: 100%; }
+
+        @media (max-width: 1024px) { .grid-wrapper { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) { .grid-wrapper { grid-template-columns: 1fr; } .hero-title { font-size: 2.2rem; } .container { margin-top: 0; } }
     </style>
 </head>
 <body>
+
     <header>
-        <div class="logo-area" onclick="location.href='home.html'">
-            <svg class="logo-svg" viewBox="0 0 800 200">
-                </svg>
+        <div class="logo-area">
+            <svg class="logo-svg" viewBox="0 0 800 200" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M70.0813 87.8994H141.809V110.757H70.0813V87.8994Z" fill="#FC5E20"/><path d="M191.797 43.0686L150.793 157.26H174.807L182.322 135.532H227.737L235.252 157.26H259.43L218.425 43.0686H191.797Z" fill="black"/></svg>
         </div>
         <nav class="header-nav">
             <div id="userGreeting" class="user-greeting"><strong id="userEmailDisplay"></strong>님 환영</div>
+            <a href="/omock/admin.html" style="font-weight: 600; font-size: 0.95rem;">Admin</a>
             <button class="btn-logout" id="logoutBtn" onclick="handleLogout()">로그아웃</button>
         </nav>
     </header>
 
     <main id="mainContent"></main>
+
+    <footer>&copy; 2026 전략지원팀. All rights reserved.</footer>
+
+    <script type="module" src="chat-widget.js"></script>
     <script type="module" src="login.js"></script>
 </body>
 </html>
