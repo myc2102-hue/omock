@@ -8,62 +8,44 @@
     <style>
         :root { --primary-color: #2563eb; --gradient-text: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%); --bg-color: #f8fafc; --text-main: #0f172a; --text-sub: #64748b; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; }
+        body { background-color: var(--bg-color); min-height: 100vh; }
         
-        /* 헤더 정렬 */
         header { padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(0,0,0,0.05); }
-        .logo-area { display: flex; align-items: center; cursor: pointer; gap: 10px; }
-        .logo-svg { height: 32px; width: auto; }
+        .logo-area { display: flex; align-items: center; cursor: pointer; }
+        .logo-svg { height: 32px; width: auto; } /* 🌟 여기에 로고 크기 조절 */
         
         .header-nav { display: flex; align-items: center; gap: 20px; }
-        .user-greeting { font-size: 0.9rem; font-weight: 500; color: #334155; display: none; }
+        .user-greeting { font-size: 0.9rem; font-weight: 500; display: none; }
         .btn-logout { background: #f1f5f9; color: #475569; border: none; padding: 6px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: none; }
 
-        /* 🌟 본문 주입 영역 스타일 (그리드 유지 핵심) */
+        /* 주입 콘텐츠 레이아웃 */
         #mainContent { display: none; width: 100%; }
         .text-hero { max-width: 800px; margin: 0 auto; padding: 80px 20px 40px; text-align: center; }
         .hero-title { font-size: 3rem; font-weight: 800; margin-bottom: 20px; background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.2; }
         .hero-subtitle { font-size: 1.1rem; color: var(--text-sub); }
-        
         .main-visual-full { width: 100%; height: 450px; background: #e2e8f0 url('https://raw.githubusercontent.com/myc2102-hue/omock/refs/heads/main/images/mainvisual.jpg') center/cover fixed; position: relative; }
-        
-        /* 카드 컨테이너 */
         .container { max-width: 1200px; margin: -80px auto 0; padding: 0 20px 100px; position: relative; z-index: 10; }
-        .grid-wrapper { 
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); /* 3열 강제 */
-            gap: 25px; 
-            width: 100%; 
-        }
         
-        .card { background: rgba(255, 255, 255, 0.95); padding: 30px; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.8); box-shadow: 0 10px 30px rgba(0,0,0,0.04); transition: 0.3s; cursor: pointer; text-decoration: none; color: inherit; display: flex; flex-direction: column; height: 100%; }
+        /* 🌟 그리드 정렬 복구 */
+        .grid-wrapper { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; width: 100%; }
+        .card { background: white; padding: 30px; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.04); transition: 0.3s; cursor: pointer; text-decoration: none; color: inherit; display: flex; flex-direction: column; }
         .card:hover { transform: translateY(-8px); border-color: var(--primary-color); }
         .icon-box { width: 48px; height: 48px; background: #f1f5f9; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
-        .card h3 { font-size: 1.2rem; margin-bottom: 8px; font-weight: 700; }
-        .card p { color: var(--text-sub); font-size: 0.9rem; line-height: 1.5; }
-
-        footer { text-align: center; padding: 40px; background: #f8fafc; color: #94a3b8; font-size: 0.8rem; border-top: 1px solid #e2e8f0; }
     </style>
 </head>
 <body>
     <header>
         <div class="logo-area" onclick="location.href='home.html'">
-            <svg class="logo-svg" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="32" height="32" rx="8" y="4" fill="#FC5E20"/>
-                <path d="M12 14H20V26H12V14Z" fill="white"/>
-                <text x="42" y="27" fill="#1d1d1f" font-family="Pretendard" font-weight="800" font-size="18">Design</text>
-            </svg>
+            <svg class="logo-svg" viewBox="0 0 800 200">
+                </svg>
         </div>
         <nav class="header-nav">
-            <div id="userGreeting" class="user-greeting"><strong id="userEmailDisplay"></strong>님</div>
+            <div id="userGreeting" class="user-greeting"><strong id="userEmailDisplay"></strong>님 환영</div>
             <button class="btn-logout" id="logoutBtn" onclick="handleLogout()">로그아웃</button>
         </nav>
     </header>
 
     <main id="mainContent"></main>
-
-    <footer>&copy; 2026 한컴 기획총괄본부 전략지원팀.</footer>
-
     <script type="module" src="login.js"></script>
 </body>
 </html>
