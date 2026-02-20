@@ -17,100 +17,71 @@ const storage = getStorage(app);
 const provider = new GoogleAuthProvider();
 provider.setCustomParameters({ hd: TARGET_DOMAIN });
 
-// 🌟 홈화면용 디자인 금고 (서브페이지에서는 무시됨)
+// 🌟 그리드 카드를 여러 개로 확장 (깨짐 방지 구조)
 const REAL_DESIGN_HTML = `
     <section class="text-hero">
-        <h1 class="hero-title">AI 업무 효율을 위한,<br>기획총괄 디자인 라이브러리</h1>
-        <p class="hero-subtitle">최적화된 워크플로우와 디자인 자산을 한곳에서 관리하세요.</p>
+        <h1 class="hero-title">AI 업무 효율을 위한,<br>디자인 라이브러리</h1>
+        <p class="hero-subtitle">최적화된 디자인 자산을 한곳에서 관리하세요.</p>
     </section>
-    <div class="main-visual-full"><div class="visual-overlay"></div></div>
+    <div class="main-visual-full"></div>
     <div class="container">
-        <div class="section-header-glass"><div class="section-title">Resources</div><span class="section-badge">6 Items</span></div>
         <div class="grid-wrapper">
-            <div onclick="tryDownload('보고서 에셋', 0, 'files/report.pptx')" class="card">
-                <div class="icon-box"><i class="ph ph-file-text"></i></div>
+            <div onclick="location.href='sublist.html?cat=report'" class="card">
+                <div class="icon-box"><i class="ph-fill ph-file-text"></i></div>
                 <h3>보고서 에셋</h3>
-                <p>AI가 제안하는 레이아웃과 함께 전문적인 보고서를 빠르게 작성하세요.</p>
+                <p>표준 보고서 레이아웃과 제안서 템플릿 모음입니다.</p>
             </div>
+            <div onclick="location.href='sublist.html?cat=graphic'" class="card">
+                <div class="icon-box"><i class="ph-fill ph-palette"></i></div>
+                <h3>그래픽 디자인</h3>
+                <p>고해상도 이미지 및 일러스트 자산 라이브러리입니다.</p>
             </div>
-    </div>
-`;
-
-// 🌟 애플 지문 로그인창 스타일
-const loginStyle = `
-<style>
-    .apple-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(245, 245, 247, 0.6); backdrop-filter: blur(25px) saturate(180%); -webkit-backdrop-filter: blur(25px) saturate(180%); z-index: 99999; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s; }
-    .apple-modal { background: rgba(255, 255, 255, 0.75); padding: 48px; border-radius: 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); width: 380px; text-align: center; border: 1px solid rgba(255,255,255,0.8); opacity: 0; transform: translateY(20px); transition: 0.5s; font-family: 'Pretendard', sans-serif; }
-    .apple-modal.show { opacity: 1; transform: translateY(0); }
-    .apple-icon-wrapper { width: 64px; height: 64px; margin: 0 auto 24px; background: #fff; border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.05); }
-    .apple-icon-wrapper i { font-size: 32px; color: #1d1d1f; }
-    .apple-title { font-size: 1.5rem; font-weight: 700; color: #1d1d1f; margin-bottom: 12px; }
-    .apple-desc { color: #86868b; font-size: 0.95rem; margin-bottom: 32px; line-height: 1.5; }
-    .apple-btn { width: 100%; padding: 16px; border-radius: 16px; border: none; background: #fff; color: #1d1d1f; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.2s; font-size: 1rem; }
-    .apple-btn:hover { background: #f5f5f7; }
-    .apple-btn:active { transform: scale(0.97); }
-</style>
-`;
-
-const loginHtml = `
-    <div class="apple-overlay" id="loginOverlay" style="display:none;">
-        <div class="apple-modal" id="loginBox">
-            <div class="apple-icon-wrapper"><i class="ph-fill ph-fingerprint"></i></div>
-            <h2 class="apple-title">Design Library</h2>
-            <p class="apple-desc">보안을 위해 <strong>@hancom.com</strong> 계정으로<br>본인 인증이 필요합니다.</p>
-            <button class="apple-btn" id="googleLoginBtn">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" width="20">
-                Google로 계속하기
-            </button>
+            <div onclick="location.href='sublist.html?cat=docs'" class="card">
+                <div class="icon-box"><i class="ph-fill ph-files"></i></div>
+                <h3>문서 템플릿</h3>
+                <p>실무 협업을 위한 다양한 문서 양식입니다.</p>
+            </div>
+            <div onclick="location.href='sublist.html?cat=icons'" class="card">
+                <div class="icon-box"><i class="ph-fill ph-shapes"></i></div>
+                <h3>아이콘 리소스</h3>
+                <p>브랜드 가이드라인에 맞춘 아이콘 셋입니다.</p>
+            </div>
         </div>
     </div>
 `;
 
-document.head.insertAdjacentHTML('beforeend', loginStyle);
+// 애플 스타일 로그인 창 (디자인 유지)
+const loginHtml = `
+    <div class="apple-overlay" id="loginOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(245,245,247,0.75); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); z-index:99999; align-items:center; justify-content:center;">
+        <div class="apple-modal" style="background:#fff; padding:50px; border-radius:32px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.1); width:380px;">
+            <div style="font-size:3rem; margin-bottom:20px;">🛡️</div>
+            <h2 style="margin-bottom:10px;">Security Check</h2>
+            <p style="color:#86868b; margin-bottom:32px; font-size:0.95rem;">한컴 임직원 인증이 필요합니다.</p>
+            <button id="googleLoginBtn" style="width:100%; padding:16px; border-radius:16px; border:none; background:#1d1d1f; color:#fff; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:12px;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" width="20"> Google 로그인
+            </button>
+        </div>
+    </div>
+`;
 document.body.insertAdjacentHTML('beforeend', loginHtml);
 
 onAuthStateChanged(auth, (user) => {
     const main = document.getElementById('mainContent');
-    const subBody = document.getElementById('subPageContent'); // 서브페이지용 본문 ID
     const overlay = document.getElementById('loginOverlay');
-    const loginBox = document.getElementById('loginBox');
 
     if (user && user.email.endsWith("@" + TARGET_DOMAIN)) {
-        // ✅ [인증 성공]
         if (main) { main.innerHTML = REAL_DESIGN_HTML; main.style.display = 'block'; }
-        if (subBody) { subBody.style.visibility = 'visible'; subBody.style.opacity = '1'; }
-        
         overlay.style.display = 'none';
-        const emailDisp = document.getElementById('userEmailDisplay');
-        if (emailDisp) emailDisp.innerText = user.email.split('@')[0];
-        
-        const greeting = document.getElementById('userGreeting');
-        if (greeting) greeting.style.display = 'block';
-        
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) logoutBtn.style.display = 'block';
-        
+        document.getElementById('userEmailDisplay').innerText = user.email.split('@')[0];
+        document.getElementById('userGreeting').style.display = 'block';
+        document.getElementById('logoutBtn').style.display = 'block';
         document.body.style.overflow = 'auto';
     } else {
-        // ❌ [미인증]
-        if (main) { main.innerHTML = ''; main.style.display = 'none'; }
-        if (subBody) { subBody.style.visibility = 'hidden'; }
-        
+        if (main) main.innerHTML = '';
         overlay.style.display = 'flex';
-        setTimeout(() => loginBox.classList.add('show'), 50);
         document.body.style.overflow = 'hidden';
     }
 });
 
 document.getElementById('googleLoginBtn').onclick = () => signInWithPopup(auth, provider);
-window.handleLogout = () => signOut(auth).then(() => location.reload());
-
-window.tryDownload = function(title, price, path) {
-    const user = auth.currentUser;
-    if (price >= 100 && (!user || !user.email.endsWith("@" + TARGET_DOMAIN))) {
-        alert("⚠️ 고액 자료 권한이 필요합니다.");
-        return;
-    }
-    const fileRef = ref(storage, path);
-    getDownloadURL(fileRef).then(url => window.open(url, '_blank')).catch(() => alert("⛔ 접근 권한이 없습니다."));
-};
+window.handleLogout = () => signOut(auth).then(() => location.href = 'home.html');
