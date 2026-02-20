@@ -3,391 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>보고서 에셋 - AI Design Library</title>
-    
+    <title>Detail View | AI Design Library</title>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="badwords.js"></script>
-    <link rel="stylesheet" href="chat.css">
-    <link rel="icon" href="favicon.ico">
-
     <style>
-        /* --- 1. 공통 스타일 --- */
-        :root {
-            --primary-color: #2563eb;
-            --brand-orange: #FC5E20;
-            --bg-color: #f8fafc;
-            --text-main: #0f172a;
-            --text-sub: #64748b;
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-border: 1px solid rgba(255, 255, 255, 0.5);
-        }
+        /* sublist.html과 동일한 CSS 구조 유지 */
+        :root { --primary-color: #2563eb; --bg-color: #f8fafc; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; }
-        a { text-decoration: none; color: inherit; }
+        body { background-color: var(--bg-color); }
 
-        /* 헤더 */
-        header { padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; border-bottom: var(--glass-border); }
-        .logo-svg { height: 36px; width: auto; display: block; }
+        header { padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.5); position: sticky; top: 0; z-index: 100; }
+        .logo-area { cursor: pointer; }
+        .logo-svg { height: 32px; }
+        .header-nav { display: flex; align-items: center; gap: 20px; }
+        .user-greeting { font-size: 0.9rem; display: none; }
+        .btn-logout { background: #e2e8f0; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; display: none; font-weight: 600; }
+
+        /* 🌟 보안 핵심: 인증 전까지 본문 숨김 */
+        #subPageContent { visibility: hidden; opacity: 0; transition: opacity 0.5s ease; padding: 80px 20px; max-width: 900px; margin: 0 auto; }
+
+        .detail-card { background: white; padding: 50px; border-radius: 32px; box-shadow: 0 4px 30px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; }
+        .item-category { color: var(--primary-color); font-weight: 700; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 15px; }
+        .item-name { font-size: 2.5rem; font-weight: 800; margin-bottom: 20px; color: #1e293b; }
+        .item-desc { font-size: 1.1rem; line-height: 1.8; color: #64748b; margin-bottom: 40px; }
         
-        /* --- 2. 서브 비주얼 배너 --- */
-        .sub-visual-banner {
-            position: relative;
-            width: 100%;
-            height: 300px;
-            background-image: url('https://raw.githubusercontent.com/myc2102-hue/omock/refs/heads/main/images/mainvisual.jpg');
-            background-size: cover;
-            background-position: center 30%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            color: white;
-            margin-bottom: 40px;
-        }
-        .banner-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.4); z-index: 1;
-        }
-        .banner-content { position: relative; z-index: 2; }
-        
-        .breadcrumb { font-size: 0.9rem; opacity: 0.9; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .breadcrumb span.active { font-weight: 700; color: #fff; }
-        .page-title { font-size: 2.5rem; font-weight: 800; text-shadow: 0 4px 10px rgba(0,0,0,0.3); letter-spacing: -1px; }
-
-        /* --- 3. 상세 레이아웃 (상단) --- */
-        .detail-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px 60px 20px;
-            display: grid;
-            grid-template-columns: 1.5fr 1fr;
-            gap: 50px;
-            align-items: start;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        /* 슬라이더 영역 */
-        .slider-area { width: 100%; }
-        .slider-wrapper {
-            position: relative; border-radius: 16px; overflow: hidden; background: white;
-            aspect-ratio: 16 / 9; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 15px;
-        }
-        .slides { display: flex; width: 100%; height: 100%; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
-        .slide { min-width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f1f5f9; }
-        
-        /* 슬라이드 화살표 */
-        .slider-btn {
-            position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px;
-            background: rgba(255,255,255,0.8); border: none; border-radius: 50%; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: 0.2s; z-index: 10;
-        }
-        .slider-btn:hover { background: white; color: var(--primary-color); }
-        .prev-btn { left: 15px; }
-        .next-btn { right: 15px; }
-
-        /* 썸네일 리스트 */
-        .thumbnail-list { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
-        .thumb-item { width: 80px; height: 50px; border-radius: 8px; cursor: pointer; opacity: 0.5; transition: all 0.3s; background-color: #ddd; overflow: hidden; border: 2px solid transparent; }
-        .thumb-item img { width: 100%; height: 100%; object-fit: cover; }
-        .thumb-item.active { opacity: 1; border-color: var(--primary-color); transform: translateY(-2px); }
-        .thumb-item:hover { opacity: 0.8; }
-
-        /* 우측 정보 카드 */
-        .info-card {
-            background: var(--glass-bg); backdrop-filter: blur(12px); border: var(--glass-border);
-            padding: 35px; border-radius: 20px; position: sticky; top: 100px;
-        }
-        .category-tag { background: #dbeafe; color: #1e40af; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; display: inline-block; margin-bottom: 15px; }
-        .info-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 15px; line-height: 1.3; }
-        .info-desc { color: var(--text-sub); margin-bottom: 25px; line-height: 1.6; }
-        .feature-list { list-style: none; margin-bottom: 30px; }
-        .feature-list li { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; color: #475569; font-weight: 500; }
-        .feature-list li i { color: var(--primary-color); }
-        .btn-group { display: flex; flex-direction: column; gap: 10px; }
-        .action-btn { width: 100%; padding: 15px; border-radius: 12px; font-weight: 600; cursor: pointer; border: none; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
-        .btn-primary { background: var(--primary-color); color: white; }
-        .btn-primary:hover { background: #1d4ed8; }
-        .btn-secondary { background: white; border: 1px solid #cbd5e1; }
-        .btn-secondary:hover { background: #f1f5f9; }
-
-
-        /* --- 🌟 하단 연관 갤러리 --- */
-        .related-gallery {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 60px 20px 80px 20px;
-        }
-
-        .related-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: end;
-            margin-bottom: 30px;
-        }
-
-        .related-title { font-size: 1.5rem; font-weight: 700; color: #1e293b; }
-        .related-more { font-size: 0.9rem; color: var(--primary-color); font-weight: 600; cursor: pointer; }
-
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 24px;
-        }
-
-        .gallery-item {
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
-        }
-
-        .gallery-item:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 30px rgba(37, 99, 235, 0.1);
-        }
-
-        .gallery-thumb {
-            width: 100%;
-            height: 160px;
-            background-color: #f1f5f9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #94a3b8;
-            font-size: 2rem;
-        }
-        
-        .bg-1 { background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); color: #0ea5e9; }
-        .bg-2 { background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%); color: #db2777; }
-        .bg-3 { background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); color: #16a34a; }
-        .bg-4 { background: linear-gradient(135deg, #fef9c3 0%, #fde047 100%); color: #ca8a04; }
-
-        .gallery-info { padding: 16px; }
-        .gallery-info h4 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; color: #334155; }
-        .gallery-info p { font-size: 0.85rem; color: #94a3b8; }
-
-
-        footer { text-align: center; padding: 60px 20px; color: var(--text-sub); border-top: 1px solid #e2e8f0; margin-top: 0; }
-
-        @media (max-width: 1024px) {
-            .detail-container { grid-template-columns: 1fr; gap: 40px; }
-            .info-card { position: static; }
-            .sub-visual-banner { height: 240px; }
-            .gallery-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 768px) {
-            .page-title { font-size: 1.8rem; }
-            .detail-container { padding-bottom: 40px; }
-            .gallery-grid { grid-template-columns: 1fr; }
-        }
+        .download-btn { display: inline-flex; align-items: center; gap: 10px; background: #1d1d1f; color: white; padding: 18px 32px; border-radius: 16px; text-decoration: none; font-weight: 600; font-size: 1.1rem; transition: 0.2s; border: none; cursor: pointer; }
+        .download-btn:hover { background: #000; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
-
     <header>
-        <a href="home.html" class="logo-area">
-            <svg class="logo-svg" viewBox="0 0 800 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M191.797 43.0686L150.793 157.26H174.807L182.322 135.532H227.737L235.252 157.26H259.43L218.425 43.0686H191.797ZM188.53 117.235L205.03 69.5332L221.529 117.235H188.53Z" fill="black"/>
-                <path d="M343.069 121.483L291.283 43.0686H268.412V157.26H291.283V79.0081L343.069 157.26H365.94V43.0686H343.069V121.483Z" fill="black"/>
-                <path d="M419.602 67.0015C424.773 63.8971 430.682 62.3456 437.327 62.3456C443.535 62.3456 449.007 63.708 453.745 66.4286C458.482 69.1535 462.158 73.2365 464.772 78.682H491.074C487.26 67.1391 480.562 58.0981 470.979 51.5633C461.395 45.0291 450.233 41.7617 437.49 41.7617C426.599 41.7617 416.768 44.2403 408.003 49.1947C399.235 54.1513 392.32 61.0664 387.256 69.9423C382.192 78.8196 379.66 88.8667 379.66 100.081C379.66 111.3 382.192 121.319 387.256 130.141C392.32 138.962 399.235 145.852 408.003 150.807C416.768 155.762 426.599 158.24 437.49 158.24C450.34 158.24 461.53 154.999 471.061 148.519C480.59 142.041 487.26 132.974 491.074 121.319H464.772C462.158 126.766 458.482 130.876 453.745 133.652C449.007 136.43 443.535 137.819 437.327 137.819C430.682 137.819 424.773 136.267 419.602 133.162C414.428 130.058 410.397 125.647 407.513 119.929C404.626 114.212 403.183 107.596 403.183 100.081C403.183 92.4593 404.626 85.8151 407.513 80.1516C410.398 74.491 414.428 70.1045 419.602 67.0015Z" fill="black"/>
-                <path d="M585.904 49.1123C577.026 44.1042 567.199 41.5974 556.417 41.5974C545.742 41.5974 535.941 44.1042 527.012 49.1123C518.08 54.1231 511.002 61.0665 505.775 69.9417C500.547 78.8196 497.933 88.8103 497.933 99.9192C497.933 111.137 500.547 121.184 505.775 130.058C511.001 138.936 518.08 145.88 527.012 150.887C535.941 155.898 545.742 158.401 556.417 158.401C567.089 158.401 576.892 155.897 585.822 150.887C594.751 145.879 601.803 138.936 606.978 130.058C612.149 121.184 614.738 111.137 614.738 99.9192C614.738 88.8103 612.149 78.8196 606.978 69.9417C601.803 61.0672 594.779 54.1231 585.904 49.1123ZM586.803 120.013C583.862 125.786 579.778 130.223 574.55 133.327C569.323 136.43 563.277 137.982 556.417 137.982C549.556 137.982 543.483 136.431 538.202 133.327C532.919 130.223 528.809 125.786 525.869 120.013C522.929 114.241 521.458 107.543 521.458 99.92C521.458 92.2971 522.929 85.6247 525.869 79.9069C528.81 74.1898 532.919 69.8069 538.202 66.7568C543.483 63.7081 549.556 62.182 556.417 62.182C563.278 62.182 569.323 63.7081 574.55 66.7568C579.778 69.8069 583.862 74.1898 586.803 79.9069C589.743 85.6247 591.213 92.2971 591.213 99.92C591.213 107.543 589.743 114.241 586.803 120.013Z" fill="black"/>
-                <path d="M726.965 43.2314L690.7 128.017L654.432 43.2314H628.457V157.26H651.328V83.0932L682.04 157.26H699.357L729.906 83.0932V157.26H752.777V43.2314H726.965Z" fill="black"/>
-                <path d="M70.0813 43.2314H47.2228V87.8909H70.0813V43.2314Z" fill="black"/>
-                <path d="M70.0813 110.768H47.2228V157.259H70.0813V110.768Z" fill="black"/>
-                <path d="M141.809 43.2314H118.951V87.8909H141.809V43.2314Z" fill="black"/>
-                <path d="M141.809 87.8994H70.0813V110.757H141.809V87.8994Z" fill="#FC5E20"/>
-                <path d="M141.809 110.768H118.951V157.259H141.809V110.768Z" fill="black"/>
-            </svg>
-        </a>
-        <nav>
-            <a href="#" style="font-weight: 600; font-size: 0.95rem;">Login</a>
+        <div class="logo-area" onclick="location.href='home.html'">
+            <svg class="logo-svg" viewBox="0 0 800 200">...</svg>
+        </div>
+        <nav class="header-nav">
+            <div id="userGreeting" class="user-greeting"><strong id="userEmailDisplay"></strong>님 환영</div>
+            <button class="btn-logout" id="logoutBtn" onclick="handleLogout()">로그아웃</button>
         </nav>
     </header>
 
-    <section class="sub-visual-banner">
-        <div class="banner-overlay"></div>
-        <div class="banner-content">
-            <div class="breadcrumb">
-                <a href="home.html" style="color: rgba(255,255,255,0.7)">Home</a> 
-                <i class="ph ph-caret-right" style="color: rgba(255,255,255,0.5)"></i>
-                <span style="color: rgba(255,255,255,0.7)">Resources</span>
-                <i class="ph ph-caret-right" style="color: rgba(255,255,255,0.5)"></i>
-                <span class="active">보고서 에셋</span>
-            </div>
-            <h1 class="page-title">전략 보고서 마스터 에셋</h1>
+    <main id="subPageContent">
+        <div class="detail-card">
+            <div class="item-category">Report Assets</div>
+            <h1 class="item-name">2026 전략 기획 템플릿</h1>
+            <p class="item-desc">본 템플릿은 한컴의 공식 보고서 가이드라인을 준수하여 제작되었습니다. AI 기반의 레이아웃 추천 기능과 연동하여 사용 가능하며, 기획총괄본부의 승인 후 배포되었습니다.</p>
+            
+            <button class="download-btn" onclick="tryDownload('2026 전략 템플릿', 150, 'files/report_v1.pptx')">
+                <i class="ph-bold ph-download-simple"></i>
+                보안 서버에서 다운로드
+            </button>
         </div>
-    </section>
+    </main>
 
-    <div class="detail-container">
-        
-        <div class="slider-area">
-            <div class="slider-wrapper">
-                <div class="slides" id="slides">
-                    <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#64748b;">이미지 로딩 중...</div>
-                </div>
-                <button class="slider-btn prev-btn" onclick="moveSlide(-1)"><i class="ph ph-caret-left"></i></button>
-                <button class="slider-btn next-btn" onclick="moveSlide(1)"><i class="ph ph-caret-right"></i></button>
-            </div>
-
-            <div class="thumbnail-list">
-                </div>
-        </div>
-
-        <aside class="info-area">
-            <div class="info-card">
-                <span class="category-tag">Template</span>
-                <h2 class="info-title">제목 로딩 중...</h2>
-                <p class="info-desc">설명 로딩 중...</p>
-                <ul class="feature-list"></ul>
-                <div class="btn-group">
-                    <button class="action-btn btn-primary" onclick="alert('다운로드 시작!')">
-                        <i class="ph ph-download-simple"></i> 템플릿 다운로드
-                    </button>
-                    <button class="action-btn btn-secondary">
-                        <i class="ph ph-eye"></i> 미리보기
-                    </button>
-                </div>
-            </div>
-        </aside>
-    </div>
-
-    <div class="related-gallery">
-        <div class="related-header">
-            <h3 class="related-title">다른 디자인 리소스</h3>
-            <span class="related-more">전체보기 <i class="ph ph-arrow-right"></i></span>
-        </div>
-
-        <div class="gallery-grid">
-            <div class="gallery-item" onclick="alert('페이지 이동')">
-                <div class="gallery-thumb bg-1"><i class="ph ph-chart-bar"></i></div>
-                <div class="gallery-info"><h4>데이터 시각화 킷</h4><p>복잡한 차트를 심플하게</p></div>
-            </div>
-            <div class="gallery-item" onclick="alert('페이지 이동')">
-                <div class="gallery-thumb bg-2"><i class="ph ph-images"></i></div>
-                <div class="gallery-info"><h4>SNS 홍보 배너</h4><p>인스타그램 사이즈 최적화</p></div>
-            </div>
-            <div class="gallery-item" onclick="alert('페이지 이동')">
-                <div class="gallery-thumb bg-3"><i class="ph ph-files"></i></div>
-                <div class="gallery-info"><h4>회의록 양식</h4><p>업무 효율을 높이는 문서</p></div>
-            </div>
-            <div class="gallery-item" onclick="alert('페이지 이동')">
-                <div class="gallery-thumb bg-4"><i class="ph ph-shapes"></i></div>
-                <div class="gallery-info"><h4>3D 아이콘 팩</h4><p>트렌디한 입체 아이콘</p></div>
-            </div>
-        </div>
-    </div>
-
-    <footer>
-        &copy; 2026 전략지원팀. All rights reserved.
-    </footer>
-
-    <script type="module">
-       import { db } from './data.js';
-    import './chat-widget.js';
-
-    // 1. URL 정보 읽기
-    const params = new URLSearchParams(window.location.search);
-    const category = params.get('category');
-    const id = parseInt(params.get('id'));
-
-    // 2. 데이터 찾기
-    const item = db[category]?.find(i => i.id === id);
-
-    if (!item) {
-        alert("해당 자료를 찾을 수 없습니다.");
-        window.location.href = 'sublist.html';
-    } else {
-        // 3. 텍스트 정보 채우기
-        document.querySelector('.page-title').innerText = item.title;
-        document.querySelector('.info-title').innerText = item.title;
-        document.querySelector('.category-tag').innerText = item.badge + " Template";
-        document.querySelector('.info-desc').innerText = item.desc;
-        
-        const featureList = document.querySelector('.feature-list');
-        featureList.innerHTML = item.features.map(feat => 
-            `<li><i class="ph ph-check-circle"></i> ${feat}</li>`
-        ).join('');
-
-        // 🌟 [핵심] 다운로드 버튼 기능 연결
-        const downloadBtn = document.querySelector('.btn-primary');
-        const previewBtn = document.querySelector('.btn-secondary');
-
-        // 다운로드 버튼 설정
-        if (item.fileUrl) {
-            // 링크가 있으면 새 창으로 열기
-            downloadBtn.onclick = () => window.open(item.fileUrl, '_blank');
-        } else {
-            // 링크가 없으면 알림
-            downloadBtn.onclick = () => alert("아직 다운로드 링크가 등록되지 않았습니다.");
-        }
-
-        // 미리보기 버튼 (혹시 따로 링크가 있다면 fileUrl 대신 previewUrl 등을 만들어 쓰면 됨)
-        // 지금은 다운로드와 똑같이 동작하거나, 준비중으로 둡니다.
-        previewBtn.onclick = () => {
-             if(item.fileUrl) window.open(item.fileUrl, '_blank');
-             else alert("미리보기가 준비되지 않았습니다.");
-        };
-
-
-        // 4. 슬라이더 생성 (이미지 기반)
-        const slidesContainer = document.getElementById('slides');
-        const thumbsContainer = document.querySelector('.thumbnail-list');
-        
-        slidesContainer.innerHTML = '';
-        thumbsContainer.innerHTML = '';
-
-        const slideCount = item.slideCount || 3;
-
-        for (let i = 1; i <= slideCount; i++) {
-            const imgPath = `images/slide_${item.id}_${i}.jpg`;
-
-            slidesContainer.innerHTML += `
-                <div class="slide">
-                    <img src="${imgPath}" style="width:100%; height:100%; object-fit:contain;" onerror="this.parentNode.style.backgroundColor='#f1f5f9'; this.style.display='none'; this.parentNode.innerHTML='<div style=\'display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:#64748b;\'>이미지 준비중 (${i})</div>'">
-                </div>
-            `;
-
-            thumbsContainer.innerHTML += `
-                <div class="thumb-item ${i === 1 ? 'active' : ''}" onclick="window.jumpToSlide(${i - 1})">
-                    <img src="${imgPath}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.parentNode.style.backgroundColor='#cbd5e1';">
-                </div>
-            `;
-        }
-    }
-
-    // 5. 슬라이더 동작 로직
-    let currentIndex = 0;
-    
-    window.updateSlider = function() {
-        const slides = document.getElementById('slides');
-        const thumbs = document.querySelectorAll('.thumb-item');
-        const totalSlides = thumbs.length;
-
-        const offset = -currentIndex * 100;
-        slides.style.transform = `translateX(${offset}%)`;
-
-        thumbs.forEach((thumb, index) => {
-            if (index === currentIndex) thumb.classList.add('active');
-            else thumb.classList.remove('active');
-        });
-    }
-
-    window.moveSlide = function(direction) {
-        const totalSlides = document.querySelectorAll('.thumb-item').length;
-        currentIndex += direction;
-        if (currentIndex < 0) currentIndex = totalSlides - 1;
-        else if (currentIndex >= totalSlides) currentIndex = 0;
-        window.updateSlider();
-    }
-
-    window.jumpToSlide = function(index) {
-        currentIndex = index;
-        window.updateSlider();
-    }
-    </script>
+    <script type="module" src="login.js"></script>
 </body>
 </html>
