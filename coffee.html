@@ -60,7 +60,9 @@
         .btn-shot { border: 1.5px dashed #34c759 !important; background: #f2fff5; }
         .order-summary { margin-top: 32px; background: #fff; border-radius: 24px; padding: 20px; border: 1px solid #f0f0f2; }
         .group-item { padding: 14px 0; border-bottom: 1px solid #f5f5f7; }
-        .btn-my-clear { width: 100%; margin-top: 20px; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 16px; font-weight: 600; }
+        .btn-my-clear { width: 100%; margin-top: 20px; padding: 166px; background: var(--accent); color: white; border: none; border-radius: 16px; font-weight: 600; }
+        /* padding 오타 수정: 166px -> 16px */
+        .btn-my-clear { padding: 16px !important; } 
     </style>
 </head>
 <body>
@@ -218,22 +220,23 @@
         const btns = document.querySelectorAll('.order-btn');
         document.getElementById('notice-text').innerText = `운영시간: ${config.label}`;
 
-        const todayStr = new Date().toLocaleDateString();
+        // [강력한 자동 초기화 로직]
+        const now = new Date();
+        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const krDate = new Date(utc + (9 * 3600000));
+        const todayStr = krDate.toISOString().split('T')[0]; // YYYY-MM-DD 형식
+        
         const clearKey = `cleared_${currentCategory}_${todayStr}`;
         const alreadyCleared = localStorage.getItem(clearKey);
 
         const isOpen = curSec >= config.open && curSec < config.close;
 
-        // [버그 수정된 안전 초기화 로직]
-        // 영업 시작 후 5분(300초) 이내에만 초기화 기회를 줌. 그 이후 접속자는 초기화 불가.
-        if (curSec >= config.open && curSec < config.open + 300 && !alreadyCleared) {
-            db.ref('orders').once('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    db.ref('orders').remove();
-                    console.log("세션 시작 - 초기화 완료");
-                }
-                localStorage.setItem(clearKey, 'true');
-            });
+        // 영업 시작 후 첫 접속 시 (오늘 아직 초기화 안 한 경우)
+        if (curSec >= config.open && !alreadyCleared) {
+            localStorage.setItem(clearKey, 'true'); // 중복 방지를 위해 먼저 저장
+            db.ref('orders').remove()
+                .then(() => console.log(`${currentCategory} 세션 초기화 완료`))
+                .catch(() => localStorage.removeItem(clearKey)); // 실패 시 재시도 허용
         }
 
         if (isOpen) {
