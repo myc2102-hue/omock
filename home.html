@@ -1,57 +1,63 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+    <link rel="icon" href="/omock/favicon.ico">
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Design Library</title>
+    
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="badwords.js"></script>
+    <link rel="stylesheet" href="chat.css">
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+    
     <style>
-        /* 90점 버전 핵심 스타일 */
-        :root { --primary-color: #2563eb; --gradient-text: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%); }
+        /* 기본 스타일 (로그인 전에도 보일 최소한의 디자인) */
+        :root { --primary-color: #2563eb; --brand-orange: #FC5E20; --gradient-text: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%); --bg-color: #f8fafc; --text-main: #0f172a; --text-sub: #64748b; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
-        body { background-color: #f8fafc; overflow-x: hidden; }
+        body { background-color: var(--bg-color); color: var(--text-main); overflow-x: hidden; }
+        header { padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(255, 255, 255, 0.5); }
+        .logo-area { display: flex; align-items: center; }
+        .logo-svg { height: 36px; width: auto; }
+        .header-nav { display: flex; align-items: center; gap: 20px; }
+        .user-greeting { font-size: 0.9rem; font-weight: 500; color: #334155; display: none; }
+        .btn-logout { background: #e2e8f0; color: #475569; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: none; }
+        footer { text-align: center; padding: 60px 20px; color: var(--text-sub); background: #f1f5f9; font-size: 0.9rem; border-top: 1px solid #e2e8f0; }
         
-        /* 헤더 */
-        header { padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(0,0,0,0.05); }
-        .logo-svg { height: 32px; width: auto; cursor: pointer; }
-        
-        /* 본문 레이아웃 (이게 있어야 안 깨집니다) */
-        .text-hero { max-width: 800px; margin: 0 auto; padding: 100px 20px 60px; text-align: center; }
-        .hero-title { font-size: 3.5rem; font-weight: 800; background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        
-        .container { max-width: 1200px; margin: 50px auto; padding: 0 20px; }
-        .grid-wrapper { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
-        .card { background: white; padding: 35px; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.04); transition: 0.3s; cursor: pointer; }
-        .card:hover { transform: translateY(-8px); border-color: var(--primary-color); }
+        /* 🌟 [중요] 메인 콘텐츠는 기본적으로 숨김 */
+        #mainContent { display: none; min-height: 100vh; }
 
-        .user-greeting, #logoutBtn { display: none; }
+        /* 기존 카드 및 그리드 스타일은 그대로 유지해야 주입했을 때 이쁘게 보입니다 */
+        .text-hero { max-width: 800px; margin: 0 auto; padding: 100px 20px 60px 20px; text-align: center; }
+        .hero-title { font-size: 3.5rem; font-weight: 800; margin-bottom: 20px; background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-subtitle { font-size: 1.25rem; color: var(--text-sub); }
+        .main-visual-full { width: 100%; height: 600px; background-image: url('https://raw.githubusercontent.com/myc2102-hue/omock/refs/heads/main/images/mainvisual.jpg'); background-size: cover; background-position: center; background-attachment: fixed; position: relative; }
+        .container { max-width: 1200px; margin: -120px auto 0; padding: 0 20px 100px; position: relative; z-index: 10; }
+        .grid-wrapper { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+        .card { background: rgba(255, 255, 255, 0.9); padding: 35px; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: 0.3s; cursor: pointer; display: flex; flex-direction: column; text-decoration: none; color: inherit; }
+        .card:hover { transform: translateY(-8px); background: #fff; border-color: var(--primary-color); }
+        .icon-box { width: 56px; height: 56px; background: #f1f5f9; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
+        .icon-box i { font-size: 1.8rem; }
     </style>
 </head>
 <body>
+
     <header>
-        <div class="logo-area" onclick="location.href='home.html'">
-            <svg class="logo-svg" viewBox="0 0 800 200"> ... </svg>
+        <div class="logo-area">
+            <svg class="logo-svg" viewBox="0 0 800 200" fill="none">...</svg>
         </div>
-        <nav style="display:flex; gap:20px; align-items:center;">
-            <div id="userGreeting" class="user-greeting"><strong id="userEmailDisplay"></strong>님</div>
-            <button id="logoutBtn" onclick="handleLogout()" style="padding:6px 12px; border-radius:8px; border:none; cursor:pointer;">로그아웃</button>
+        <nav class="header-nav">
+            <div id="userGreeting" class="user-greeting"><strong id="userEmailDisplay"></strong>님 환영합니다</div>
+            <a href="/omock/admin.html" style="font-weight: 600; font-size: 0.95rem;">Admin</a>
+            <button class="btn-logout" id="logoutBtn" onclick="handleLogout()">로그아웃</button>
         </nav>
     </header>
 
-    <main id="mainContent">
-        <section class="text-hero">
-            <h1 class="hero-title">AI Design Library</h1>
-            <p style="color:#64748b; margin-top:10px;">기획총괄 디자인 자산 시스템</p>
-        </section>
-        
-        <div class="container">
-            <div class="grid-wrapper">
-                <div class="card" onclick="location.href='sublist.html'"><h3>보고서 에셋</h3><p>표준 템플릿 모음</p></div>
-                <div class="card" onclick="location.href='sublist.html'"><h3>그래픽 리소스</h3><p>고퀄리티 그래픽 자산</p></div>
-                <div class="card" onclick="location.href='sublist.html'"><h3>문서 가이드</h3><p>사내 문서 표준 가이드</p></div>
-            </div>
-        </div>
-    </main>
+    <main id="mainContent"></main>
 
+    <footer>&copy; 2026 전략지원팀. All rights reserved.</footer>
+
+    <script type="module" src="chat-widget.js"></script>
     <script type="module" src="login.js"></script>
 </body>
 </html>
