@@ -5,43 +5,49 @@
     <title>AI Design Library</title>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
-        /* 90점 버전의 핵심: 본문은 그대로 두되 오버레이로 가림 */
+        /* 90점 버전 핵심 스타일 */
         :root { --primary-color: #2563eb; --gradient-text: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%); }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
+        body { background-color: #f8fafc; overflow-x: hidden; }
         
-        /* 헤더 & 로고 (원래 쓰시던 한컴 SVG를 로고 구역에 넣으세요) */
+        /* 헤더 */
         header { padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(0,0,0,0.05); }
-        .logo-area { cursor: pointer; }
-        .logo-svg { height: 32px; width: auto; }
+        .logo-svg { height: 32px; width: auto; cursor: pointer; }
         
-        /* 그리드 레이아웃 (이게 있어야 안 깨집니다) */
+        /* 본문 레이아웃 (이게 있어야 안 깨집니다) */
+        .text-hero { max-width: 800px; margin: 0 auto; padding: 100px 20px 60px; text-align: center; }
+        .hero-title { font-size: 3.5rem; font-weight: 800; background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
         .container { max-width: 1200px; margin: 50px auto; padding: 0 20px; }
         .grid-wrapper { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
-        .card { background: white; padding: 30px; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.04); transition: 0.3s; cursor: pointer; }
+        .card { background: white; padding: 35px; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.04); transition: 0.3s; cursor: pointer; }
         .card:hover { transform: translateY(-8px); border-color: var(--primary-color); }
-        
-        /* 로그인 후 보여줄 요소들 */
+
         .user-greeting, #logoutBtn { display: none; }
     </style>
 </head>
 <body>
     <header>
         <div class="logo-area" onclick="location.href='home.html'">
-            <svg class="logo-svg" ... >(한컴로고)</svg>
+            <svg class="logo-svg" viewBox="0 0 800 200"> ... </svg>
         </div>
-        <nav class="header-nav" style="display:flex; gap:20px; align-items:center;">
-            <div id="userGreeting" class="user-greeting"><strong id="userEmailDisplay"></strong>님 환영</div>
+        <nav style="display:flex; gap:20px; align-items:center;">
+            <div id="userGreeting" class="user-greeting"><strong id="userEmailDisplay"></strong>님</div>
             <button id="logoutBtn" onclick="handleLogout()" style="padding:6px 12px; border-radius:8px; border:none; cursor:pointer;">로그아웃</button>
         </nav>
     </header>
 
     <main id="mainContent">
-        <section class="text-hero">...</section>
+        <section class="text-hero">
+            <h1 class="hero-title">AI Design Library</h1>
+            <p style="color:#64748b; margin-top:10px;">기획총괄 디자인 자산 시스템</p>
+        </section>
+        
         <div class="container">
             <div class="grid-wrapper">
-                <div class="card">...</div>
-                <div class="card">...</div>
-                <div class="card">...</div>
+                <div class="card" onclick="location.href='sublist.html'"><h3>보고서 에셋</h3><p>표준 템플릿 모음</p></div>
+                <div class="card" onclick="location.href='sublist.html'"><h3>그래픽 리소스</h3><p>고퀄리티 그래픽 자산</p></div>
+                <div class="card" onclick="location.href='sublist.html'"><h3>문서 가이드</h3><p>사내 문서 표준 가이드</p></div>
             </div>
         </div>
     </main>
