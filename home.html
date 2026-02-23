@@ -4,7 +4,7 @@
     <link rel="icon" href="/omock/favicon.ico">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Design Library</title>
+    <title>AI Design Library | Hancom</title>
     
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="badwords.js"></script>
@@ -12,43 +12,70 @@
     <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
     
     <style>
-        /* 기본 스타일 (로그인 전에도 보일 최소한의 디자인) */
         :root { --primary-color: #2563eb; --brand-orange: #FC5E20; --gradient-text: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #db2777 100%); --bg-color: #f8fafc; --text-main: #0f172a; --text-sub: #64748b; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); overflow-x: hidden; }
+        
         header { padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(255, 255, 255, 0.5); }
-        .logo-area { display: flex; align-items: center; }
+        .logo-area { display: flex; align-items: center; cursor: pointer; }
         .logo-svg { height: 36px; width: auto; }
+        
         .header-nav { display: flex; align-items: center; gap: 20px; }
         .user-greeting { font-size: 0.9rem; font-weight: 500; color: #334155; display: none; }
         .btn-logout { background: #e2e8f0; color: #475569; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: none; }
-        footer { text-align: center; padding: 60px 20px; color: var(--text-sub); background: #f1f5f9; font-size: 0.9rem; border-top: 1px solid #e2e8f0; }
-        
-        /* 🌟 [중요] 메인 콘텐츠는 기본적으로 숨김 */
-        #mainContent { display: none; min-height: 100vh; }
 
-        /* 기존 카드 및 그리드 스타일은 그대로 유지해야 주입했을 때 이쁘게 보입니다 */
+        /* 🌟 [중요] 메인 콘텐츠 레이아웃 & 그라데이션 복구 */
+        #mainContent { display: none; min-height: 100vh; }
         .text-hero { max-width: 800px; margin: 0 auto; padding: 100px 20px 60px 20px; text-align: center; }
-        .hero-title { font-size: 3.5rem; font-weight: 800; margin-bottom: 20px; background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-title { font-size: 3.5rem; font-weight: 800; margin-bottom: 20px; background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.1; }
         .hero-subtitle { font-size: 1.25rem; color: var(--text-sub); }
-        .main-visual-full { width: 100%; height: 600px; background-image: url('https://raw.githubusercontent.com/myc2102-hue/omock/refs/heads/main/images/mainvisual.jpg'); background-size: cover; background-position: center; background-attachment: fixed; position: relative; }
-        .container { max-width: 1200px; margin: -120px auto 0; padding: 0 20px 100px; position: relative; z-index: 10; }
+        
+        /* 🎨 그라데이션 오버레이가 포함된 비주얼 영역 */
+        .main-visual-full { 
+            width: 100%; 
+            height: 600px; 
+            background-image: url('https://raw.githubusercontent.com/myc2102-hue/omock/refs/heads/main/images/mainvisual.jpg'); 
+            background-size: cover; 
+            background-position: center; 
+            background-attachment: fixed; 
+            position: relative; 
+        }
+        
+        /* 🌟 빠졌던 하단 그라데이션 (박스들을 자연스럽게 올려줌) */
+        .visual-overlay { 
+            position: absolute; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 250px; 
+            background: linear-gradient(to bottom, rgba(248,250,252,0) 0%, rgba(248,250,252,1) 100%); 
+        }
+
+        .container { max-width: 1200px; margin: -150px auto 0; padding: 0 20px 100px; position: relative; z-index: 10; }
         .grid-wrapper { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
-        .card { background: rgba(255, 255, 255, 0.9); padding: 35px; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: 0.3s; cursor: pointer; display: flex; flex-direction: column; text-decoration: none; color: inherit; }
-        .card:hover { transform: translateY(-8px); background: #fff; border-color: var(--primary-color); }
+        .card { background: rgba(255, 255, 255, 0.95); padding: 35px; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: 0.3s; cursor: pointer; display: flex; flex-direction: column; text-decoration: none; color: inherit; backdrop-filter: blur(10px); }
+        .card:hover { transform: translateY(-8px); background: #fff; border-color: var(--primary-color); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+        
         .icon-box { width: 56px; height: 56px; background: #f1f5f9; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
         .icon-box i { font-size: 1.8rem; }
+
+        footer { text-align: center; padding: 60px 20px; color: var(--text-sub); background: #f1f5f9; font-size: 0.9rem; border-top: 1px solid #e2e8f0; }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="logo-area">
-            <svg class="logo-svg" viewBox="0 0 800 200" fill="none">...</svg>
+        <div class="logo-area" onclick="location.href='home.html'">
+            <svg class="logo-svg" viewBox="0 0 800 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M70.0813 87.8994H141.809V110.757H70.0813V87.8994Z" fill="#FC5E20"/>
+                <path d="M191.797 43.0686L150.793 157.26H174.807L182.322 135.532H227.737L235.252 157.26H259.43L218.425 43.0686H191.797Z" fill="black"/>
+                <path d="M304.095 43.0686V157.26H328.109V106.182H379.524V157.26H403.538V43.0686H379.524V83.3101H328.109V43.0686H304.095Z" fill="black"/>
+                <path d="M518.396 113.842L481.565 43.0686H455.08L506.315 137.989V157.26H530.493V137.989L581.728 43.0686H555.242L518.396 113.842Z" fill="black"/>
+            </svg>
         </div>
         <nav class="header-nav">
             <div id="userGreeting" class="user-greeting"><strong id="userEmailDisplay"></strong>님 환영합니다</div>
-            <a href="/omock/admin.html" style="font-weight: 600; font-size: 0.95rem;">Admin</a>
+            <a href="/omock/admin.html" style="font-weight: 600; font-size: 0.95rem; text-decoration: none; color: inherit;">Admin</a>
             <button class="btn-logout" id="logoutBtn" onclick="handleLogout()">로그아웃</button>
         </nav>
     </header>
