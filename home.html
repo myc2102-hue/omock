@@ -20,17 +20,34 @@
         .logo-area { display: flex; align-items: center; cursor: pointer; }
         .logo-svg { height: 36px; width: auto; }
         
+        /* 🌟 유저 구역 정렬 보정 */
         .header-nav { display: flex; align-items: center; gap: 20px; }
-        .user-greeting { font-size: 0.9rem; font-weight: 500; color: #334155; display: none; }
+        .user-greeting { 
+            font-size: 0.9rem; 
+            font-weight: 500; 
+            color: #334155; 
+            display: none; /* JS에서 flex로 켜짐 */
+            align-items: center; 
+            gap: 10px; 
+        }
+        
+        /* 🌟 프로필 이미지 스타일 */
+        .user-photo { 
+            width: 32px; 
+            height: 32px; 
+            border-radius: 50%; 
+            object-fit: cover; 
+            border: 1.5px solid #fff; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+        }
+
         .btn-logout { background: #e2e8f0; color: #475569; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: none; }
 
-        /* 🌟 [중요] 메인 콘텐츠 레이아웃 & 그라데이션 복구 */
         #mainContent { display: none; min-height: 100vh; }
         .text-hero { max-width: 800px; margin: 0 auto; padding: 100px 20px 60px 20px; text-align: center; }
         .hero-title { font-size: 3.5rem; font-weight: 800; margin-bottom: 20px; background: var(--gradient-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.1; }
         .hero-subtitle { font-size: 1.25rem; color: var(--text-sub); }
         
-        /* 🎨 그라데이션 오버레이가 포함된 비주얼 영역 */
         .main-visual-full { 
             width: 100%; 
             height: 600px; 
@@ -41,7 +58,6 @@
             position: relative; 
         }
         
-        /* 🌟 빠졌던 하단 그라데이션 (박스들을 자연스럽게 올려줌) */
         .visual-overlay { 
             position: absolute; 
             bottom: 0; 
@@ -54,7 +70,7 @@
         .container { max-width: 1200px; margin: -150px auto 0; padding: 0 20px 100px; position: relative; z-index: 10; }
         .grid-wrapper { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
         .card { background: rgba(255, 255, 255, 0.95); padding: 35px; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: 0.3s; cursor: pointer; display: flex; flex-direction: column; text-decoration: none; color: inherit; backdrop-filter: blur(10px); }
-        .card:hover { transform: translateY(-8px); background: #fff; border-color: var(--primary-color); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+        .card:hover { transform: translateY(-8px); background: #fff; border-color: var(--primary-color); }
         
         .icon-box { width: 56px; height: 56px; background: #f1f5f9; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
         .icon-box i { font-size: 1.8rem; }
@@ -74,7 +90,10 @@
             </svg>
         </div>
         <nav class="header-nav">
-            <div id="userGreeting" class="user-greeting"><strong id="userEmailDisplay"></strong>님 환영합니다</div>
+            <div id="userGreeting" class="user-greeting">
+                <img id="userPhoto" src="" alt="" class="user-photo">
+                <strong id="userEmailDisplay"></strong>님 환영합니다
+            </div>
             <a href="/omock/admin.html" style="font-weight: 600; font-size: 0.95rem; text-decoration: none; color: inherit;">Admin</a>
             <button class="btn-logout" id="logoutBtn" onclick="handleLogout()">로그아웃</button>
         </nav>

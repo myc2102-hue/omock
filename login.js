@@ -16,13 +16,17 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 provider.setCustomParameters({ hd: TARGET_DOMAIN });
 
-// 🌟 2. [디자인 금고] 로그인 성공 전까지는 브라우저 어디에도 존재하지 않는 코드
+// 🌟 2. [디자인 금고] 그라데이션 오버레이 태그 추가 복구
 const REAL_DESIGN_HTML = `
     <section class="text-hero">
         <h1 class="hero-title">AI 업무 효율을 위한,<br>기획총괄 디자인 라이브러리</h1>
         <p class="hero-subtitle">최적화된 워크플로우와 디자인 자산을 한곳에서 관리하세요.</p>
     </section>
-    <div class="main-visual-full"></div>
+    
+    <div class="main-visual-full">
+        <div class="visual-overlay"></div>
+    </div>
+    
     <div class="container">
         <div class="grid-wrapper">
             <a href="sublist.html?category=report" class="card">
@@ -63,7 +67,7 @@ const REAL_DESIGN_HTML = `
 const loginStyle = `
 <style>
     .apple-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(245, 245, 247, 0.6); backdrop-filter: blur(25px) saturate(180%); z-index: 99999; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s; }
-    .apple-modal { background: rgba(255, 255, 255, 0.8); padding: 50px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); width: 400px; text-align: center; border: 1px solid #fff; opacity: 0; transform: translateY(20px); transition: 0.5s; }
+    .apple-modal { background: rgba(255, 255, 255, 0.8); padding: 50px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); width: 400px; text-align: center; border: 1px solid #fff; opacity: 0; transform: translateY(20px); transition: 0.5s; font-family: 'Pretendard', sans-serif; }
     .apple-modal.show { opacity: 1; transform: translateY(0); }
     .apple-icon { width: 60px; height: 60px; background: #fff; border-radius: 18px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
     .apple-btn { width: 100%; padding: 15px; border-radius: 15px; border: none; background: #fff; color: #1d1d1f; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: 0.2s; }
@@ -91,6 +95,7 @@ document.body.insertAdjacentHTML('beforeend', loginHtml);
 const main = document.getElementById('mainContent');
 const overlay = document.getElementById('loginOverlay');
 const loginBox = document.getElementById('loginBox');
+const userPhoto = document.getElementById('userPhoto'); // 🌟 사진 태그 가져오기
 
 // 4. 인증 상태 감시 (핵심 로직)
 onAuthStateChanged(auth, (user) => {
@@ -100,8 +105,16 @@ onAuthStateChanged(auth, (user) => {
         main.style.display = 'block';
         overlay.style.display = 'none';
         
-        document.getElementById('userEmailDisplay').innerText = user.email;
-        document.getElementById('userGreeting').style.display = 'block';
+        // 🌟 사용자 정보 업데이트
+        document.getElementById('userEmailDisplay').innerText = user.email.split('@')[0];
+        
+        // 🌟 프로필 사진 주입
+        if (user.photoURL && userPhoto) {
+            userPhoto.src = user.photoURL;
+            userPhoto.alt = user.displayName || 'Profile';
+        }
+        
+        document.getElementById('userGreeting').style.display = 'flex'; // flex로 변경 (사진 정렬용)
         document.getElementById('logoutBtn').style.display = 'block';
         document.body.style.overflow = 'auto';
     } else {
@@ -110,6 +123,7 @@ onAuthStateChanged(auth, (user) => {
         main.style.display = 'none';
         overlay.style.display = 'flex';
         setTimeout(() => loginBox.classList.add('show'), 50);
+        document.body.style.overflow = 'hidden';
     }
 });
 
