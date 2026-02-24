@@ -15,16 +15,17 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 provider.setCustomParameters({ hd: TARGET_DOMAIN });
 
-// 🌟 Genspark 스타일의 메인 콘텐츠
 const REAL_DESIGN_HTML = `
     <section class="text-hero">
-        <h1 class="hero-title">어떤 디자인을 찾으세요?</h1>
-        <p class="hero-subtitle">한컴의 모든 디자인 에셋을 AI로 검색해 보세요.</p>
+        <h1 class="hero-title">업무 효율화를 위한 라이브러리</h1>
+        <p class="hero-subtitle">한컴의 모든 에셋을 AI로 검색해 보세요.</p>
         
         <div class="search-container">
             <div class="search-wrapper">
-                <i class="ph ph-sparkle" style="font-size:28px; color:#ff0080"></i>
-                <input type="text" class="search-input" placeholder="필요한 문구나 이미지를 설명해 주세요...">
+                <div style="display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i class="ph ph-sparkle" style="font-size:28px; color:#ff0080"></i>
+                </div>
+                <input type="text" class="search-input" placeholder="필요한 에셋을 설명해 보세요...">
                 <button class="search-btn">Ask AI</button>
             </div>
             
@@ -53,7 +54,7 @@ const REAL_DESIGN_HTML = `
     </div>
     
     <div class="container" style="margin-top: -80px; text-align:center;">
-        <span style="background:rgba(255,255,255,0.8); padding:8px 20px; border-radius:50px; font-size:0.85rem; color:var(--text-sub); border:1px solid #e2e8f0; backdrop-filter:blur(10px);">
+        <span style="background:rgba(255,255,255,0.8); padding:8px 24px; border-radius:50px; font-size:0.85rem; color:var(--text-sub); border:1px solid #e2e8f0; backdrop-filter:blur(10px); display:inline-block;">
             🔥 Trending: 2026 한컴 브랜드 킷 신규 배포
         </span>
     </div>
@@ -66,7 +67,6 @@ const loginStyle = `
     .apple-modal.show { opacity: 1; transform: translateY(0); }
     .apple-icon { width: 64px; height: 64px; background: #fff; border-radius: 20px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
     .apple-btn { width: 100%; padding: 16px; border-radius: 16px; border: none; background: #fff; color: #1d1d1f; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: 0.2s; }
-    .apple-btn:active { transform: scale(0.98); }
 </style>
 `;
 
@@ -95,13 +95,8 @@ onAuthStateChanged(auth, (user) => {
         main.innerHTML = REAL_DESIGN_HTML;
         main.style.display = 'block';
         overlay.style.display = 'none';
-        
         document.getElementById('userEmailDisplay').innerText = user.email.split('@')[0];
-        
-        if (user.photoURL && userPhoto) {
-            userPhoto.src = user.photoURL;
-        }
-
+        if (user.photoURL && userPhoto) userPhoto.src = user.photoURL;
         document.getElementById('userGreeting').style.display = 'flex';
         document.getElementById('logoutBtn').style.display = 'block';
         document.body.style.overflow = 'auto';
