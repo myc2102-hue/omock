@@ -2,60 +2,320 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>AI Task Master - 실무자용</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Service Impact Report</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
     <style>
-        body { font-family: 'Pretendard', sans-serif; background: #f4f7f9; margin: 0; padding: 20px; }
-        .container { max-width: 600px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin: auto; }
-        h2 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; }
-        select, input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        .btn { background: #4A90E2; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; cursor: pointer; font-size: 16px; }
-        .btn:hover { background: #357ABD; }
-        .info-box { background: #eef6ff; padding: 15px; border-radius: 6px; font-size: 0.9em; margin-bottom: 20px; color: #555; }
+        :root {
+            --primary-color: #2563eb;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --border-color: #e2e8f0;
+            --accent-green: #22c55e;
+            --accent-red: #ef4444;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* 헤더 영역 */
+        header {
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 28px;
+            margin: 0;
+            color: var(--primary-color);
+        }
+
+        header p {
+            color: var(--text-sub);
+            margin-top: 8px;
+        }
+
+        /* 섹션 공통 스타일 */
+        section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            font-size: 18px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .guide-text {
+            font-size: 13px;
+            color: #94a3b8;
+            background: #f1f5f9;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        /* 입력 폼 그리드 */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+            transition: border 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        /* 테이블 스타일 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            text-align: left;
+            width: 25%;
+        }
+
+        .comparison-table th { background: #f8fafc; text-align: center; }
+        .comparison-table td { width: 33.3%; vertical-align: top; }
+
+        /* 만족도 별점/점수 */
+        .rating-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        .rating-item {
+            text-align: center;
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        /* 버튼 */
+        .submit-area {
+            text-align: right;
+            margin-top: 40px;
+        }
+
+        .btn-submit {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-submit:hover {
+            background: #1d4ed8;
+        }
+
+        .full-width { grid-column: span 2; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>🚀 AI 업무 성과 리포트</h2>
-        <div class="info-box">
-            <strong>계정:</strong> user@example.com (디자인/기획)<br>
-            현재 승인된 툴을 기반으로 성과를 입력해 주세요.
+
+<div class="container">
+    <header>
+        <h1>AI 서비스 활용 성과 보고서</h1>
+        <p>전사 AI 도입의 인사이트 도출을 위한 상세 활용 사례를 작성해 주세요.</p>
+    </header>
+
+    <section>
+        <h2>📄 개요</h2>
+        <div class="guide-text">어떤 AI 서비스를 왜 써봤는지 간단히 소개해 주세요.</div>
+        <div class="form-grid">
+            <div class="input-group">
+                <label>작성자 (팀명)</label>
+                <input type="text" placeholder="예: 기획총괄 전략지원팀">
+            </div>
+            <div class="input-group">
+                <label>작성일</label>
+                <input type="date">
+            </div>
+            <div class="input-group">
+                <label>AI 서비스명 및 제공사</label>
+                <input type="text" placeholder="예: ChatGPT Plus (OpenAI)">
+            </div>
+            <div class="input-group">
+                <label>구독 기간</label>
+                <input type="text" placeholder="예: 2024.01 ~ 2024.06">
+            </div>
+            <div class="input-group full-width">
+                <label>구독 요금제 / 비용</label>
+                <input type="text" placeholder="예: 월 $20 / 약 29,000원">
+            </div>
+            <div class="input-group full-width">
+                <label>AI 서비스 사용 목적 및 배경</label>
+                <textarea rows="3" placeholder="반복 데이터 수집 자동화, 트렌드 분석 시간 단축 등 구체적인 배경을 입력하세요."></textarea>
+            </div>
         </div>
-        <form>
-            <div class="form-group">
-                <label>활용 도구 선택</label>
+    </section>
+
+    <section>
+        <h2>🛠 AI 서비스 활용 방법</h2>
+        <div class="guide-text">실제 업무에서 AI를 어떻게 써보셨는지 편하게 공유해 주세요.</div>
+        <table>
+            <tr>
+                <th>활용 업무</th>
+                <td><input type="text" style="width:95%"></td>
+            </tr>
+            <tr>
+                <th>활용 시나리오</th>
+                <td><textarea rows="2" style="width:95%"></textarea></td>
+            </tr>
+            <tr>
+                <th>사용 프롬프트</th>
+                <td><textarea rows="2" style="width:95%" placeholder="실제 효과가 좋았던 프롬프트를 공유해 주세요."></textarea></td>
+            </tr>
+            <tr>
+                <th>주요 결과</th>
+                <td><input type="text" style="width:95%"></td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <h2>📊 AI 서비스 활용 전후 비교</h2>
+        <div class="guide-text">AI 서비스를 사용하기 전과 후가 얼마나 달라졌는지 적어 주세요.</div>
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>항목</th>
+                    <th>도입 전 (기존)</th>
+                    <th>도입 후 (AI)</th>
+                    <th>변화 및 효과</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>작업 시간</td>
+                    <td><input type="text" placeholder="10시간/건"></td>
+                    <td><input type="text" placeholder="4시간/건"></td>
+                    <td><input type="text" placeholder="60% 단축"></td>
+                </tr>
+                <tr>
+                    <td>수행 빈도</td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                    <td><input type="text"></td>
+                </tr>
+                <tr>
+                    <td>결과 품질</td>
+                    <td><textarea rows="2"></textarea></td>
+                    <td><textarea rows="2"></textarea></td>
+                    <td><textarea rows="2"></textarea></td>
+                </tr>
+                <tr>
+                    <td>리서치 범위</td>
+                    <td><textarea rows="2"></textarea></td>
+                    <td><textarea rows="2"></textarea></td>
+                    <td><textarea rows="2"></textarea></td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <h2>⭐ 성능 및 사용 경험 평가</h2>
+        <div class="guide-text">사용해 보면서 느낀 만족도를 솔직하게 평가해 주세요. (1~5점)</div>
+        <div class="rating-grid">
+            <div class="rating-item"><label>정확도</label><input type="number" min="1" max="5"></div>
+            <div class="rating-item"><label>속도</label><input type="number" min="1" max="5"></div>
+            <div class="rating-item"><label>편의성</label><input type="number" min="1" max="5"></div>
+            <div class="rating-item"><label>가성비</label><input type="number" min="1" max="5"></div>
+            <div class="rating-item"><label>보안성</label><input type="number" min="1" max="5"></div>
+        </div>
+        <div class="form-grid" style="margin-top:20px;">
+            <div class="input-group">
+                <label style="color:var(--accent-green)">👍 이런 점은 추천해요</label>
+                <textarea rows="3"></textarea>
+            </div>
+            <div class="input-group">
+                <label style="color:var(--accent-red)">👎 이런 점은 아쉬워요</label>
+                <textarea rows="3"></textarea>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>💡 최종 결론 및 추천 의견</h2>
+        <div class="form-grid">
+            <div class="input-group full-width">
+                <label>활용 권고 의견</label>
                 <select>
-                    <option>ChatGPT Plus</option>
-                    <option>Claude 3.5 Sonnet</option>
-                    <option>Figma AI</option>
-                    <option>Perplexity Pro</option>
-                    <option>GitHub Copilot</option>
+                    <option>구독 유지 적극 권장</option>
+                    <option>구독 유지</option>
+                    <option>대체 서비스 검토 필요</option>
+                    <option>구독 해지 권고</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>업무 유형</label>
-                <select>
-                    <option>자료 조사 및 리서치</option>
-                    <option>콘텐츠 및 기획안 작성</option>
-                    <option>코드 작성 및 리뷰</option>
-                    <option>디자인 시안 제작</option>
-                    <option>단순 반복 업무 자동화</option>
-                </select>
+            <div class="input-group full-width">
+                <label>판단 근거 및 개선 제안</label>
+                <textarea rows="3"></textarea>
             </div>
-            <div class="form-group">
-                <label>시간 효율 변화 (단위: 시간)</label>
-                <div style="display: flex; gap: 10px;">
-                    <input type="number" placeholder="도입 전 소요시간">
-                    <input type="number" placeholder="도입 후 소요시간">
-                </div>
-            </div>
-            <div class="form-group">
-                <label>주요 성과 및 인사이트 (한 줄 요약)</label>
-                <textarea rows="3" placeholder="예: 해외 벤치마킹 자료 요약 시간이 70% 단축되어 전략 수립에 더 집중함"></textarea>
-            </div>
-            <button type="button" class="btn" onclick="alert('데이터가 전송되었습니다.')">성과 등록하기</button>
-        </form>
+        </div>
+    </section>
+
+    <div class="submit-area">
+        <button class="btn-submit">보고서 제출하기</button>
     </div>
+</div>
+
 </body>
 </html>
