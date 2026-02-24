@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Task Master - 실무자용</title>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; background: #f4f7f9; margin: 0; padding: 20px; }
+        .container { max-width: 600px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin: auto; }
+        h2 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        select, input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .btn { background: #4A90E2; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; cursor: pointer; font-size: 16px; }
+        .btn:hover { background: #357ABD; }
+        .info-box { background: #eef6ff; padding: 15px; border-radius: 6px; font-size: 0.9em; margin-bottom: 20px; color: #555; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🚀 AI 업무 성과 리포트</h2>
+        <div class="info-box">
+            <strong>계정:</strong> user@example.com (디자인/기획)<br>
+            현재 승인된 툴을 기반으로 성과를 입력해 주세요.
+        </div>
+        <form>
+            <div class="form-group">
+                <label>활용 도구 선택</label>
+                <select>
+                    <option>ChatGPT Plus</option>
+                    <option>Claude 3.5 Sonnet</option>
+                    <option>Figma AI</option>
+                    <option>Perplexity Pro</option>
+                    <option>GitHub Copilot</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>업무 유형</label>
+                <select>
+                    <option>자료 조사 및 리서치</option>
+                    <option>콘텐츠 및 기획안 작성</option>
+                    <option>코드 작성 및 리뷰</option>
+                    <option>디자인 시안 제작</option>
+                    <option>단순 반복 업무 자동화</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>시간 효율 변화 (단위: 시간)</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" placeholder="도입 전 소요시간">
+                    <input type="number" placeholder="도입 후 소요시간">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>주요 성과 및 인사이트 (한 줄 요약)</label>
+                <textarea rows="3" placeholder="예: 해외 벤치마킹 자료 요약 시간이 70% 단축되어 전략 수립에 더 집중함"></textarea>
+            </div>
+            <button type="button" class="btn" onclick="alert('데이터가 전송되었습니다.')">성과 등록하기</button>
+        </form>
+    </div>
+</body>
+</html>
