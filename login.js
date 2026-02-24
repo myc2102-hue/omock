@@ -85,6 +85,8 @@ document.body.insertAdjacentHTML('beforeend', `
     </div>
 `);
 
+// ... 앞부분 동일 ...
+
 onAuthStateChanged(auth, (user) => {
     const main = document.getElementById('mainContent');
     const overlay = document.getElementById('loginOverlay');
@@ -95,19 +97,27 @@ onAuthStateChanged(auth, (user) => {
         main.innerHTML = REAL_DESIGN_HTML;
         main.style.display = 'block';
         overlay.style.display = 'none';
+        
         document.getElementById('userEmailDisplay').innerText = user.email.split('@')[0];
         if (user.photoURL && userPhoto) userPhoto.src = user.photoURL;
         document.getElementById('userGreeting').style.display = 'flex';
         document.getElementById('logoutBtn').style.display = 'block';
         document.body.style.overflow = 'auto';
 
-        // 🌟 요구사항: 로그인 성공 즉시 커서 깜빡이기
+        // 🌟 [수정] 더 강력한 자동 커서 깜빡임 로직
+        // HTML이 렌더링될 시간을 충분히 준 뒤(200ms), 
+        // 포커스를 가로채는 다른 요소가 없도록 강제 포커스를 실행합니다.
         setTimeout(() => {
             const searchInput = document.getElementById('aiSearchInput');
-            if (searchInput) searchInput.focus();
-        }, 300);
+            if (searchInput) {
+                searchInput.focus();
+                // 텍스트 맨 뒤로 커서 보내기 (깜빡임 확실히 보이게)
+                searchInput.selectionStart = searchInput.selectionEnd = searchInput.value.length;
+            }
+        }, 500); // 0.5초 대기 후 실행
 
     } else {
+        // ... 생략 (실패 로직) ...
         main.innerHTML = '';
         main.style.display = 'none';
         overlay.style.display = 'flex';
@@ -116,5 +126,6 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
+// ... 뒷부분 동일 ...
 document.getElementById('googleLoginBtn').onclick = () => signInWithPopup(auth, provider);
 window.handleLogout = () => signOut(auth).then(() => location.reload());
