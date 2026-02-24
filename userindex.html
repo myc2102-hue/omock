@@ -2,339 +2,124 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Workspace - My Report</title>
-    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+    <title>Hancom AI Workspace</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-light: #eef2ff;
-            --bg: #f8fafc;
-            --text-title: #0f172a;
-            --text-body: #475569;
-            --border: #e2e8f0;
-            --white: #ffffff;
+            --apple-bg: #F5F5F7;
+            --apple-card: rgba(255, 255, 255, 0.8);
+            --apple-blue: #0071E3;
+            --apple-text: #1D1D1F;
+            --apple-gray: #86868B;
         }
 
         body {
-            font-family: 'Pretendard', sans-serif;
-            background-color: var(--bg);
-            color: var(--text-body);
-            margin: 0;
-            display: flex;
+            font-family: 'Pretendard', -apple-system, sans-serif;
+            background-color: var(--apple-bg);
+            color: var(--apple-text);
+            margin: 0; padding: 0;
+            display: flex; justify-content: center;
         }
 
-        /* 왼쪽 플로팅 네비게이션 */
-        .side-nav {
-            width: 80px;
-            background: var(--white);
-            height: 100vh;
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 30px;
-            position: fixed;
-        }
+        .container { width: 100%; max-width: 800px; padding: 60px 20px; }
 
-        .nav-icon {
-            width: 45px;
-            height: 45px;
-            border-radius: 12px;
-            background: var(--primary-light);
-            margin-bottom: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary);
-            font-weight: bold;
-        }
+        /* 로고 및 헤더 */
+        .header { text-align: center; margin-bottom: 50px; }
+        .logo { height: 40px; margin-bottom: 20px; }
+        .header h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.5px; margin: 0; }
+        .header p { font-size: 19px; color: var(--apple-gray); margin-top: 10px; }
 
-        /* 메인 컨텐츠 */
-        .wrapper {
-            margin-left: 80px;
-            width: calc(100% - 80px);
-            padding: 40px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .content {
-            max-width: 960px;
-            width: 100%;
-        }
-
-        .welcome-section {
-            margin-bottom: 30px;
-        }
-
-        .welcome-section h1 {
-            font-size: 28px;
-            color: var(--text-title);
-            margin: 0;
-        }
-
-        /* 카드 스타일 */
+        /* 카드 섹션 */
         .card {
-            background: var(--white);
+            background: var(--apple-card);
+            backdrop-filter: blur(20px);
             border-radius: 20px;
-            padding: 30px;
+            padding: 40px;
             margin-bottom: 30px;
-            border: 1px solid var(--border);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+            border: 1px solid rgba(255,255,255,0.3);
         }
 
-        .card-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 25px;
-        }
+        .section-title { font-size: 21px; font-weight: 600; margin-bottom: 25px; color: var(--apple-text); }
 
-        .card-header .icon-circle {
-            width: 32px;
-            height: 32px;
-            background: var(--primary);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 14px;
-        }
-
-        .card-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-title);
-        }
-
-        /* 폼 요소 디자인 */
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        label {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-title);
-        }
-
+        /* 입력 요소 */
+        .input-group { margin-bottom: 25px; }
+        label { display: block; font-size: 14px; font-weight: 500; color: var(--apple-gray); margin-bottom: 8px; margin-left: 4px; }
         input, select, textarea {
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 14px;
-            font-size: 15px;
-            background: #fdfdfd;
-            transition: all 0.2s;
+            width: 100%; padding: 16px; border-radius: 12px; border: 1px solid #D2D2D7;
+            background: rgba(255,255,255,0.5); font-size: 16px; box-sizing: border-box;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
         input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px var(--primary-light);
+            outline: none; border-color: var(--apple-blue); box-shadow: 0 0 0 4px rgba(0,113,227,0.1); background: #fff;
         }
 
-        /* 비포/애프터 비교 디자인 */
-        .compare-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 15px;
-            background: var(--bg);
-            padding: 20px;
-            border-radius: 16px;
-        }
+        /* 비포 애프터 비교 뷰 */
+        .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px; }
+        .comp-item { background: #fff; padding: 20px; border-radius: 15px; border: 1px solid #E5E5E7; }
+        .comp-item span { font-size: 12px; color: var(--apple-gray); font-weight: 600; }
+        .comp-item div { font-size: 24px; font-weight: 700; margin-top: 5px; color: var(--apple-blue); }
 
-        .compare-box {
-            background: var(--white);
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-        }
-
-        .compare-label {
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            display: block;
-        }
-
-        .label-before { color: #94a3b8; }
-        .label-after { color: var(--primary); }
-        .label-effect { color: #10b981; }
-
-        /* 평점 버튼 */
-        .rating-wrap {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-        }
-
-        .rating-btn {
-            flex: 1;
-            margin: 0 5px;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: white;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
-        }
-
-        .rating-btn:hover, .rating-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
+        /* 제출 버튼 */
         .btn-submit {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 18px 0;
-            width: 100%;
-            border-radius: 16px;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.3s;
-            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+            width: 100%; padding: 18px; border-radius: 40px; border: none;
+            background: var(--apple-blue); color: white; font-size: 17px; font-weight: 600;
+            cursor: pointer; transition: transform 0.2s ease; margin-top: 20px;
         }
+        .btn-submit:hover { transform: scale(1.01); background: #0077ED; }
 
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 20px 25px -5px rgba(99, 102, 241, 0.4);
-        }
-
-        .guide-pop {
-            font-size: 13px;
-            color: var(--primary);
-            background: var(--primary-light);
-            padding: 4px 10px;
-            border-radius: 6px;
-            margin-left: 10px;
-        }
+        .user-info { position: absolute; top: 30px; right: 40px; font-size: 14px; color: var(--apple-gray); }
     </style>
 </head>
 <body>
 
-<div class="side-nav">
-    <div class="nav-icon">H</div>
-    <div class="nav-icon" style="background:none; color:#cbd5e1;">📁</div>
-    <div class="nav-icon" style="background:none; color:#cbd5e1;">📊</div>
-</div>
+    <div class="user-info">문영철 님 (Strategic Support)</div>
 
-<div class="wrapper">
-    <div class="content">
-        <div class="welcome-section">
-            <p style="color:var(--primary); font-weight:700; margin-bottom:5px;">AI Performance Report</p>
-            <h1>반갑습니다, 문영철 님! 오늘의 AI 인사이트를 공유해 주세요.</h1>
+    <div class="container">
+        <div class="header">
+            <img src="myc2102-hue/omock/images/hancomlogo.png" alt="Hancom Logo" class="logo">
+            <h1>AI 성과 보고서</h1>
+            <p>더 스마트해진 업무, 당신의 변화를 기록하세요.</p>
         </div>
 
         <div class="card">
-            <div class="card-header">
-                <div class="icon-circle">1</div>
-                <div class="card-title">서비스 기본 정보</div>
+            <div class="section-title">활용 정보</div>
+            <div class="input-group">
+                <label>AI 서비스 선택</label>
+                <select>
+                    <option>ChatGPT Plus</option>
+                    <option>Claude 3.5 Sonnet</option>
+                    <option>Figma AI</option>
+                    <option>GitHub Copilot</option>
+                </select>
             </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>사용 중인 AI 도구</label>
-                    <select>
-                        <option>선택하세요</option>
-                        <option>ChatGPT Plus</option>
-                        <option>Claude 3.5 Sonnet</option>
-                        <option>Figma AI</option>
-                        <option>GitHub Copilot</option>
-                        <option>Perplexity Pro</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>사용 계정</label>
-                    <input type="text" value="youngcheol.moon@hancom.com" readonly style="background:#f1f5f9;">
-                </div>
-            </div>
-            <div class="form-group">
-                <label>활용 목적</label>
-                <input type="text" placeholder="예: 리서치 업무 자동화 및 보고서 초안 생성">
+            <div class="input-group">
+                <label>활용 업무 및 목적</label>
+                <input type="text" placeholder="예: 해외 시장 리서치 자동화">
             </div>
         </div>
 
         <div class="card">
-            <div class="card-header">
-                <div class="icon-circle">2</div>
-                <div class="card-title">업무 효율 변화 측정 <span class="guide-pop">숫자 위주로 입력해 주세요</span></div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>적용 대상 업무</label>
-                    <input type="text" placeholder="예: 시장 조사 및 데이터 요약">
+            <div class="section-title">성과 지표</div>
+            <div class="comparison">
+                <div class="comp-item">
+                    <span>도입 전 (시간)</span>
+                    <input type="text" placeholder="10h" style="border:none; padding:0; font-size:24px; margin-top:5px; background:none;">
                 </div>
-                <div class="form-group">
-                    <label>수행 빈도</label>
-                    <input type="text" placeholder="예: 주 3회">
-                </div>
-            </div>
-            
-            <div class="compare-grid">
-                <div class="compare-box">
-                    <span class="compare-label label-before">도입 전 (시간)</span>
-                    <input type="text" placeholder="10h" style="width:80%; border:none; background:none; font-size:20px; font-weight:bold;">
-                </div>
-                <div class="compare-box">
-                    <span class="compare-label label-after">도입 후 (시간)</span>
-                    <input type="text" placeholder="3h" style="width:80%; border:none; background:none; font-size:20px; font-weight:bold; color:var(--primary);">
-                </div>
-                <div class="compare-box" style="background:var(--primary-light); border-color:var(--primary);">
-                    <span class="compare-label label-effect">절감 효과</span>
-                    <div style="font-size:20px; font-weight:bold; color:var(--primary);">70% 개선</div>
+                <div class="comp-item">
+                    <span>도입 후 (시간)</span>
+                    <input type="text" placeholder="3h" style="border:none; padding:0; font-size:24px; margin-top:5px; background:none; color:var(--apple-blue);">
                 </div>
             </div>
         </div>
 
         <div class="card">
-            <div class="card-header">
-                <div class="icon-circle">3</div>
-                <div class="card-title">성능 및 사용 경험 평가</div>
-            </div>
-            <div class="form-group" style="margin-bottom:20px;">
-                <label>전반적인 만족도는 어떠신가요?</label>
-                <div class="rating-wrap">
-                    <button class="rating-btn">1</button>
-                    <button class="rating-btn">2</button>
-                    <button class="rating-btn">3</button>
-                    <button class="rating-btn active">4</button>
-                    <button class="rating-btn">5</button>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>👍 장점 및 추천 포인트</label>
-                    <textarea rows="4" placeholder="출처가 명확하고 요약 품질이 우수함"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>👎 아쉬운 점 및 주의사항</label>
-                    <textarea rows="4" placeholder="무료 버전 대비 속도 차이가 크지 않음"></textarea>
-                </div>
-            </div>
+            <div class="section-title">사용 후기</div>
+            <textarea rows="4" placeholder="추천하는 점이나 아쉬운 점을 자유롭게 적어주세요."></textarea>
         </div>
 
-        <div style="margin-bottom: 100px;">
-            <button class="btn-submit">분석 리포트 제출 및 대시보드 반영</button>
-        </div>
+        <button class="btn-submit">보고서 제출</button>
     </div>
-</div>
 
 </body>
 </html>
