@@ -25,7 +25,7 @@ const REAL_DESIGN_HTML = `
                 <div style="display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                     <i class="ph ph-sparkle" style="font-size:28px; color:#ff0080"></i>
                 </div>
-                <input type="text" class="search-input" placeholder="필요한 에셋을 설명해 보세요...">
+                <input type="text" id="aiSearchInput" class="search-input" placeholder="필요한 에셋을 설명해 보세요...">
                 <button class="search-btn">Ask AI</button>
             </div>
             
@@ -100,6 +100,13 @@ onAuthStateChanged(auth, (user) => {
         document.getElementById('userGreeting').style.display = 'flex';
         document.getElementById('logoutBtn').style.display = 'block';
         document.body.style.overflow = 'auto';
+
+        // 🌟 요구사항: 로그인 성공 즉시 커서 깜빡이기
+        setTimeout(() => {
+            const searchInput = document.getElementById('aiSearchInput');
+            if (searchInput) searchInput.focus();
+        }, 300);
+
     } else {
         main.innerHTML = '';
         main.style.display = 'none';
