@@ -2,120 +2,96 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>AI Insight Admin</title>
+    <title>Hancom AI Admin Dashboard</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root {
-            --bg: #F5F5F7;
-            --accent: #0071E3;
-            --text: #1D1D1F;
-        }
-
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; }
-
-        /* 좌측 네비바 */
-        .sidebar {
-            width: 260px; height: 100vh; background: #fff; border-right: 1px solid #D2D2D7;
-            padding: 40px 24px; box-sizing: border-box; position: fixed;
-        }
-        .logo { height: 32px; margin-bottom: 60px; }
-
-        /* 메인 컨텐츠 */
-        .main { margin-left: 260px; width: 100%; padding: 60px; }
-
-        .top-bar { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 40px; }
-        .profile { display: flex; align-items: center; gap: 12px; font-weight: 500; font-size: 15px; }
-        .profile img { width: 32px; height: 32px; border-radius: 50%; background: #E5E5E7; }
-
-        /* 그리드 레이아웃 */
-        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 40px; }
-        .stat-card { background: #fff; padding: 30px; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); }
-        .stat-card h3 { font-size: 14px; color: #86868B; margin: 0; font-weight: 500; }
-        .stat-card .value { font-size: 32px; font-weight: 700; margin: 12px 0; letter-spacing: -1px; }
-
-        /* 차트 영역 */
-        .chart-row { display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px; margin-bottom: 40px; }
-        .chart-card { background: #fff; padding: 30px; border-radius: 24px; height: 350px; }
-
-        /* 테이블 */
-        .table-card { background: #fff; padding: 30px; border-radius: 24px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { text-align: left; padding: 12px; font-size: 13px; color: #86868B; border-bottom: 1px solid #F5F5F7; }
-        td { padding: 16px 12px; font-size: 14px; border-bottom: 1px solid #F5F5F7; }
+        body { font-family: 'Pretendard', sans-serif; background: #F5F5F7; margin: 0; display: flex; }
         
-        .badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: #F5F5F7; }
+        /* 사이드바 */
+        .sidebar {
+            width: 280px; height: 100vh; background: #fff; border-right: 1px solid #D2D2D7;
+            padding: 48px 30px; box-sizing: border-box; position: fixed;
+        }
+        .logo { height: 28px; margin-bottom: 60px; }
+        .nav-link { padding: 14px 0; color: #86868B; font-weight: 500; cursor: pointer; transition: 0.2s; }
+        .nav-link.active { color: #0071E3; font-weight: 700; }
+
+        /* 메인 영역 */
+        .main { margin-left: 280px; width: 100%; padding: 60px 80px; }
+        .top-info { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 50px; font-size: 15px; }
+
+        /* 대시보드 그리드 */
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 40px; }
+        .stat-card { background: #fff; padding: 32px; border-radius: 24px; box-shadow: 0 4px 24px rgba(0,0,0,0.02); }
+        .stat-card h3 { font-size: 13px; color: #86868B; margin: 0; font-weight: 600; text-transform: uppercase; }
+        .stat-card .value { font-size: 36px; font-weight: 700; margin: 12px 0; letter-spacing: -1px; }
+
+        /* 차트 박스 */
+        .chart-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px; }
+        .chart-card { background: #fff; padding: 32px; border-radius: 28px; height: 380px; box-shadow: 0 4px 24px rgba(0,0,0,0.02); }
+        h2 { font-size: 20px; font-weight: 700; margin-bottom: 30px; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <img src="myc2102-hue/omock/images/hancomlogo.png" alt="Hancom" class="logo">
-        <div style="color:var(--accent); font-weight:600; margin-bottom:20px;">Dashboard</div>
-        <div style="color:#86868B; margin-bottom:20px;">Reports</div>
-        <div style="color:#86868B; margin-bottom:20px;">Tools</div>
+        <img src="images/hancomlogo.png" alt="Hancom" class="logo">
+        <div class="nav-link active">인사이트 요약</div>
+        <div class="nav-link">부서별 데이터</div>
+        <div class="nav-link">비용 최적화</div>
     </div>
 
     <div class="main">
-        <div class="top-bar">
-            <div class="profile">
-                <span>한글과컴퓨터 <strong>문영철님</strong> 반갑습니다</span>
-                <div style="width:32px; height:32px; background:var(--accent); border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:12px;">M</div>
-            </div>
+        <div class="top-info">
+            한글과컴퓨터 <strong>문영철님</strong> 반갑습니다.
+            <div style="width:36px; height:36px; background:#0071E3; border-radius:50%; margin-left:15px;"></div>
         </div>
 
-        <h1 style="font-size:34px; font-weight:700; margin-bottom:30px;">AI Insight Dashboard</h1>
+        <h1 style="font-size: 38px; font-weight: 700; margin-bottom: 40px;">AI 도입 성과 대시보드</h1>
 
         <div class="grid">
-            <div class="stat-card"><h3>사용자</h3><div class="value">102명</div></div>
-            <div class="stat-card"><h3>절감 시간</h3><div class="value">1,420h</div></div>
-            <div class="stat-card"><h3>만족도</h3><div class="value">4.8</div></div>
-            <div class="stat-card"><h3>ROI 가치</h3><div class="value">₩82M</div></div>
+            <div class="stat-card"><h3>도입 인원</h3><div class="value">102명</div></div>
+            <div class="stat-card"><h3>절감 시간</h3><div class="value">1,642h</div></div>
+            <div class="stat-card"><h3>사용 만족도</h3><div class="value">4.8</div></div>
+            <div class="stat-card"><h3>ROI 지수</h3><div class="value">4.2x</div></div>
         </div>
 
-        <div class="chart-row">
+        <div class="chart-grid">
             <div class="chart-card">
-                <h3 style="margin-top:0;">직군별 성과 분석</h3>
-                <canvas id="barChart"></canvas>
+                <h2>부서별 효율 개선 (%)</h2>
+                <canvas id="mainChart"></canvas>
             </div>
             <div class="chart-card">
-                <h3 style="margin-top:0;">서비스 비중</h3>
-                <canvas id="pieChart"></canvas>
+                <h2>서비스 비중</h2>
+                <canvas id="subChart"></canvas>
             </div>
-        </div>
-
-        <div class="table-card">
-            <h3 style="margin:0;">최근 보고서 요약</h3>
-            <table>
-                <thead>
-                    <tr><th>부서</th><th>서비스</th><th>성과</th><th>상태</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td>전략지원팀</td><td>Claude 3.5</td><td>리서치 시간 70% 단축</td><td><span class="badge" style="color:var(--accent)">구독유지</span></td></tr>
-                    <tr><td>UX디자인실</td><td>Figma AI</td><td>시안 생성 프로세스 혁신</td><td><span class="badge" style="color:var(--accent)">도입확대</span></td></tr>
-                </tbody>
-            </table>
         </div>
     </div>
 
     <script>
-        // 바 차트
-        new Chart(document.getElementById('barChart'), {
+        const config = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+        };
+
+        new Chart(document.getElementById('mainChart'), {
             type: 'bar',
             data: {
-                labels: ['기획', '개발', '디자인', '마케팅'],
-                datasets: [{ data: [65, 85, 70, 50], backgroundColor: '#0071E3', borderRadius: 10 }]
+                labels: ['기획', '개발', '디자인', '마케팅', '지원'],
+                datasets: [{ data: [35, 55, 48, 30, 20], backgroundColor: '#0071E3', borderRadius: 12 }]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            options: config
         });
-        // 파이 차트
-        new Chart(document.getElementById('pieChart'), {
+
+        new Chart(document.getElementById('subChart'), {
             type: 'doughnut',
             data: {
-                labels: ['ChatGPT', 'Claude', 'Copilot', '기타'],
-                datasets: [{ data: [40, 30, 20, 10], backgroundColor: ['#0071E3', '#32ADE6', '#64D2FF', '#E5E5E7'], borderWidth: 0 }]
+                labels: ['GPT', 'Claude', 'Copilot', '기타'],
+                datasets: [{ data: [45, 25, 20, 10], backgroundColor: ['#0071E3', '#5AC8FA', '#34C759', '#E5E5E7'], borderWidth: 0 }]
             },
-            options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
+            options: { ...config, cutout: '75%' }
         });
     </script>
 </body>
