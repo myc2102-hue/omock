@@ -17,8 +17,8 @@ provider.setCustomParameters({ hd: TARGET_DOMAIN });
 
 const REAL_DESIGN_HTML = `
     <section class="text-hero">
-        <h1 class="hero-title">업무 효율화를 위한 라이브러리</h1>
-        <p class="hero-subtitle">한컴의 모든 에셋을 AI로 검색해 보세요.</p>
+        <h1 class="hero-title">어떤 디자인을 찾으세요?</h1>
+        <p class="hero-subtitle">한컴의 모든 디자인 에셋을 AI로 검색해 보세요.</p>
         
         <div class="search-container">
             <div class="search-wrapper">

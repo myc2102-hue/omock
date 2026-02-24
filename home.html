@@ -23,7 +23,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); overflow-x: hidden; }
         
-        /* 헤더 섹션 */
         header { padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(255, 255, 255, 0.5); }
         .logo-area { display: flex; align-items: center; cursor: pointer; }
         .logo-svg { height: 32px; width: auto; }
@@ -33,26 +32,38 @@
         .user-photo { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .btn-logout { background: #e2e8f0; color: #475569; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: none; transition: 0.2s; }
 
-        /* Genspark 레이아웃 & 찌그러짐 방지 CSS */
         #mainContent { display: none; min-height: 100vh; }
         .text-hero { max-width: 900px; margin: 0 auto; padding: 120px 20px 60px 20px; text-align: center; }
         .hero-title { font-size: 3.5rem; font-weight: 800; margin-bottom: 15px; background: var(--ai-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.2; letter-spacing: -0.02em; }
         .hero-subtitle { font-size: 1.2rem; color: var(--text-sub); font-weight: 500; margin-bottom: 40px; }
         
         .search-container { max-width: 820px; margin: 0 auto; position: relative; z-index: 20; padding: 0 20px; }
+        
+        /* 🌟 요구사항 반영: 노말 상태에서도 이쁜 상태 유지 */
         .search-wrapper { 
-            background: #fff; border-radius: 28px; padding: 8px 10px 8px 24px; 
-            display: flex; align-items: center; border: 2px solid #f1f5f9; 
-            box-shadow: 0 10px 40px rgba(255, 0, 128, 0.08); 
+            background: #fff; 
+            border-radius: 28px; 
+            padding: 8px 10px 8px 24px; 
+            display: flex; 
+            align-items: center; 
+            border: 2px solid #ff0080; /* 항상 핑크 보더 유지 */
+            box-shadow: 0 20px 50px rgba(124, 58, 237, 0.15); /* 항상 광채 유지 */
+            transform: translateY(-4px); /* 살짝 떠 있는 상태 유지 */
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            min-height: 72px; /* 세로 찌그러짐 방지 */
+            min-height: 72px;
         }
-        .search-wrapper:focus-within { transform: translateY(-4px); border-color: #ff0080; box-shadow: 0 20px 50px rgba(124, 58, 237, 0.15); }
+        
+        /* 클릭 시 더 강조되는 효과 (추천 제안) */
+        .search-wrapper:focus-within { 
+            transform: translateY(-6px) scale(1.01); 
+            box-shadow: 0 25px 60px rgba(124, 58, 237, 0.25); 
+        }
+
         .search-input { flex: 1; border: none; background: transparent; padding: 10px; font-size: 1.2rem; font-weight: 600; outline: none; color: var(--text-main); width: 100%; }
         .search-btn { 
             background: var(--ai-gradient); color: white; border: none; padding: 0 30px; 
             height: 52px; border-radius: 20px; font-weight: 700; cursor: pointer; 
-            transition: 0.3s; flex-shrink: 0; /* 가로 찌그러짐 방지 */
+            transition: 0.3s; flex-shrink: 0;
         }
 
         .icon-nav-wrapper { display: flex; justify-content: center; gap: 16px; margin-top: 48px; flex-wrap: wrap; }
@@ -78,7 +89,6 @@
     </style>
 </head>
 <body>
-
     <header>
         <div class="logo-area" onclick="location.href='home.html'">
             <svg class="logo-svg" viewBox="0 0 800 200" fill="none" xmlns="http://www.w3.org/2000/svg">
