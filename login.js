@@ -17,7 +17,7 @@ provider.setCustomParameters({ hd: TARGET_DOMAIN });
 
 const REAL_DESIGN_HTML = `
     <section class="text-hero">
-        <h1 class="hero-title">어떤 디자인을 찾으세요?</h1>
+        <h1 class="hero-title">업무 효율화를 위한 기획총괄 라이브러리</h1>
         <p class="hero-subtitle">한컴의 모든 디자인 에셋을 AI로 검색해 보세요.</p>
         
         <div class="search-container">
@@ -55,7 +55,7 @@ const REAL_DESIGN_HTML = `
     
     <div class="container" style="margin-top: -80px; text-align:center;">
         <span style="background:rgba(255,255,255,0.8); padding:8px 24px; border-radius:50px; font-size:0.85rem; color:var(--text-sub); border:1px solid #e2e8f0; backdrop-filter:blur(10px); display:inline-block;">
-            🔥 Trending: 2026 한컴 브랜드 킷 신규 배포
+            🔥 Trending: 2026 한컴 ppt슬라이드 4종배포!
         </span>
     </div>
 `;
