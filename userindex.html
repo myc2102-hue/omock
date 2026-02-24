@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hancom AI Impact - Advanced Report</title>
+    <title>Hancom AI Intelligence Report</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
     <style>
         :root {
@@ -13,10 +13,11 @@
             --apple-text: #1d1d1f;
             --apple-gray: #86868b;
             --apple-border: #d2d2d7;
+            --apple-green: #34C759;
         }
 
         body {
-            font-family: 'Pretendard', sans-serif;
+            font-family: 'Pretendard', -apple-system, sans-serif;
             background-color: var(--apple-bg);
             color: var(--apple-text);
             margin: 0; padding: 0;
@@ -24,7 +25,7 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Nav Bar */
+        /* Apple Style Glassmorphism Nav */
         nav {
             position: fixed; top: 0; width: 100%; z-index: 1000;
             background: rgba(255, 255, 255, 0.8);
@@ -32,64 +33,79 @@
             border-bottom: 1px solid rgba(0,0,0,0.05);
         }
         .nav-inner {
-            max-width: 1200px; margin: 0 auto; padding: 12px 24px;
+            max-width: 1000px; margin: 0 auto; padding: 14px 24px;
             display: flex; justify-content: space-between; align-items: center;
         }
-        .nav-logo { height: 20px; object-fit: contain; }
+        .nav-logo { height: 22px; object-fit: contain; }
 
-        /* Hero Section (1/3 Height) */
+        /* Slim Hero Section (Nike Style 1/3 Height) */
         .hero {
-            height: 35vh; min-height: 300px;
+            height: 35vh; min-height: 320px;
             background: #000; position: relative;
             display: flex; align-items: center; justify-content: center;
-            overflow: hidden; margin-top: 44px;
+            overflow: hidden; margin-top: 50px;
         }
         .hero-img {
             position: absolute; width: 100%; height: 100%;
-            object-fit: cover; opacity: 0.6;
+            object-fit: cover; opacity: 0.5; filter: grayscale(100%);
         }
         .hero-text { position: relative; z-index: 10; text-align: center; color: #fff; }
-        .hero-text h1 { font-size: 52px; font-weight: 800; letter-spacing: -2px; margin: 0; }
+        .hero-text h1 { font-size: 56px; font-weight: 800; letter-spacing: -2px; margin: 0; text-transform: uppercase; }
+        .hero-text p { font-size: 20px; margin-top: 10px; font-weight: 400; color: #a1a1a6; }
 
-        /* Main Layout */
-        .main-content { max-width: 900px; margin: 0 auto; padding: 60px 24px; }
+        /* Main Content */
+        .main-wrapper { max-width: 840px; margin: 0 auto; padding: 80px 20px; }
         
-        .section-intro { margin-bottom: 50px; }
-        .section-intro h2 { font-size: 38px; font-weight: 700; letter-spacing: -1px; margin: 0; }
+        .section-intro { margin-bottom: 60px; }
+        .section-intro h2 { font-size: 40px; font-weight: 700; letter-spacing: -1.2px; margin: 0; }
+        .section-intro p { font-size: 19px; color: var(--apple-gray); margin-top: 12px; }
 
-        /* Card System */
-        .report-card {
+        /* Step Card System */
+        .step-card {
             background: var(--apple-secondary); border-radius: 28px;
-            padding: 40px; margin-bottom: 32px;
+            padding: 50px; margin-bottom: 40px; border: none;
+            transition: transform 0.3s ease;
         }
-        .step-label { font-size: 13px; font-weight: 700; color: var(--apple-blue); margin-bottom: 10px; display: block; text-transform: uppercase; }
-        h3 { font-size: 26px; font-weight: 700; margin: 0 0 30px 0; }
+        .step-num { font-size: 13px; font-weight: 700; color: var(--apple-blue); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; display: block; }
+        h3 { font-size: 28px; font-weight: 700; margin: 0 0 35px 0; letter-spacing: -0.5px; }
 
-        /* Form Styling */
-        .form-group { margin-bottom: 24px; }
-        label { display: block; font-size: 13px; font-weight: 600; color: var(--apple-gray); margin-bottom: 10px; }
+        /* Inputs */
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+        .input-group { display: flex; flex-direction: column; margin-bottom: 24px; }
+        label { font-size: 13px; font-weight: 600; color: var(--apple-gray); margin-bottom: 10px; margin-left: 5px; }
         input, select, textarea {
-            width: 100%; border: 1px solid var(--apple-border); border-radius: 14px; padding: 16px;
-            font-size: 16px; background: #fff; box-sizing: border-box; transition: 0.2s;
+            width: 100%; padding: 18px; border-radius: 14px; border: 1px solid var(--apple-border);
+            background: #fff; font-size: 16px; box-sizing: border-box; transition: 0.2s;
         }
         input:focus, textarea:focus { border-color: var(--apple-blue); outline: none; box-shadow: 0 0 0 4px rgba(0,113,227,0.1); }
 
-        /* Tables & Grids */
-        .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .compare-row { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 15px; background: #fff; padding: 20px; border-radius: 16px; margin-bottom: 15px; }
-        .compare-header { font-size: 11px; font-weight: 700; color: var(--apple-gray); margin-bottom: 8px; }
+        /* Data Visualization Unit (AS-IS vs TO-BE) */
+        .metric-board { background: #fff; padding: 30px; border-radius: 20px; border: 1px solid var(--apple-border); margin-top: 10px; }
+        .metric-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; padding: 15px 0; border-bottom: 1px solid var(--apple-secondary); }
+        .metric-row:last-child { border-bottom: none; }
+        .metric-header { font-size: 11px; font-weight: 700; color: var(--apple-gray); text-transform: uppercase; margin-bottom: 5px; }
+        .metric-val { font-size: 20px; font-weight: 700; color: var(--apple-text); }
+        .metric-diff { color: var(--apple-green); font-weight: 700; }
 
-        /* Submit */
-        .footer-action { text-align: center; padding: 40px 0 100px; }
-        .btn-black {
-            background: #000; color: #fff; padding: 20px 80px; border-radius: 50px;
-            font-size: 18px; font-weight: 600; border: none; cursor: pointer; transition: 0.2s;
-        }
-        .btn-black:hover { background: #333; transform: scale(1.02); }
-
-        .rating-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 16px; overflow: hidden; }
-        .rating-table th, .rating-table td { padding: 15px; text-align: left; border-bottom: 1px solid var(--apple-secondary); }
+        /* Rating Table */
+        .rating-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 16px; overflow: hidden; margin-top: 10px; }
+        .rating-table th, .rating-table td { padding: 16px; text-align: left; border-bottom: 1px solid var(--apple-secondary); }
         .rating-table th { font-size: 12px; color: var(--apple-gray); background: #fafafa; }
+
+        /* Jira Integration Hint */
+        .jira-hint {
+            display: flex; align-items: center; gap: 10px; background: #EBF5FF; 
+            padding: 15px 20px; border-radius: 12px; margin-top: 40px; font-size: 14px; color: #0052CC;
+        }
+
+        /* Submit Area */
+        .cta-area { text-align: center; padding: 60px 0 100px; }
+        .btn-submit {
+            background: #000; color: #fff; padding: 22px 100px; border-radius: 50px;
+            font-size: 19px; font-weight: 600; border: none; cursor: pointer; transition: 0.3s;
+        }
+        .btn-submit:hover { transform: scale(1.05); background: #333; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+
     </style>
 </head>
 <body>
@@ -97,121 +113,117 @@
     <nav>
         <div class="nav-inner">
             <img src="images/hancomlogo.png" alt="Hancom" class="nav-logo">
-            <div style="font-size: 13px; font-weight: 500;">한글과컴퓨터 <strong>문영철 님</strong></div>
+            <div style="font-size: 14px; font-weight: 500;"><strong>문영철</strong> 님 (Strategic Support)</div>
         </div>
     </nav>
 
     <header class="hero">
-        <img src="https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2000&auto=format&fit=crop" class="hero-img">
+        <img src="https://images.unsplash.com/photo-1620121692029-d088224efc74?q=80&w=2000&auto=format&fit=crop" class="hero-img">
         <div class="hero-text">
-            <h1>AI IMPACT DATA</h1>
+            <h1>Beyond Automation</h1>
+            <p>AI가 창출하는 압도적인 비즈니스 가치를 리포팅합니다.</p>
         </div>
     </header>
 
-    <main class="main-content">
+    <main class="main-wrapper">
         <div class="section-intro">
-            <h2>AI 서비스 실무 도입 리포트</h2>
+            <h2>AI Impact Intelligence</h2>
+            <p>제출된 리포트는 전사 인사이트 분석 후 Jira 티켓으로 자동 연동됩니다.</p>
         </div>
 
-        <section class="report-card">
-            <span class="step-label">Section 01</span>
-            <h3>서비스 도입 개요</h3>
-            <div class="data-grid">
-                <div class="form-group"><label>작성자 (팀명)</label><input type="text" value="문영철 (전략지원팀)" readonly></div>
-                <div class="form-group"><label>작성일</label><input type="date"></div>
+        <section class="step-card">
+            <span class="step-num">Step 01. Overview</span>
+            <h3>도입 및 사용 개요</h3>
+            <div class="form-row">
+                <div class="input-group"><label>작성팀</label><input type="text" value="전략지원팀" readonly></div>
+                <div class="input-group"><label>보고일자</label><input type="date"></div>
             </div>
-            <div class="data-grid">
-                <div class="form-group"><label>AI 서비스명 및 제공사</label><input type="text" placeholder="예: ChatGPT Plus (OpenAI)"></div>
-                <div class="form-group"><label>구독 기간 / 요금제</label><input type="text" placeholder="예: 월 $20"></div>
+            <div class="form-row">
+                <div class="input-group"><label>서비스명 및 제공사</label><input type="text" placeholder="예: Claude 3.5 (Anthropic)"></div>
+                <div class="input-group"><label>요금제 / 비용</label><input type="text" placeholder="예: $20 / 월"></div>
             </div>
-            <div class="form-group">
+            <div class="input-group">
                 <label>AI 서비스 사용 목적 및 배경</label>
-                <textarea rows="3" placeholder="예: 리서치 업무 중 반복 데이터 수집 자동화 및 트렌드 분석 시간 단축"></textarea>
+                <textarea rows="3" placeholder="예: 글로벌 시장 분석 및 신규 사업 기획안 작성 프로세스 효율화"></textarea>
             </div>
         </section>
 
-        <section class="report-card">
-            <span class="step-label">Section 02</span>
+        <section class="step-card">
+            <span class="step-num">Step 02. Methodology</span>
             <h3>AI 서비스 활용 방법</h3>
-            <div class="form-group"><label>활용 업무</label><input type="text" placeholder="예: 해외 시장 동향 분석"></div>
-            <div class="form-group"><label>활용 시나리오</label><textarea rows="3" placeholder="실제 업무 흐름을 적어주세요."></textarea></div>
-            <div class="form-group"><label>사용 프롬프트 또는 활용 방식</label><textarea rows="3" placeholder="효과적이었던 프롬프트를 공유해 주세요."></textarea></div>
-            <div class="form-group"><label>주요 결과</label><input type="text" placeholder="AI를 통해 도출한 핵심 결과물을 적어주세요."></div>
+            <div class="input-group"><label>활용 업무</label><input type="text" placeholder="예: 해외 경쟁사 벤치마킹 데이터 수집"></div>
+            <div class="input-group"><label>활용 시나리오 및 사용 프롬프트</label><textarea rows="5" placeholder="AI를 실제 업무 흐름에 어떻게 적용했는지 상세히 기술해 주세요."></textarea></div>
+            <div class="input-group"><label>주요 도출 결과</label><input type="text" placeholder="AI를 통해 얻은 핵심 아웃풋은 무엇인가요?"></div>
         </section>
 
-        <section class="report-card">
-            <span class="step-label">Section 03</span>
+        <section class="step-card">
+            <span class="step-num">Step 03. Performance Metrics</span>
             <h3>AI 서비스 활용 전후 비교</h3>
-            
-            <div class="compare-header-row" style="display:grid; grid-template-columns: 1fr 1fr 1.2fr; gap:15px; padding:0 20px 10px;">
-                <div class="compare-header">도입 전 (기존 방법)</div>
-                <div class="compare-header">도입 후 (AI 활용)</div>
-                <div class="compare-header">변화 및 효과 (정량/정성)</div>
+            <div class="metric-board">
+                <div class="metric-row">
+                    <div><div class="metric-header">기존 방법 (AS-IS)</div><input type="text" placeholder="10시간/건" class="metric-val" style="border:none; width:100%; padding:0;"></div>
+                    <div><div class="metric-header" style="color:var(--apple-blue)">AI 활용 (TO-BE)</div><input type="text" placeholder="3시간/건" class="metric-val" style="border:none; width:100%; padding:0; color:var(--apple-blue);"></div>
+                    <div><div class="metric-header" style="color:var(--apple-green)">변화 및 효과</div><input type="text" placeholder="70% 단축" class="metric-val metric-diff" style="border:none; width:100%; padding:0;"></div>
+                </div>
+                <div class="metric-row">
+                    <div><div class="metric-header">수행 빈도 (AS-IS)</div><input type="text" placeholder="주 2회" class="metric-val" style="border:none; width:100%; padding:0;"></div>
+                    <div><div class="metric-header">수행 빈도 (TO-BE)</div><input type="text" placeholder="주 5회" class="metric-val" style="border:none; width:100%; padding:0;"></div>
+                    <div><div class="metric-header">효과</div><input type="text" placeholder="생산성 2.5배↑" class="metric-val metric-diff" style="border:none; width:100%; padding:0;"></div>
+                </div>
             </div>
-
-            <div class="compare-row">
-                <input type="text" placeholder="작업 시간 (예: 10h)">
-                <input type="text" placeholder="작업 시간 (예: 4h)" style="color:var(--apple-blue); font-weight:700;">
-                <input type="text" placeholder="예: 60% 단축">
-            </div>
-            <div class="compare-row">
-                <input type="text" placeholder="수행 빈도 (예: 주 2회)">
-                <input type="text" placeholder="수행 빈도 (예: 주 5회)">
-                <input type="text" placeholder="예: 정보 업데이트 주기 단축">
-            </div>
-            <div class="form-group" style="margin-top:20px;">
-                <label>결과 품질 및 리서치 범위 변화</label>
-                <textarea rows="3" placeholder="자료의 다양성, 인사이트의 완성도 변화를 적어주세요."></textarea>
+            <div class="input-group" style="margin-top:30px;">
+                <label>결과 품질 및 시장 이해도 변화</label>
+                <textarea rows="3" placeholder="리서치 범위 확대, 정보 신뢰도 향상 등 정성적인 변화를 기재해 주세요."></textarea>
             </div>
         </section>
 
-        <section class="report-card">
-            <span class="step-label">Section 04</span>
+        <section class="step-card">
+            <span class="step-num">Step 04. Experience Rating</span>
             <h3>성능 및 사용 경험 평가</h3>
             <table class="rating-table">
-                <thead><tr><th>평가 항목</th><th>만족도 (1-5)</th><th>비고</th></tr></thead>
+                <thead><tr><th>평가 항목</th><th>만족도 (1-5)</th><th>상세 의견</th></tr></thead>
                 <tbody>
-                    <tr><td>정확도 (출처/오류 빈도)</td><td><input type="number" min="1" max="5" style="padding:8px;"></td><td><input type="text" style="padding:8px; border:none;"></td></tr>
-                    <tr><td>응답 속도 (결과 생성)</td><td><input type="number" min="1" max="5" style="padding:8px;"></td><td><input type="text" style="padding:8px; border:none;"></td></tr>
-                    <tr><td>사용 편의성 (UI/프롬프트)</td><td><input type="number" min="1" max="5" style="padding:8px;"></td><td><input type="text" style="padding:8px; border:none;"></td></tr>
-                    <tr><td>비용 대비 가치</td><td><input type="number" min="1" max="5" style="padding:8px;"></td><td><input type="text" style="padding:8px; border:none;"></td></tr>
+                    <tr><td>정확도 (팩트체크)</td><td><input type="number" min="1" max="5" style="border:none; width:50px;"></td><td><input type="text" placeholder="오류 빈도 등" style="border:none; padding:0;"></td></tr>
+                    <tr><td>응답 속도</td><td><input type="number" min="1" max="5" style="border:none; width:50px;"></td><td><input type="text" placeholder="생성 속도 체감" style="border:none; padding:0;"></td></tr>
+                    <tr><td>사용 편의성</td><td><input type="number" min="1" max="5" style="border:none; width:50px;"></td><td><input type="text" placeholder="UI 및 프롬프트 난이도" style="border:none; padding:0;"></td></tr>
+                    <tr><td>보안 및 규정</td><td><input type="number" min="1" max="5" style="border:none; width:50px;"></td><td><input type="text" placeholder="기업 보안 정책 충족 여부" style="border:none; padding:0;"></td></tr>
                 </tbody>
             </table>
-            <div class="data-grid" style="margin-top:20px;">
-                <div class="form-group"><label>👍 이런 점은 추천해요</label><textarea rows="3"></textarea></div>
-                <div class="form-group"><label>👎 이런 점은 아쉬워요</label><textarea rows="3"></textarea></div>
+            <div class="form-row" style="margin-top:24px;">
+                <div class="input-group"><label>👍 추천 포인트</label><textarea rows="3"></textarea></div>
+                <div class="input-group"><label>👎 아쉬운 점</label><textarea rows="3"></textarea></div>
             </div>
         </section>
 
-        <section class="report-card">
-            <span class="step-label">Section 05</span>
+        <section class="step-card">
+            <span class="step-num">Step 05. Decision</span>
             <h3>최종 결론 및 추천 의견</h3>
-            <div class="form-group">
+            <div class="input-group">
                 <label>활용 권고 의견</label>
                 <select style="font-weight:700;">
                     <option>구독 유지 적극 권장</option>
-                    <option>구독 유지</option>
+                    <option>부서별 선별 도입 권장</option>
                     <option>대체 서비스 검토 필요</option>
                     <option>구독 해지 권고</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>판단 근거 및 개선 제안</label>
-                <textarea rows="4" placeholder="효용성 및 개선 방안을 기술해 주세요."></textarea>
+            <div class="input-group"><label>판단 근거 및 개선 제안</label><textarea rows="4" placeholder="ROI 분석 기반의 최종 제안을 작성하세요."></textarea></div>
+        </section>
+
+        <section class="step-card">
+            <span class="step-num">Step 06. Evidence</span>
+            <h3>참고 자료 및 스크린샷</h3>
+            <div style="border: 2px dashed var(--apple-border); border-radius: 20px; padding: 60px; text-align: center; background: #fff;">
+                <p style="color: var(--apple-gray); font-weight: 500;">작업 결과물 샘플을 드래그하여 업로드하세요.</p>
             </div>
         </section>
 
-        <section class="report-card">
-            <span class="step-label">Section 06</span>
-            <h3>기타 참고 자료 및 스크린샷</h3>
-            <div style="border: 2px dashed var(--apple-border); border-radius: 20px; padding: 60px; text-align: center; background: #fff; cursor: pointer;">
-                <p style="color: var(--apple-gray); font-weight: 500;">AI 활용 화면 캡처 및 주요 작업 결과물 샘플을 첨부하세요.</p>
-                <span style="font-size: 12px; color: #d2d2d7;">(파일을 드래그하거나 클릭하여 업로드)</span>
-            </div>
-        </section>
+        <div class="jira-hint">
+            <strong>💡 Jira Automation:</strong> 본 리포트를 제출하면 즉시 Jira <strong>[Strategic Support]</strong> 보드에 업무 분석 티켓이 생성됩니다.
+        </div>
 
-        <div class="footer-action">
-            <button class="btn-black" onclick="alert('보고서가 전송되었습니다.')">인사이트 보고서 최종 제출</button>
+        <div class="cta-area">
+            <button class="btn-submit" onclick="alert('Jira 티켓 등록 및 데이터 전송 완료')">리포트 제출 및 티켓 생성</button>
         </div>
     </main>
 
