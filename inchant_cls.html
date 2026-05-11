@@ -2,121 +2,141 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Lineage Classic Enchant Simulator</title>
+    <title>리니지 클래식 인벤토리 시뮬레이터</title>
     <style>
-        body { background-color: #0b0c0d; color: #d1d1d1; font-family: 'Malgun Gothic', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
-        .container { background: #1a1c1e; border: 2px solid #3c3f41; padding: 20px; border-radius: 10px; width: 400px; text-align: center; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .item-display { height: 150px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 1px solid #2a2c2e; margin-bottom: 20px; background: radial-gradient(circle, #2c2f33 0%, #1a1c1e 100%); }
-        .item-icon { width: 64px; height: 64px; margin-bottom: 10px; transition: transform 0.1s; }
-        .item-name { font-size: 1.2rem; font-weight: bold; color: #e0bb40; }
-        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button { background: #3e4449; color: white; border: 1px solid #555; padding: 10px; cursor: pointer; transition: 0.2s; }
-        button:hover { background: #5a6268; }
-        .btn-blessed { color: #5bc0de; border-color: #46b8da; }
-        .btn-cursed { color: #d9534f; border-color: #d43f3a; }
-        #log { margin-top: 20px; height: 100px; overflow-y: auto; background: #000; padding: 10px; font-size: 0.85rem; text-align: left; border: 1px solid #333; }
-        .success { color: #44ff44; }
-        .fail { color: #ff4444; }
-        .system { color: #aaa; }
+        :root { --bg: #0b0c0d; --slot: #1c1e22; --border: #3c3f41; --gold: #e0bb40; }
+        body { background: var(--bg); color: #eee; font-family: 'Malgun Gothic', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; cursor: default; user-select: none; }
+        
+        .game-window { width: 600px; display: flex; gap: 20px; }
+
+        /* 인벤토리 영역 */
+        .inventory { background: #252729; border: 2px solid #444; padding: 10px; display: grid; grid-template-columns: repeat(4, 60px); grid-template-rows: repeat(5, 60px); gap: 5px; position: relative; }
+        .slot { width: 60px; height: 60px; background: var(--slot); border: 1px solid #333; position: relative; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        .slot:hover { border-color: #666; }
+        .slot img { width: 45px; height: 45px; pointer-events: none; }
+        .slot .count { position: absolute; bottom: 2px; right: 4px; font-size: 10px; color: #fff; }
+        .slot .lvl { position: absolute; top: 2px; left: 4px; font-size: 12px; font-weight: bold; color: #44ff44; }
+
+        /* 활성화된 주문서 표시 */
+        .slot.active { border: 2px solid var(--gold); background: #3a321a; }
+
+        /* 상태창 & 로그 */
+        .side-panel { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        #status-text { background: #000; padding: 10px; border: 1px solid var(--border); color: var(--gold); font-size: 0.9rem; min-height: 40px; }
+        #game-log { flex: 1; background: #050505; border: 1px solid #222; padding: 10px; font-size: 0.8rem; overflow-y: auto; color: #aaa; }
+        
+        /* 마우스 커서 효과 (주문서 클릭 시) */
+        body.enchant-mode { cursor: crosshair; }
+        .log-s { color: #50fa7b; } .log-f { color: #ff5555; }
     </style>
 </head>
-<body>
+<body id="body">
 
-<div class="container">
-    <div class="item-display" id="itemBox">
-        <img id="itemIcon" src="https://image.plaync.com.s3.amazonaws.com/lineage/powerbook/item/1.png" class="item-icon" alt="아이템">
-        <div class="item-name" id="itemName">+0 일본도</div>
+<div class="game-window">
+    <div class="inventory" id="inv">
+        </div>
+
+    <div class="side-panel">
+        <div id="status-text">아이템이나 주문서를 클릭하세요.</div>
+        <div id="game-log"></div>
+        <button onclick="location.reload()" style="padding:10px; cursor:pointer;">초기화</button>
     </div>
-
-    <div class="controls">
-        <button onclick="enchant('normal')">일반 데이</button>
-        <button onclick="enchant('blessed')" class="btn-blessed">축복 데이</button>
-        <button onclick="enchant('cursed')" class="btn-cursed">저주 데이</button>
-        <button onclick="reset()">초기화</button>
-    </div>
-
-    <div id="log"></div>
-    <div style="margin-top:10px; font-size: 0.7rem; color: #666;">BGM: 리니지 메인 테마</div>
 </div>
 
-<audio id="bgm" loop>
-    <source src="https://www.soundboard.com/handler/DownLoadTrack.ashx?cliptoken=... (리니지 BGM URL)" type="audio/mpeg">
-</audio>
-<audio id="soundSuccess"><source src="https://action-v1.pwn.sh/s/success.mp3" type="audio/mpeg"></audio>
-<audio id="soundFail"><source src="https://action-v1.pwn.sh/s/fail.mp3" type="audio/mpeg"></audio>
-
 <script>
-    let currentLvl = 0;
-    const safeLimit = 6;
-    const itemNameStr = "일본도";
-    const bgm = document.getElementById('bgm');
+    let selectedScroll = null; // 현재 선택된 주문서 타입
 
-    // 첫 클릭 시 BGM 재생 (브라우저 정책 대응)
-    document.body.addEventListener('click', () => { if(bgm.paused) bgm.play(); }, { once: true });
+    const items = [
+        { id: 1, type: 'weapon', name: '일본도', lvl: 0, safe: 6, img: 'https://static.inven.co.kr/image_2011/lineage/dataninfo/item/icon/1.png' },
+        { id: 2, type: 'weapon', name: '레이피어', lvl: 0, safe: 6, img: 'https://static.inven.co.kr/image_2011/lineage/dataninfo/item/icon/3.png' },
+        { id: 3, type: 'armor', name: '판금 갑옷', lvl: 0, safe: 4, img: 'https://static.inven.co.kr/image_2011/lineage/dataninfo/item/icon/35.png' },
+        { id: 4, type: 'armor', name: '요정족 판금', lvl: 0, safe: 6, img: 'https://static.inven.co.kr/image_2011/lineage/dataninfo/item/icon/43.png' },
+        { id: 5, type: 'scroll', name: '축복받은 무기 마법 주문서', target: 'weapon', scrollType: 'blessed', img: 'https://static.inven.co.kr/image_2011/lineage/dataninfo/item/icon/155.png' },
+        { id: 6, type: 'scroll', name: '무기 마법 주문서', target: 'weapon', scrollType: 'normal', img: 'https://static.inven.co.kr/image_2011/lineage/dataninfo/item/icon/154.png' },
+        { id: 7, type: 'scroll', name: '갑옷 마법 주문서', target: 'armor', scrollType: 'normal', img: 'https://static.inven.co.kr/image_2011/lineage/dataninfo/item/icon/157.png' }
+    ];
 
-    function addLog(msg, type) {
-        const log = document.getElementById('log');
-        const div = document.createElement('div');
-        div.className = type;
-        div.innerText = `> ${msg}`;
-        log.prepend(div);
-    }
-
-    function enchant(type) {
-        if (currentLvl === -1) return; // 파괴된 상태
-
-        const icon = document.getElementById('itemIcon');
-        icon.style.transform = "scale(1.2)";
-        setTimeout(() => icon.style.transform = "scale(1)", 100);
-
-        if (type === 'cursed') {
-            if (currentLvl > 0) currentLvl--;
-            addLog(`저주받은 기운이 맴돕니다. (-1)`, 'system');
-            updateDisplay();
-            return;
-        }
-
-        // NC 확률 로직: 안전구간 100%, 이후 약 33%
-        const successRate = currentLvl < safeLimit ? 1.0 : 0.33;
-        const isSuccess = Math.random() < successRate;
-
-        if (isSuccess) {
-            let increase = 1;
-            if (type === 'blessed') {
-                if (currentLvl <= 2) increase = Math.floor(Math.random() * 3) + 1; // +1~3
-                else if (currentLvl <= 5) increase = Math.floor(Math.random() * 2) + 1; // +1~2
-            }
-            currentLvl += increase;
-            document.getElementById('soundSuccess').play();
-            addLog(`강화 성공! (+${increase} 상승)`, 'success');
-        } else {
-            currentLvl = -1;
-            document.getElementById('soundFail').play();
-            addLog(`강렬한 빛이 발생하지만 아이템이 사라졌습니다.`, 'fail');
-        }
-        updateDisplay();
-    }
-
-    function updateDisplay() {
-        const nameTag = document.getElementById('itemName');
-        const icon = document.getElementById('itemIcon');
+    function renderInventory() {
+        const inv = document.getElementById('inv');
+        inv.innerHTML = '';
         
-        if (currentLvl === -1) {
-            nameTag.innerText = "파괴됨";
-            nameTag.style.color = "#ff4444";
-            icon.style.filter = "grayscale(100%) opacity(0.3)";
-        } else {
-            nameTag.innerText = `+${currentLvl} ${itemNameStr}`;
-            nameTag.style.color = "#e0bb40";
-            icon.style.filter = "none";
+        // 20개의 슬롯 생성 (리니지 인벤 스타일)
+        for (let i = 0; i < 20; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'slot';
+            const item = items[i];
+
+            if (item) {
+                if (item.isDead) {
+                    slot.style.opacity = "0.3";
+                } else {
+                    const img = document.createElement('img');
+                    img.src = item.img;
+                    slot.appendChild(img);
+                    
+                    if (item.lvl !== undefined && item.lvl > 0) {
+                        const lvlDiv = document.createElement('div');
+                        lvlDiv.className = 'lvl';
+                        lvlDiv.innerText = `+${item.lvl}`;
+                        slot.appendChild(lvlDiv);
+                    }
+                    
+                    slot.onclick = () => handleSlotClick(i);
+                }
+            }
+            inv.appendChild(slot);
         }
     }
 
-    function reset() {
-        currentLvl = 0;
-        addLog("새 아이템을 준비했습니다.", "system");
-        updateDisplay();
+    function handleSlotClick(index) {
+        const item = items[index];
+        const status = document.getElementById('status-text');
+
+        // 1. 주문서를 클릭한 경우
+        if (item.type === 'scroll') {
+            selectedScroll = { ...item, index };
+            document.getElementById('body').classList.add('enchant-mode');
+            status.innerText = `[${item.name}] 대상 아이템을 선택하세요...`;
+            renderInventory();
+            document.querySelectorAll('.slot')[index].classList.add('active');
+        } 
+        // 2. 주문서가 선택된 상태에서 아이템을 클릭한 경우
+        else if (selectedScroll) {
+            if (item.type === selectedScroll.target) {
+                enchantProcess(selectedScroll, item);
+                selectedScroll = null;
+                document.getElementById('body').classList.remove('enchant-mode');
+            } else {
+                addLog("주문서가 대상 아이템과 맞지 않습니다.", "log-f");
+            }
+        }
     }
+
+    function enchantProcess(scroll, target) {
+        const successRate = target.lvl < target.safe ? 1.0 : 0.33;
+        
+        if (Math.random() < successRate) {
+            let bonus = 1;
+            if (scroll.scrollType === 'blessed') {
+                if (target.lvl <= 2) bonus = Math.floor(Math.random() * 3) + 1;
+                else if (target.lvl <= 5) bonus = Math.floor(Math.random() * 2) + 1;
+            }
+            target.lvl += bonus;
+            addLog(`${target.name} 강화 성공! (+${target.lvl})`, 'log-s');
+        } else {
+            target.isDead = true;
+            addLog(`${target.name}이(가) 증발했습니다.`, 'log-f');
+        }
+        document.getElementById('status-text').innerText = "아이템이나 주문서를 클릭하세요.";
+        renderInventory();
+    }
+
+    function addLog(msg, cls) {
+        const log = document.getElementById('game-log');
+        log.innerHTML = `<div class="${cls}">> ${msg}</div>` + log.innerHTML;
+    }
+
+    renderInventory();
 </script>
 
 </body>
