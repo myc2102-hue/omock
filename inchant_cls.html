@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lineage Classic - Final Real Image Edition</title>
+    <title>Lineage Classic - Real Chat Messages</title>
     <style>
-        /* [기존 CSS 100% 동일 유지] */
+        /* 기존 CSS 100% 동일 유지 */
         @font-face {
             font-family: 'DungGeunMo';
             src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/DungGeunMo.woff') format('woff');
@@ -61,7 +61,6 @@
             position: relative; display: flex; justify-content: center; align-items: center; cursor: grab;
         }
         .slot:active { cursor: grabbing; }
-        /* 반응형을 고려해 이미지 크기 80%로 최적화 */
         .slot img { width: 80%; height: 80%; object-fit: contain; image-rendering: pixelated; pointer-events: none; }
         .slot:hover { border-color: #888; }
         .slot.active-scroll { border: 2px solid var(--gold); box-shadow: inset 0 0 10px rgba(255,235,153,0.3); }
@@ -70,7 +69,6 @@
 
         .lvl-text { position: absolute; top: 2px; left: 4px; color: var(--green); font-size: 14px; text-shadow: 1px 1px 0 #000; z-index: 10; pointer-events: none; }
         .count-text { position: absolute; bottom: 2px; right: 4px; color: #fff; font-size: 12px; text-shadow: 1px 1px 0 #000; z-index: 10; pointer-events: none; }
-        /* 이미지 위 텍스트 라벨은 제거됨 */
 
         .chat-window { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg-stone); padding: 12px; gap: 4px; }
         .chat-tabs { display: flex; gap: 2px; margin-bottom: 2px; }
@@ -150,13 +148,9 @@
     </div>
 
 <script>
-    // ==========================================
-    // 핵심 변경 포인트: 차단되지 않는 이미지 전용 오픈 저장소 서버 연결
-    // ==========================================
     const ASSET_SERVER = "https://raw.githubusercontent.com/run-to-the-future/lineage-assets/main/icon/";
     const getLCImg = (id) => `${ASSET_SERVER}${id}.png`;
 
-    // --- DB 100% 동일 유지 (이미지 경로만 ID 기반으로 개편) ---
     const db = {
         "무기": [
             { name: "일본도", safe: 6, img: getLCImg(1), target: 'w', stackable: false, info: ["타격치: 10/12", "안전 인챈트: 6", "클래스: 기사, 요정, 군주"] },
@@ -196,7 +190,6 @@
         ]
     };
 
-    // --- [이하 기존 자바스크립트 로직 100% 동일 유지] ---
     let inv = Array(30).fill(null);
     let activeIdx = null;
     let dragIdx = null; 
@@ -212,7 +205,7 @@
     function endPress() { clearTimeout(pressTimer); popup.style.display = 'none'; }
     function showPopup(i, x, y) {
         const item = inv[i]; if (!item) return;
-        let lvlStr = item.lvl !== undefined && item.lvl !== null ? `+${item.lvl} ` : '';
+        let lvlStr = item.lvl !== undefined && item.lvl !== null ? (item.lvl >= 0 ? `+${item.lvl} ` : `${item.lvl} `) : '';
         let html = `<div class="p-title">${lvlStr}${item.name}</div>`;
         if (item.info) item.info.forEach(line => html += `<div>${line}</div>`);
         popup.innerHTML = html; popup.style.display = 'block';
@@ -242,7 +235,7 @@
                     ${item.qty > 1 ? `<div class="count-text">${item.qty}</div>` : ''}
                 </div>
             `;
-        }).join(''); // draw 함수 내에서 item-label 영역 삭제
+        }).join(''); 
     }
 
     function dragStart(e, i) { if (activeIdx !== null) return; dragIdx = i; setTimeout(() => e.target.style.opacity = "0.5", 0); }
@@ -251,8 +244,49 @@
     function dragLeave(e) { if (e.target.classList.contains('slot')) e.target.classList.remove('drag-over'); }
     function drop(e, targetIdx) { e.preventDefault(); if (e.target.classList.contains('slot')) e.target.classList.remove('drag-over'); const temp = inv[dragIdx]; inv[dragIdx] = inv[targetIdx]; inv[targetIdx] = temp; document.getElementById('soundDrop').play(); dragIdx = null; draw(); }
     function handleDoubleClick(i) { const item = inv[i]; if(item && item.stackable) { activeIdx = i; document.getElementById('b').classList.add('mode-target'); document.getElementById('status').innerHTML = `[${item.name}] 대상을 선택하십시오.`; draw(); } }
-    function handleClick(i) { const item = inv[i]; if (activeIdx !== null) { if (activeIdx === i) { cancel(); return; } if (item && !item.stackable && item.target === inv[activeIdx].target) enchant(activeIdx, i); else { addLog("아무 일도 일어나지 않았습니다.", "s-fail"); cancel(); } } else if(item) { document.getElementById('status').innerText = (item.lvl !== undefined ? '+'+item.lvl+' ' : '') + item.name; } }
-    function enchant(si, ti) { const scroll = inv[si], target = inv[ti]; if (scroll.sType === 'c') { target.lvl -= 1; addLog(`저주받은 기운이 깃들어 +${target.lvl} ${target.name}이(가) 되었습니다.`, "s-cur"); } else { const successRate = target.lvl < target.safe ? 1.0 : 0.33; if (Math.random() < successRate) { let up = 1; if (scroll.sType === 'b') { if (target.lvl <= 2) up = Math.floor(Math.random()*3)+1; else if (target.lvl <= 5) up = Math.floor(Math.random()*2)+1; } target.lvl += up; addLog(`+${target.lvl} ${target.name}이(가) 강렬하게 빛납니다. (상승:${up})`, "s-suc"); } else { addLog(`콰광! +${target.lvl} ${target.name}이(가) 증발하여 사라졌습니다.`, "s-fail"); inv[ti] = null; } } inv[si].qty -= 1; if (inv[si].qty <= 0) inv[si] = null; cancel(); }
+    function handleClick(i) { const item = inv[i]; if (activeIdx !== null) { if (activeIdx === i) { cancel(); return; } if (item && !item.stackable && item.target === inv[activeIdx].target) enchant(activeIdx, i); else { addLog("아무 일도 일어나지 않았습니다.", "s-fail"); cancel(); } } else if(item) { document.getElementById('status').innerText = (item.lvl !== undefined && item.lvl !== null ? (item.lvl >= 0 ? '+'+item.lvl+' ' : item.lvl+' ') : '') + item.name; } }
+
+    // ==========================================
+    // 채팅 메시지 고증 업데이트 로직 (다른 로직은 100% 동일 유지)
+    // ==========================================
+    function enchant(si, ti) {
+        const scroll = inv[si];
+        const target = inv[ti];
+        
+        // 인챈트 전 아이템 이름 기억 (예: +0 일본도는 "일본도", +6 일본도는 "+6 일본도")
+        let targetName = (target.lvl !== 0 && target.lvl !== null ? (target.lvl > 0 ? '+' + target.lvl + ' ' : target.lvl + ' ') : '') + target.name;
+        
+        if (scroll.sType === 'c') {
+            target.lvl -= 1;
+            addLog(`${targetName}이(가) 칠흑같이 검게 빛납니다.`, "s-cur");
+        } else {
+            const successRate = target.lvl < target.safe ? 1.0 : 0.33;
+            if (Math.random() < successRate) {
+                let up = 1;
+                if (scroll.sType === 'b') {
+                    if (target.lvl <= 2) up = Math.floor(Math.random()*3)+1;
+                    else if (target.lvl <= 5) up = Math.floor(Math.random()*2)+1;
+                }
+                target.lvl += up;
+                
+                // 빛깔 분기: 리니지 고증 (7부터 푸른빛, 9부터 붉은빛)
+                let lightMsg = "강렬하게 은빛으로 빛납니다.";
+                if (target.lvl >= 9) lightMsg = "영롱하게 붉은빛을 냅니다.";
+                else if (target.lvl >= 7) lightMsg = "강렬하게 푸른빛을 냅니다.";
+                
+                addLog(`${targetName}이(가) ${lightMsg}`, "s-suc");
+            } else {
+                addLog(`${targetName}이(가) 강렬하게 빛나더니 증발하여 사라졌습니다.`, "s-fail");
+                inv[ti] = null;
+            }
+        }
+        
+        inv[si].qty -= 1;
+        if (inv[si].qty <= 0) inv[si] = null;
+        
+        cancel();
+    }
+
     function cancel() { activeIdx = null; document.getElementById('b').classList.remove('mode-target'); document.getElementById('status').innerText = "주문서를 더블클릭 하십시오."; draw(); }
     function addLog(msg, cls) { const log = document.getElementById('log'); const div = document.createElement('div'); div.className = cls; div.innerText = msg; log.appendChild(div); log.scrollTop = log.scrollHeight; }
 
