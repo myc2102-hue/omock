@@ -2,323 +2,221 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Lineage Classic Simulator</title>
+    <title>Lineage Classic Final Simulator</title>
     <style>
-        /* 도트 감성 폰트 및 기본 스타일 */
         :root {
-            --bg: #0c0d10;
-            --panel: #2a2c31;
-            --slot: #15171a;
-            --border: #54565a;
-            --gold: #e0bb40;
-            --text: #c0c0c0;
+            --bg: #0b0c0d; --panel: #25272b; --slot: #121417;
+            --border: #45484d; --gold: #e0bb40; --green: #44ff44;
         }
 
         body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'Malgun Gothic', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            margin: 0;
-            user-select: none;
+            background: var(--bg); color: #ccc; font-family: 'Malgun Gothic', sans-serif;
+            display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0;
+            user-select: none; -webkit-user-drag: none;
         }
 
-        /* 상단 아이템 지급바 (Admin Panel) */
-        .admin-panel {
-            background: #1a1b1e;
-            border: 2px solid var(--border);
-            padding: 15px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 20px;
-            image-rendering: pixelated;
+        /* 관리자 보급창 */
+        .admin-bar {
+            background: #1a1b1e; border: 2px solid var(--border); padding: 15px;
+            display: flex; gap: 10px; margin-bottom: 20px; align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
 
         select, input, button {
-            background: #000;
-            color: #fff;
-            border: 1px solid var(--border);
-            padding: 8px;
-            font-size: 0.9rem;
+            background: #000; color: #fff; border: 1px solid #555; padding: 8px; font-size: 0.9rem;
         }
 
-        button {
-            cursor: pointer;
-            background: #3e4449;
-            color: var(--gold);
-            font-weight: bold;
+        button { cursor: pointer; color: var(--gold); font-weight: bold; background: #333; }
+        button:hover { background: #444; }
+
+        /* 메인 UI 레이아웃 */
+        .main-container { display: flex; gap: 20px; }
+
+        /* 인벤토리 UI */
+        .inv-wrapper {
+            background: #34373c; border: 3px double #555; padding: 10px;
+            box-shadow: inset 2px 2px 5px #000;
         }
 
-        button:hover { background: #4e5459; }
-
-        /* 메인 게임 영역 */
-        .game-area {
-            display: flex;
-            gap: 30px;
-            image-rendering: pixelated;
-        }
-
-        /* 인벤토리 (Classic UI) */
-        .inventory-wrapper {
-            background: #34373c;
-            border: 4px double var(--border);
-            padding: 12px;
-            box-shadow: inset 2px 2px 0 #4a4d53, inset -2px -2px 0 #1a1b1e;
-        }
-
-        .inventory-title {
-            font-size: 0.8rem;
-            color: #aaa;
-            margin-bottom: 8px;
-            text-align: center;
-            letter-spacing: 1px;
-        }
-
-        .inventory-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 54px);
-            grid-template-rows: repeat(6, 54px);
-            gap: 4px;
-            background: #1a1b1e;
-            padding: 4px;
+        .inv-grid {
+            display: grid; grid-template-columns: repeat(4, 56px);
+            grid-template-rows: repeat(6, 56px); gap: 4px; background: #111; padding: 5px;
         }
 
         .slot {
-            width: 54px;
-            height: 54px;
-            background: var(--slot);
-            border: 1px solid #333;
-            position: relative;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            width: 56px; height: 56px; background: var(--slot); border: 1px solid #333;
+            position: relative; display: flex; justify-content: center; align-items: center;
         }
 
-        .slot:hover { border-color: #777; }
-        .slot.selected-scroll { border: 2px solid var(--gold); box-shadow: 0 0 10px rgba(224,187,64,0.5); }
-        
-        .slot img { width: 42px; height: 42px; image-rendering: auto; }
-        .slot .lvl { position: absolute; top: 2px; left: 3px; font-weight: bold; font-size: 11px; color: #44ff44; text-shadow: 1px 1px 2px #000; }
-        .slot .count { position: absolute; bottom: 2px; right: 3px; font-size: 10px; color: #fff; }
+        .slot img { width: 40px; height: 40px; image-rendering: pixelated; }
+        .slot:hover { border-color: #888; }
+        .slot.active-scroll { border: 2px solid var(--gold); background: #2a2515; }
 
-        /* 정보 및 로그 패널 */
-        .info-panel {
-            width: 280px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .lvl-text {
+            position: absolute; top: 2px; left: 4px; color: var(--green);
+            font-size: 12px; font-weight: bold; text-shadow: 1px 1px 2px #000;
         }
 
-        #status-msg {
-            background: #000;
-            border: 1px solid var(--border);
-            padding: 10px;
-            color: var(--gold);
-            font-size: 0.85rem;
-            min-height: 45px;
-            line-height: 1.4;
+        /* 로그창 */
+        .side-panel { width: 260px; display: flex; flex-direction: column; gap: 10px; }
+        #status { background: #000; border: 1px solid #444; padding: 10px; color: var(--gold); font-size: 0.85rem; min-height: 40px; }
+        #log {
+            flex-grow: 1; background: #050505; border: 1px solid #333; padding: 10px;
+            font-size: 0.8rem; overflow-y: auto; height: 300px; line-height: 1.5; color: #aaa;
         }
 
-        #log-window {
-            flex-grow: 1;
-            background: #000;
-            border: 1px solid var(--border);
-            padding: 10px;
-            font-size: 0.8rem;
-            overflow-y: auto;
-            height: 250px;
-            color: #999;
-        }
-
-        .log-success { color: #50fa7b; }
-        .log-fail { color: #ff5555; }
-        .log-system { color: #8be9fd; }
-
-        body.target-mode { cursor: crosshair; }
+        .s-suc { color: #50fa7b; } .s-fail { color: #ff5555; } .s-sys { color: #8be9fd; }
+        body.mode-target { cursor: crosshair; }
     </style>
 </head>
-<body id="mainBody">
+<body id="b">
 
-    <div class="admin-panel">
-        <span>[지급]</span>
-        <select id="giveType" onchange="updateGiveList()">
-            <option value="weapon">무기</option>
-            <option value="armor">방어구</option>
-            <option value="scroll">주문서</option>
+    <div class="admin-bar">
+        <span style="color:var(--gold); font-weight:bold;">[ITEM SHOP]</span>
+        <select id="type" onchange="updateList()">
+            <option value="w">무기류</option>
+            <option value="a">방어구류</option>
+            <option value="s">주문서</option>
         </select>
-        <select id="giveItem"></select>
-        <input type="number" id="giveAmount" value="1" min="1" max="99" style="width: 40px;">
-        <button onclick="giveItem()">아이템 확인</button>
+        <select id="items"></select>
+        <input type="number" id="amt" value="1" min="1" max="10" style="width:40px;">
+        <button onclick="give()">지급받기</button>
     </div>
 
-    <div class="game-area">
-        <div class="inventory-wrapper">
-            <div class="inventory-title">INVENTORY</div>
-            <div class="inventory-grid" id="invGrid"></div>
+    <div class="main-container">
+        <div class="inv-wrapper">
+            <div style="font-size:11px; color:#777; margin-bottom:5px; text-align:center;">INVENTORY</div>
+            <div class="inv-grid" id="grid"></div>
         </div>
 
-        <div class="info-panel">
-            <div id="status-msg">아이템을 보급받아 강화를 시작하세요.</div>
-            <div id="log-window"></div>
-            <button onclick="location.reload()" style="background:#222; font-size: 0.7rem;">캐릭터 초기화</button>
+        <div class="side-panel">
+            <div id="status">아이템을 보급받으세요.</div>
+            <div id="log"></div>
+            <button onclick="location.reload()" style="font-size:11px; color:#666;">데이터 초기화</button>
         </div>
     </div>
 
 <script>
-    // --- 데이터 정의 ---
-    const PROXY = "https://images.weserv.nl/?url=";
+    // --- 고정 이미지 에셋 (차단되지 않는 오픈 주소) ---
+    const ASSETS = {
+        sword: "https://img.icons8.com/color/96/sword.png",
+        armor: "https://img.icons8.com/color/96/armor.png",
+        w_scroll: "https://img.icons8.com/color/96/parchment.png",
+        a_scroll: "https://img.icons8.com/color/96/scroll.png",
+        b_effect: "🌟"
+    };
+
     const db = {
-        weapon: [
-            { name: "일본도", safe: 6, img: "https://static.inven.co.kr/image_2011/lineage/dataninfo/item/icon/1.png" },
-            { name: "레이피어", safe: 6, img: "https://static.inven.co.kr/image_2011/lineage/dataninfo/item/icon/3.png" },
-            { name: "싸울아비 장검", safe: 6, img: "https://static.inven.co.kr/image_2011/lineage/dataninfo/item/icon/4.png" }
+        w: [
+            { name: "싸울아비 장검", safe: 6, img: ASSETS.sword, type: 'w' },
+            { name: "레이피어", safe: 6, img: ASSETS.sword, type: 'w' },
+            { name: "집행검", safe: 0, img: ASSETS.sword, type: 'w' }
         ],
-        armor: [
-            { name: "판금 갑옷", safe: 4, img: "https://static.inven.co.kr/image_2011/lineage/dataninfo/item/icon/35.png" },
-            { name: "요정족 판금", safe: 6, img: "https://static.inven.co.kr/image_2011/lineage/dataninfo/item/icon/43.png" },
-            { name: "마법 망토", safe: 4, img: "https://static.inven.co.kr/image_2011/lineage/dataninfo/item/icon/115.png" }
+        a: [
+            { name: "판금 갑옷", safe: 4, img: ASSETS.armor, type: 'a' },
+            { name: "요정족 판금", safe: 6, img: ASSETS.armor, type: 'a' },
+            { name: "마법 망토", safe: 4, img: ASSETS.armor, type: 'a' }
         ],
-        scroll: [
-            { name: "무기 마법 주문서", type: "weapon-scroll", sType: "normal", img: "https://static.inven.co.kr/image_2011/lineage/dataninfo/item/icon/154.png" },
-            { name: "축복받은 무기 마법 주문서", type: "weapon-scroll", sType: "blessed", img: "https://static.inven.co.kr/image_2011/lineage/dataninfo/item/icon/155.png" },
-            { name: "갑옷 마법 주문서", type: "armor-scroll", sType: "normal", img: "https://static.inven.co.kr/image_2011/lineage/dataninfo/item/icon/157.png" }
+        s: [
+            { name: "무기 주문서", target: 'w', sType: 'n', img: ASSETS.w_scroll, type: 's' },
+            { name: "축복 무기 주문서", target: 'w', sType: 'b', img: ASSETS.w_scroll, type: 's' },
+            { name: "갑옷 주문서", target: 'a', sType: 'n', img: ASSETS.a_scroll, type: 's' },
+            { name: "축복 갑옷 주문서", target: 'a', sType: 'b', img: ASSETS.a_scroll, type: 's' }
         ]
     };
 
-    let inventory = Array(24).fill(null);
-    let activeScroll = null;
+    let inv = Array(24).fill(null);
+    let activeIdx = null;
 
-    // --- 초기화 및 지급 시스템 ---
-    function updateGiveList() {
-        const type = document.getElementById('giveType').value;
-        const subSelect = document.getElementById('giveItem');
-        subSelect.innerHTML = "";
-        db[type].forEach((item, i) => {
-            subSelect.innerHTML += `<option value="${i}">${item.name}</option>`;
-        });
+    function updateList() {
+        const t = document.getElementById('type').value;
+        const s = document.getElementById('items');
+        s.innerHTML = db[t].map((v, i) => `<option value="${i}">${v.name}</option>`).join('');
     }
 
-    function giveItem() {
-        const type = document.getElementById('giveType').value;
-        const idx = document.getElementById('giveItem').value;
-        const amt = parseInt(document.getElementById('giveAmount').value);
-        const baseItem = db[type][idx];
+    function give() {
+        const t = document.getElementById('type').value;
+        const i = document.getElementById('items').value;
+        const a = parseInt(document.getElementById('amt').value);
+        const item = db[t][i];
 
-        for(let i=0; i<amt; i++) {
-            const emptyIdx = inventory.findIndex(s => s === null);
-            if(emptyIdx === -1) { alert("인벤토리가 가득 찼습니다."); break; }
-            
-            inventory[emptyIdx] = { 
-                ...baseItem, 
-                id: Date.now() + Math.random(),
-                lvl: type === 'scroll' ? undefined : 0,
-                itemType: type 
-            };
+        for(let k=0; k<a; k++) {
+            const empty = inv.findIndex(s => s === null);
+            if(empty === -1) break;
+            inv[empty] = { ...item, lvl: t === 's' ? null : 0 };
         }
-        addLog(`${baseItem.name} ${amt}개를 지급받았습니다.`, "log-system");
-        renderInventory();
+        addLog(`${item.name} ${a}개 획득`, "s-sys");
+        draw();
     }
 
-    // --- 인벤토리 렌더링 ---
-    function renderInventory() {
-        const grid = document.getElementById('invGrid');
-        grid.innerHTML = "";
-
-        inventory.forEach((item, idx) => {
-            const slot = document.createElement('div');
-            slot.className = `slot ${activeScroll && activeScroll.invIdx === idx ? 'selected-scroll' : ''}`;
-            
-            if(item) {
-                const img = document.createElement('img');
-                img.src = PROXY + item.img;
-                slot.appendChild(img);
-
-                if(item.lvl !== undefined) {
-                    const lvl = document.createElement('div');
-                    lvl.className = 'lvl';
-                    lvl.innerText = `+${item.lvl}`;
-                    slot.appendChild(lvl);
-                }
-                
-                slot.onclick = () => handleSlotClick(idx);
-            }
-            grid.appendChild(slot);
-        });
+    function draw() {
+        const g = document.getElementById('grid');
+        g.innerHTML = inv.map((item, i) => {
+            if(!item) return `<div class="slot"></div>`;
+            const isSel = activeIdx === i ? 'active-scroll' : '';
+            return `
+                <div class="slot ${isSel}" onclick="clickSlot(${i})">
+                    <img src="${item.img}">
+                    ${item.lvl !== null ? `<div class="lvl-text">+${item.lvl}</div>` : ''}
+                </div>
+            `;
+        }).join('');
     }
 
-    // --- 로직 컨트롤 ---
-    function handleSlotClick(idx) {
-        const clickedItem = inventory[idx];
-        const status = document.getElementById('status-msg');
+    function clickSlot(i) {
+        const item = inv[i];
+        if(!item) return;
 
-        // 1. 주문서 선택 상태에서 아이템 클릭
-        if (activeScroll) {
-            if (clickedItem.itemType === 'scroll') {
-                activeScroll = null; // 주문서 다시 클릭 시 취소
-                document.getElementById('mainBody').classList.remove('target-mode');
-                status.innerText = "사용이 취소되었습니다.";
+        if (activeIdx !== null) {
+            const scroll = inv[activeIdx];
+            if (item.type === scroll.target) {
+                enchant(activeIdx, i);
             } else {
-                processEnchant(idx);
+                addLog("대상이 올바르지 않습니다.", "s-fail");
+                cancel();
             }
-        } 
-        // 2. 새 주문서 선택
-        else if (clickedItem.itemType === 'scroll') {
-            activeScroll = { ...clickedItem, invIdx: idx };
-            document.getElementById('mainBody').classList.add('target-mode');
-            status.innerText = `[${clickedItem.name}]\n대상을 선택하세요.`;
+        } else if (item.type === 's') {
+            activeIdx = i;
+            document.getElementById('b').classList.add('mode-target');
+            document.getElementById('status').innerText = `[${item.name}]\n대상을 선택하세요.`;
+            draw();
         }
-        renderInventory();
     }
 
-    function processEnchant(targetIdx) {
-        const scroll = inventory[activeScroll.invIdx];
-        const target = inventory[targetIdx];
+    function enchant(si, ti) {
+        const scroll = inv[si];
+        const target = inv[ti];
+        const chance = target.lvl < target.safe ? 1.0 : 0.33;
 
-        // 타입 검증
-        const isWeaponScroll = scroll.type === 'weapon-scroll' && target.itemType === 'weapon';
-        const isArmorScroll = scroll.type === 'armor-scroll' && target.itemType === 'armor';
-
-        if (!isWeaponScroll && !isArmorScroll) {
-            addLog("주문서가 대상과 맞지 않습니다.", "log-fail");
+        if (Math.random() < chance) {
+            let up = 1;
+            if (scroll.sType === 'b') {
+                if (target.lvl <= 2) up = Math.floor(Math.random()*3)+1;
+                else if (target.lvl <= 5) up = Math.floor(Math.random()*2)+1;
+            }
+            target.lvl += up;
+            addLog(`강화 성공: +${target.lvl} ${target.name}`, "s-suc");
         } else {
-            // 확률 계산 (NC Classic 로직)
-            const successRate = target.lvl < target.safe ? 1.0 : 0.33;
-            
-            if (Math.random() < successRate) {
-                let up = 1;
-                if (scroll.sType === 'blessed') {
-                    if (target.lvl <= 2) up = Math.floor(Math.random()*3)+1;
-                    else if (target.lvl <= 5) up = Math.floor(Math.random()*2)+1;
-                }
-                target.lvl += up;
-                addLog(`성공: +${target.lvl} ${target.name} (상승:${up})`, "log-success");
-            } else {
-                addLog(`실패: +${target.lvl} ${target.name}이(가) 증발했습니다.`, "log-fail");
-                inventory[targetIdx] = null;
-            }
-            // 주문서 소모
-            inventory[activeScroll.invIdx] = null;
+            addLog(`강화 실패: +${target.lvl} ${target.name} 증발`, "s-fail");
+            inv[ti] = null;
         }
-
-        activeScroll = null;
-        document.getElementById('mainBody').classList.remove('target-mode');
-        document.getElementById('status-msg').innerText = "강화가 완료되었습니다.";
-        renderInventory();
+        inv[si] = null;
+        cancel();
     }
 
-    function addLog(msg, cls) {
-        const log = document.getElementById('log-window');
-        log.innerHTML = `<div class="${cls}">> ${msg}</div>` + log.innerHTML;
+    function cancel() {
+        activeIdx = null;
+        document.getElementById('b').classList.remove('mode-target');
+        document.getElementById('status').innerText = "아이템을 선택하세요.";
+        draw();
     }
 
-    // 초기 로딩
-    updateGiveList();
-    renderInventory();
+    function addLog(m, c) {
+        const l = document.getElementById('log');
+        l.innerHTML = `<div class="${c}">> ${m}</div>` + l.innerHTML;
+    }
+
+    updateList(); draw();
 </script>
 </body>
 </html>
