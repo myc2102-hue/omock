@@ -3,75 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lineage Classic - Real Chat UI</title>
+    <title>Lineage Classic - Real Chat UI & Item Expansion</title>
     <style>
-        /* 1. 클래식 픽셀 폰트 */
+        /* 기존 CSS 100% 동일 유지 */
         @font-face {
             font-family: 'DungGeunMo';
             src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/DungGeunMo.woff') format('woff');
         }
 
         :root {
-            --bg-stone: #626573;
-            --border-light: #9ba0af;
-            --border-dark: #2a2c33;
-            --slot-bg: #22242a;
-            --slot-circle: #2a2c33;
-            
+            --bg-stone: #626573; --border-light: #9ba0af; --border-dark: #2a2c33;
+            --slot-bg: #22242a; --slot-circle: #2a2c33;
             --gold: #ffeb99; --green: #44ff44; --red: #ff5555; --blue: #66ccff; --pink: #ff77ff;
         }
 
         body {
             background: #2a2218 url('https://www.transparenttextures.com/patterns/dirt.png'); 
             font-family: 'DungGeunMo', 'Gulim', sans-serif;
-            margin: 0; padding: 20px 10px;
-            color: #ccc; user-select: none;
-            display: flex; justify-content: center;
-            min-height: 100vh; box-sizing: border-box;
+            margin: 0; padding: 20px 10px; color: #ccc; user-select: none;
+            display: flex; justify-content: center; min-height: 100vh; box-sizing: border-box;
         }
 
-        /* 2. 전체 래퍼 (기본 880px, 중앙 정렬) */
-        .app-container {
-            width: 100%;
-            max-width: 880px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+        .app-container { width: 100%; max-width: 880px; display: flex; flex-direction: column; gap: 20px; }
 
-        /* 공통 창 프레임 (입체 돌 질감) */
         .window {
             background: var(--bg-stone);
             box-shadow: 
                 inset 1px 1px 0px #b2b6c7, inset -1px -1px 0px #111,
                 inset 2px 2px 0px var(--border-light), inset -2px -2px 0px var(--border-dark),
                 5px 5px 15px rgba(0,0,0,0.8);
-            border-radius: 8px; padding: 12px;
-            color: #fff; text-shadow: 1px 1px 0 #000;
+            border-radius: 8px; padding: 12px; color: #fff; text-shadow: 1px 1px 0 #000;
         }
 
-        /* 3. 상단 아이템 보급창 */
-        .admin-bar {
-            display: flex; gap: 10px; align-items: center; justify-content: space-between;
-            background: linear-gradient(135deg, #2b2e33, #15171a);
-        }
+        .admin-bar { display: flex; gap: 10px; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #2b2e33, #15171a); }
         .admin-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         select, input, button { background: #111; color: #fff; border: 1px solid #555; padding: 6px; font-family: inherit; font-size: 14px; }
         button { cursor: pointer; color: var(--gold); background: #222; }
         button:hover { background: #333; }
 
-        /* 4. 메인 콘텐츠 (좌측: 인벤토리 / 우측: 채팅창) */
-        .main-content {
-            display: flex; gap: 20px; align-items: stretch;
-        }
+        .main-content { display: flex; gap: 20px; align-items: stretch; }
 
-        /* 좌측: 인벤토리 */
-        .inventory-window {
-            flex-shrink: 0;
-            width: 300px;
-            display: flex; flex-direction: column;
-        }
-        
+        .inventory-window { flex-shrink: 0; width: 300px; display: flex; flex-direction: column; }
         #status { font-size: 13px; color: var(--gold); text-align: center; margin-bottom: 5px; height: 15px; }
 
         .inv-grid {
@@ -82,8 +54,7 @@
         }
 
         .slot {
-            aspect-ratio: 1 / 1; 
-            background: var(--slot-bg);
+            aspect-ratio: 1 / 1; background: var(--slot-bg);
             background-image: radial-gradient(circle, var(--slot-circle) 35%, transparent 40%);
             border-top: 2px solid #0a0b0c; border-left: 2px solid #0a0b0c;
             border-bottom: 2px solid #484b55; border-right: 2px solid #484b55;
@@ -92,7 +63,6 @@
         .slot:active { cursor: grabbing; }
         .slot img { width: 75%; height: 75%; object-fit: contain; image-rendering: pixelated; pointer-events: none; }
         .slot:hover { border-color: #888; }
-        
         .slot.active-scroll { border: 2px solid var(--gold); box-shadow: inset 0 0 10px rgba(255,235,153,0.3); }
         .slot.drag-over { border: 2px dashed #8be9fd; opacity: 0.7; }
         body.mode-target .slot { cursor: crosshair; }
@@ -101,87 +71,51 @@
         .count-text { position: absolute; bottom: 2px; right: 4px; color: #fff; font-size: 12px; text-shadow: 1px 1px 0 #000; z-index: 10; pointer-events: none; }
         .item-label { position: absolute; font-size: 9px; color: #555; text-align: center; pointer-events: none; letter-spacing: -1px; }
 
-        /* ==========================================
-           새로 디벨롭된 리니지 클래식 채팅창 UI
-           ========================================== */
-        .chat-window {
-            flex-grow: 1; display: flex; flex-direction: column;
-            background: var(--bg-stone);
-            padding: 12px; gap: 4px;
-        }
-
-        /* 채팅 탭 영역 */
-        .chat-tabs {
-            display: flex; gap: 2px; margin-bottom: 2px;
-        }
-        .chat-tab {
-            background: linear-gradient(to bottom, #5d6166, #2a2c33);
-            border: 1px solid #111; border-top: 1px solid #9ba0af; border-left: 1px solid #9ba0af;
-            padding: 4px 12px; font-size: 12px; color: #aaa; cursor: pointer;
-            border-top-left-radius: 4px; border-top-right-radius: 4px;
-        }
-        .chat-tab.active {
-            background: #000; color: var(--gold);
-            border-bottom: 1px solid #000; /* 배경과 이어지는 느낌 */
-        }
-
-        /* 실제 로그창 영역 (음각) */
+        .chat-window { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg-stone); padding: 12px; gap: 4px; }
+        .chat-tabs { display: flex; gap: 2px; margin-bottom: 2px; }
+        .chat-tab { background: linear-gradient(to bottom, #5d6166, #2a2c33); border: 1px solid #111; border-top: 1px solid #9ba0af; border-left: 1px solid #9ba0af; padding: 4px 12px; font-size: 12px; color: #aaa; cursor: pointer; border-top-left-radius: 4px; border-top-right-radius: 4px; }
+        .chat-tab.active { background: #000; color: var(--gold); border-bottom: 1px solid #000; }
+        
         #log {
-            flex-grow: 1; padding: 10px; font-size: 14px; line-height: 1.6;
-            overflow-y: auto; text-shadow: 1px 1px 0 #000; min-height: 300px;
-            background: #000;
-            border-top: 2px solid #050505; border-left: 2px solid #050505;
-            border-bottom: 2px solid #444; border-right: 2px solid #444;
+            flex-grow: 1; padding: 10px; font-size: 14px; line-height: 1.6; overflow-y: auto; text-shadow: 1px 1px 0 #000; min-height: 300px;
+            background: #000; border-top: 2px solid #050505; border-left: 2px solid #050505; border-bottom: 2px solid #444; border-right: 2px solid #444;
         }
-
-        /* 커스텀 스크롤바 (리니지 스타일) */
         #log::-webkit-scrollbar { width: 16px; }
         #log::-webkit-scrollbar-track { background: #111; border-left: 1px solid #333; }
-        #log::-webkit-scrollbar-thumb { 
-            background: #3a3d42; 
-            border-top: 2px solid #666; border-left: 2px solid #666;
-            border-bottom: 2px solid #000; border-right: 2px solid #000;
-        }
+        #log::-webkit-scrollbar-thumb { background: #3a3d42; border-top: 2px solid #666; border-left: 2px solid #666; border-bottom: 2px solid #000; border-right: 2px solid #000; }
         #log::-webkit-scrollbar-thumb:active { background: #222; }
 
-        /* 채팅 입력란 (하단) */
-        .chat-input-wrapper {
-            display: flex; align-items: center; background: #000;
-            border-top: 2px solid #050505; border-left: 2px solid #050505;
-            border-bottom: 2px solid #444; border-right: 2px solid #444;
-            padding: 2px; margin-top: 2px;
-        }
-        .chat-type-label {
-            color: #aaa; font-size: 13px; padding: 0 8px; border-right: 1px solid #333;
-        }
-        .chat-input {
-            flex-grow: 1; background: transparent; border: none; color: #fff;
-            padding: 6px 8px; font-family: inherit; font-size: 14px; outline: none; text-shadow: 1px 1px 0 #000;
-        }
+        .chat-input-wrapper { display: flex; align-items: center; background: #000; border-top: 2px solid #050505; border-left: 2px solid #050505; border-bottom: 2px solid #444; border-right: 2px solid #444; padding: 2px; margin-top: 2px; }
+        .chat-type-label { color: #aaa; font-size: 13px; padding: 0 8px; border-right: 1px solid #333; }
+        .chat-input { flex-grow: 1; background: transparent; border: none; color: #fff; padding: 6px 8px; font-family: inherit; font-size: 14px; outline: none; text-shadow: 1px 1px 0 #000; }
 
         .s-suc { color: var(--green); } .s-fail { color: var(--red); } .s-cur { color: var(--blue); } .s-sys { color: var(--gold); }
 
         /* ==========================================
-           5. 반응형 (Responsive) - 430px 이하
+           새로 추가된 기능: 팝업 툴팁 UI
            ========================================== */
+        .item-popup {
+            display: none; position: fixed; background: rgba(0, 0, 0, 0.85);
+            border: 1px solid #555; color: #ccc; padding: 10px; font-size: 13px;
+            z-index: 9999; pointer-events: none; box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            line-height: 1.6; min-width: 150px;
+        }
+        .item-popup .p-title { color: var(--gold); font-size: 15px; margin-bottom: 4px; border-bottom: 1px solid #333; padding-bottom: 4px; }
+        .item-popup .p-safe { color: #aaa; }
+        
         @media (max-width: 430px) {
-            body { padding: 10px; }
-            .app-container { gap: 10px; }
-            
-            .admin-bar { flex-direction: column; align-items: stretch; }
-            .admin-controls { flex-direction: column; align-items: stretch; }
+            body { padding: 10px; } .app-container { gap: 10px; }
+            .admin-bar, .admin-controls { flex-direction: column; align-items: stretch; }
             .admin-controls select, .admin-controls input, .admin-controls button { width: 100%; box-sizing: border-box; }
-            
-            .main-content { flex-direction: column; gap: 10px; }
-            .inventory-window { width: 100%; }
-            .chat-window { height: 350px; }
-            #log { min-height: 200px; }
+            .main-content { flex-direction: column; gap: 10px; } .inventory-window { width: 100%; } .chat-window { height: 350px; } #log { min-height: 200px; }
         }
     </style>
 </head>
 <body id="b">
 
     <audio id="soundDrop" src="https://actions.google.com/sounds/v1/foley/drop_leather.ogg"></audio>
+
+    <div id="itemPopup" class="item-popup window"></div>
 
     <div class="app-container">
         <div class="admin-bar window">
@@ -203,46 +137,62 @@
 
             <div class="chat-window window">
                 <div class="chat-tabs">
-                    <div class="chat-tab active">전체</div>
-                    <div class="chat-tab">혈맹</div>
-                    <div class="chat-tab">파티</div>
-                    <div class="chat-tab">장사</div>
+                    <div class="chat-tab active">전체</div><div class="chat-tab">혈맹</div><div class="chat-tab">파티</div><div class="chat-tab">장사</div>
                 </div>
-                
                 <div id="log">
                     <div class="s-sys">도움말을 보려면 CTRL-H 를 눌러 주십시오.</div>
-                    <div class="s-sys">게임마스터는 고객님께 개인 정보(비밀번호 등)를 절대 묻지 않습니다.</div>
-                    <div style="color:#aaa;">테스트 서버에 오신 것을 환영합니다!</div>
+                    <div class="s-sys">아이템을 꾹 누르면 상세 정보가 표시됩니다.</div>
                 </div>
-
                 <div class="chat-input-wrapper">
                     <span class="chat-type-label">일반</span>
-                    <input type="text" class="chat-input" placeholder="엔터키를 눌러 채팅을 입력할 수 없습니다." readonly>
+                    <input type="text" class="chat-input" placeholder="채팅을 입력할 수 없습니다." readonly>
                 </div>
             </div>
         </div>
     </div>
 
 <script>
-    // 기존 기능 및 로직 100% 동일 유지
     const getLCImg = (path) => `https://images.weserv.nl/?url=https://www.lcinfo.io${path}`;
 
+    // ==========================================
+    // 디벨롭된 데이터베이스: 신규 아이템 및 상세 정보(info) 추가
+    // ==========================================
     const db = {
         "무기": [
-            { name: "싸울아비 장검", safe: 6, img: getLCImg("/static/images/items/4.png"), target: 'w', stackable: false },
-            { name: "레이피어", safe: 6, img: getLCImg("/static/images/items/3.png"), target: 'w', stackable: false }
+            { name: "일본도", safe: 6, img: getLCImg("/static/images/items/1.png"), target: 'w', stackable: false, info: ["타격치: 10/12", "안전 인챈트: 6", "클래스: 기사, 요정, 군주", "재질: 철"] },
+            { name: "레이피어", safe: 6, img: getLCImg("/static/images/items/3.png"), target: 'w', stackable: false, info: ["타격치: 11/6", "추가 타격: 언데드", "안전 인챈트: 6", "클래스: 기사, 요정, 군주"] },
+            { name: "다마스커스 검", safe: 6, img: getLCImg("/static/images/items/6.png"), target: 'w', stackable: false, info: ["타격치: 10/11", "특징: 무기가 손상되지 않음", "안전 인챈트: 6", "재질: 철"] },
+            { name: "메일 브레이커", safe: 6, img: getLCImg("/static/images/items/15.png"), target: 'w', stackable: false, info: ["타격치: 4/5", "명중률: +10", "특징: 무기가 손상되지 않음", "안전 인챈트: 6"] },
+            { name: "싸울아비 장검", safe: 6, img: getLCImg("/static/images/items/4.png"), target: 'w', stackable: false, info: ["타격치: 16/10", "안전 인챈트: 6", "클래스: 기사", "재질: 철"] },
+            { name: "붉은 기사의 대검", safe: 6, img: getLCImg("/static/images/items/62.png"), target: 'w', stackable: false, info: ["타격치: 14/16", "옵션: STR +1", "특징: 양손 무기", "안전 인챈트: 6"] },
+            { name: "오리하르콘 단검", safe: 6, img: getLCImg("/static/images/items/7.png"), target: 'w', stackable: false, info: ["타격치: 7/7", "추가 타격: 언데드", "특징: 무기가 손상되지 않음", "안전 인챈트: 6"] },
+            { name: "마나의 지팡이", safe: 6, img: getLCImg("/static/images/items/110.png"), target: 'w', stackable: false, info: ["타격치: 3/3", "옵션: 타격 시 MP 흡수", "클래스: 마법사", "안전 인챈트: 6"] },
+            { name: "힘의 지팡이", safe: 6, img: getLCImg("/static/images/items/111.png"), target: 'w', stackable: false, info: ["타격치: 9/9", "옵션: STR +3", "클래스: 마법사", "안전 인챈트: 6"] },
+            { name: "요정족 창", safe: 6, img: getLCImg("/static/images/items/80.png"), target: 'w', stackable: false, info: ["타격치: 7/7", "특징: 양손 무기", "안전 인챈트: 6", "클래스: 기사, 요정, 군주"] },
+            { name: "은장검", safe: 6, img: getLCImg("/static/images/items/12.png"), target: 'w', stackable: false, info: ["타격치: 8/12", "추가 타격: 언데드", "안전 인챈트: 6", "재질: 은"] }
         ],
         "방어구": [
-            { name: "판금 갑옷", safe: 4, img: getLCImg("/static/images/items/35.png"), target: 'a', stackable: false },
-            { name: "마법 망토", safe: 4, img: getLCImg("/static/images/items/115.png"), target: 'a', stackable: false }
+            { name: "무명 로브", safe: 4, img: getLCImg("/static/images/items/20.png"), target: 'a', stackable: false, info: ["방어력: -2", "안전 인챈트: 4", "클래스: 마법사", "재질: 천"] },
+            { name: "요정족 사슬 갑옷", safe: 6, img: getLCImg("/static/images/items/42.png"), target: 'a', stackable: false, info: ["방어력: -5", "안전 인챈트: 6", "클래스: 요정", "재질: 철"] },
+            { name: "요정족 판금 갑옷", safe: 6, img: getLCImg("/static/images/items/43.png"), target: 'a', stackable: false, info: ["방어력: -6", "안전 인챈트: 6", "클래스: 요정", "재질: 철"] },
+            { name: "요정족 흉갑", safe: 6, img: getLCImg("/static/images/items/44.png"), target: 'a', stackable: false, info: ["방어력: -4", "안전 인챈트: 6", "클래스: 요정", "재질: 철"] },
+            { name: "판금 갑옷", safe: 4, img: getLCImg("/static/images/items/35.png"), target: 'a', stackable: false, info: ["방어력: -8", "안전 인챈트: 4", "클래스: 기사", "재질: 철"] },
+            { name: "수정 갑옷", safe: 4, img: getLCImg("/static/images/items/34.png"), target: 'a', stackable: false, info: ["방어력: -8", "안전 인챈트: 4", "클래스: 기사", "재질: 유리"] },
+            { name: "강철 갑옷", safe: 4, img: getLCImg("/static/images/items/33.png"), target: 'a', stackable: false, info: ["방어력: -7", "안전 인챈트: 4", "클래스: 기사", "재질: 철"] },
+            { name: "신관의 로브", safe: 4, img: getLCImg("/static/images/items/25.png"), target: 'a', stackable: false, info: ["방어력: -6", "옵션: MP 회복 +5, MR +4", "안전 인챈트: 4", "클래스: 마법사, 요정"] },
+            { name: "무관의 갑옷", safe: 4, img: getLCImg("/static/images/items/36.png"), target: 'a', stackable: false, info: ["방어력: -7", "옵션: HP 회복 +5, MR +4", "안전 인챈트: 4", "클래스: 기사, 군주"] },
+            { name: "지룡 비늘 갑옷", safe: 4, img: getLCImg("/static/images/items/37.png"), target: 'a', stackable: false, info: ["방어력: -9", "옵션: HP 회복 +4, 땅속성 저항 +50", "안전 인챈트: 4", "클래스: 기사"] },
+            { name: "화룡 비늘 갑옷", safe: 4, img: getLCImg("/static/images/items/38.png"), target: 'a', stackable: false, info: ["방어력: -9", "옵션: HP 회복 +4, 불속성 저항 +50", "안전 인챈트: 4", "클래스: 기사"] },
+            { name: "풍룡 비늘 갑옷", safe: 4, img: getLCImg("/static/images/items/39.png"), target: 'a', stackable: false, info: ["방어력: -9", "옵션: HP 회복 +4, 바람속성 저항 +50", "안전 인챈트: 4", "클래스: 기사"] },
+            { name: "수룡 비늘 갑옷", safe: 4, img: getLCImg("/static/images/items/40.png"), target: 'a', stackable: false, info: ["방어력: -9", "옵션: HP 회복 +4, 물속성 저항 +50", "안전 인챈트: 4", "클래스: 기사"] }
         ],
         "주문서": [
-            { name: "무기 마법 주문서", sType: 'n', target: 'w', img: getLCImg("/static/images/items/154.png"), stackable: true },
-            { name: "축복받은 무기 마법 주문서", sType: 'b', target: 'w', img: getLCImg("/static/images/items/155.png"), stackable: true },
-            { name: "저주받은 무기 마법 주문서", sType: 'c', target: 'w', img: getLCImg("/static/images/items/156.png"), stackable: true },
-            { name: "갑옷 마법 주문서", sType: 'n', target: 'a', img: getLCImg("/static/images/items/157.png"), stackable: true },
-            { name: "축복받은 갑옷 마법 주문서", sType: 'b', target: 'a', img: getLCImg("/static/images/items/158.png"), stackable: true },
-            { name: "저주받은 갑옷 마법 주문서", sType: 'c', target: 'a', img: getLCImg("/static/images/items/159.png"), stackable: true }
+            { name: "무기 마법 주문서", sType: 'n', target: 'w', img: getLCImg("/static/images/items/154.png"), stackable: true, info: ["무기의 타격치를 강화한다.", "안전 인챈트 수치를 넘기면 소멸"] },
+            { name: "축복받은 무기 마법 주문서", sType: 'b', target: 'w', img: getLCImg("/static/images/items/155.png"), stackable: true, info: ["무기의 타격치를 강화한다.", "성공 시 1~3 수치가 무작위 상승"] },
+            { name: "저주받은 무기 마법 주문서", sType: 'c', target: 'w', img: getLCImg("/static/images/items/156.png"), stackable: true, info: ["강화 수치를 1 하락시킨다.", "100% 성공하며 무기는 안전함"] },
+            { name: "갑옷 마법 주문서", sType: 'n', target: 'a', img: getLCImg("/static/images/items/157.png"), stackable: true, info: ["방어구의 방어력을 강화한다.", "안전 인챈트 수치를 넘기면 소멸"] },
+            { name: "축복받은 갑옷 마법 주문서", sType: 'b', target: 'a', img: getLCImg("/static/images/items/158.png"), stackable: true, info: ["방어구의 방어력을 강화한다.", "성공 시 1~3 수치가 무작위 상승"] },
+            { name: "저주받은 갑옷 마법 주문서", sType: 'c', target: 'a', img: getLCImg("/static/images/items/159.png"), stackable: true, info: ["강화 수치를 1 하락시킨다.", "100% 성공하며 방어구는 안전함"] }
         ]
     };
 
@@ -250,6 +200,57 @@
     let activeIdx = null;
     let dragIdx = null; 
 
+    // ==========================================
+    // 새로 추가된 로직: 꾹 누르기(Long Press) 팝업 기능
+    // ==========================================
+    let pressTimer;
+    const popup = document.getElementById('itemPopup');
+
+    function startPress(e, i) {
+        if (!inv[i]) return;
+        
+        // 터치 & 마우스 좌표 처리 (모바일 호환)
+        let cX = e.clientX || (e.touches && e.touches[0].clientX);
+        let cY = e.clientY || (e.touches && e.touches[0].clientY);
+
+        pressTimer = setTimeout(() => {
+            showPopup(i, cX, cY);
+        }, 400); // 0.4초 꾹 누르면 발동
+    }
+
+    function endPress() {
+        clearTimeout(pressTimer);
+        popup.style.display = 'none';
+    }
+
+    function showPopup(i, x, y) {
+        const item = inv[i];
+        if (!item) return;
+
+        let lvlStr = item.lvl !== undefined && item.lvl !== null ? `+${item.lvl} ` : '';
+        let html = `<div class="p-title">${lvlStr}${item.name}</div>`;
+        
+        if (item.info) {
+            item.info.forEach(line => {
+                html += `<div>${line}</div>`;
+            });
+        }
+        
+        popup.innerHTML = html;
+        popup.style.display = 'block';
+
+        // 마우스 커서 옆에 팝업 띄우기 (화면 벗어남 방지)
+        let tX = x + 15;
+        let tY = y + 15;
+        if (tX + popup.offsetWidth > window.innerWidth) tX = window.innerWidth - popup.offsetWidth - 10;
+        if (tY + popup.offsetHeight > window.innerHeight) tY = window.innerHeight - popup.offsetHeight - 10;
+        
+        popup.style.left = tX + 'px';
+        popup.style.top = tY + 'px';
+    }
+
+
+    // --- 이하 기존 로직 100% 동일 유지 ---
     function updateList() {
         const t = document.getElementById('type').value;
         const s = document.getElementById('items');
@@ -285,10 +286,13 @@
             const isSel = activeIdx === i ? 'active-scroll' : '';
             if(!item) return `<div class="slot" ondragover="allowDrop(event)" ondrop="drop(event, ${i})"></div>`;
             
+            // onmousedown, onmouseup, onmouseleave 추가하여 기존 드래그&클릭 로직과 병합
             return `
                 <div class="slot ${isSel}" draggable="true"
                      onclick="handleClick(${i})" ondblclick="handleDoubleClick(${i})"
-                     ondragstart="dragStart(event, ${i})" ondragover="allowDrop(event)"
+                     onmousedown="startPress(event, ${i})" onmouseup="endPress()" onmouseleave="endPress()"
+                     ontouchstart="startPress(event, ${i})" ontouchend="endPress()" ontouchcancel="endPress()"
+                     ondragstart="dragStart(event, ${i}); endPress();" ondragover="allowDrop(event)"
                      ondragenter="dragEnter(event)" ondragleave="dragLeave(event)" ondrop="drop(event, ${i})">
                     <span class="item-label">${item.name.substring(0,2)}</span>
                     <img src="${item.img}" onerror="this.style.display='none'">
