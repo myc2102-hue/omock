@@ -75,10 +75,9 @@
         .chat-tab { background: linear-gradient(to bottom, #5d6166, #2a2c33); border: 1px solid #111; border-top: 1px solid #9ba0af; border-left: 1px solid #9ba0af; padding: 4px 12px; font-size: 12px; color: #aaa; cursor: pointer; border-top-left-radius: 4px; border-top-right-radius: 4px; }
         .chat-tab.active { background: #000; color: var(--gold); border-bottom: 1px solid #000; }
         
-        /* 변경된 부분: height를 고정하여 내부 스크롤만 작동하도록 수정 */
         #log {
             flex-grow: 1; padding: 10px; font-size: 14px; line-height: 1.6; overflow-y: auto; text-shadow: 1px 1px 0 #000; 
-            height: 380px; max-height: 380px; /* 높이 고정 추가 */
+            height: 380px; max-height: 380px; 
             background: #000; border-top: 2px solid #050505; border-left: 2px solid #050505; border-bottom: 2px solid #444; border-right: 2px solid #444;
         }
         #log::-webkit-scrollbar { width: 16px; }
@@ -100,14 +99,27 @@
         }
         .item-popup .p-title { color: var(--gold); font-size: 15px; margin-bottom: 4px; border-bottom: 1px solid #333; padding-bottom: 4px; }
         .item-popup .p-safe { color: #aaa; }
+
+        /* ==========================================
+           새로 추가된 하단 크레딧 영역 스타일
+           ========================================== */
+        .credits-section {
+            text-align: center;
+            color: #aaa;
+            font-size: 13px;
+            margin-top: 10px;
+            line-height: 1.6;
+            text-shadow: 1px 1px 0 #000;
+        }
+        .credits-section span { color: var(--gold); }
         
         @media (max-width: 430px) {
             body { padding: 10px; } .app-container { gap: 10px; }
             .admin-bar, .admin-controls { flex-direction: column; align-items: stretch; }
             .admin-controls select, .admin-controls input, .admin-controls button { width: 100%; box-sizing: border-box; }
             .main-content { flex-direction: column; gap: 10px; } .inventory-window { width: 100%; } 
-            .chat-window { height: auto; } /* 모바일에서는 자동 높이 */
-            #log { height: 200px; max-height: 200px; } /* 모바일용 높이 축소 */
+            .chat-window { height: auto; } 
+            #log { height: 200px; max-height: 200px; } 
         }
     </style>
 </head>
@@ -149,12 +161,18 @@
                 </div>
             </div>
         </div>
+
+        <div class="credits-section">
+            리니지클래식 어레인서버 ID: <span>데포로쥬</span> 문의<br>
+            개발자 커피사주기 <span>농협3020780286881 문x철</span>
+        </div>
     </div>
 
 <script>
     const ASSET_SERVER = "https://raw.githubusercontent.com/run-to-the-future/lineage-assets/main/icon/";
     const getLCImg = (id) => `${ASSET_SERVER}${id}.png`;
 
+    // 요청하신 신규 기본 지급 아이템들을 db 배열에 추가했습니다.
     const db = {
         "무기": [
             { name: "일본도", safe: 6, img: getLCImg(1), target: 'w', stackable: false, info: ["타격치: 10/12", "안전 인챈트: 6", "클래스: 기사, 요정, 군주"] },
@@ -170,6 +188,12 @@
             { name: "은장검", safe: 6, img: getLCImg(12), target: 'w', stackable: false, info: ["타격치: 8/12", "추가 타격: 언데드", "안전 인챈트: 6"] }
         ],
         "방어구": [
+            { name: "기사의 면갑", safe: 4, img: getLCImg(65), target: 'a', stackable: false, info: ["방어력: -3", "안전 인챈트: 4", "클래스: 기사"] },
+            { name: "티셔츠", safe: 4, img: getLCImg(30), target: 'a', stackable: false, info: ["방어력: 0", "안전 인챈트: 4", "클래스: 전체"] },
+            { name: "요정족 방패", safe: 6, img: getLCImg(49), target: 'a', stackable: false, info: ["방어력: -2", "안전 인챈트: 6", "클래스: 요정"] },
+            { name: "강철 부츠", safe: 4, img: getLCImg(17), target: 'a', stackable: false, info: ["방어력: -3", "안전 인챈트: 4", "클래스: 전체"] },
+            { name: "파워 글로브", safe: 4, img: getLCImg(54), target: 'a', stackable: false, info: ["방어력: 0", "옵션: STR +2", "안전 인챈트: 4", "클래스: 전체"] },
+            { name: "보호 망토", safe: 4, img: getLCImg(114), target: 'a', stackable: false, info: ["방어력: -3", "안전 인챈트: 4", "클래스: 전체"] },
             { name: "무명 로브", safe: 4, img: getLCImg(20), target: 'a', stackable: false, info: ["방어력: -2", "안전 인챈트: 4", "클래스: 마법사"] },
             { name: "요정족 사슬 갑옷", safe: 6, img: getLCImg(42), target: 'a', stackable: false, info: ["방어력: -5", "안전 인챈트: 6", "클래스: 요정"] },
             { name: "요정족 판금 갑옷", safe: 6, img: getLCImg(43), target: 'a', stackable: false, info: ["방어력: -6", "안전 인챈트: 6", "클래스: 요정"] },
@@ -201,25 +225,48 @@
     const popup = document.getElementById('itemPopup');
 
     // ==========================================
-    // 새로 추가된 로직: 기본 장비 초기 지급 설정
+    // 요청하신 신규 초기 지급 로직
+    // 지정된 아이템 8개, 지정된 수량의 주문서만 셋팅됩니다.
     // ==========================================
     function initStartingItems() {
         let slotIndex = 0;
         
-        // 무기 목록 한 개씩 지급
-        db["무기"].forEach(item => {
-            if (slotIndex < 30) inv[slotIndex++] = { ...item, lvl: 0, qty: 1 };
-        });
-        
-        // 방어구 목록 한 개씩 지급
-        db["방어구"].forEach(item => {
-            if (slotIndex < 30) inv[slotIndex++] = { ...item, lvl: 0, qty: 1 };
-        });
-        
-        // 무기(11개) + 방어구(13개) = 총 24개. (남은 6칸은 빈칸 유지)
+        // 장비 추가 헬퍼 함수
+        const addEquipment = (itemName) => {
+            let itemObj = db["무기"].find(i => i.name === itemName) || db["방어구"].find(i => i.name === itemName);
+            if (itemObj && slotIndex < 30) {
+                inv[slotIndex++] = { ...itemObj, lvl: 0, qty: 1 };
+            }
+        };
+
+        // 주문서 추가 헬퍼 함수
+        const addScroll = (itemName, quantity) => {
+            let itemObj = db["주문서"].find(i => i.name === itemName);
+            if (itemObj && slotIndex < 30) {
+                inv[slotIndex++] = { ...itemObj, qty: quantity };
+            }
+        };
+
+        // 1. 지정된 장비 지급
+        addEquipment("싸울아비 장검");
+        addEquipment("기사의 면갑");
+        addEquipment("판금 갑옷");
+        addEquipment("티셔츠");
+        addEquipment("요정족 방패");
+        addEquipment("강철 부츠");
+        addEquipment("파워 글로브");
+        addEquipment("보호 망토");
+
+        // 2. 지정된 주문서 지급
+        addScroll("무기 마법 주문서", 200);
+        addScroll("갑옷 마법 주문서", 200);
+        addScroll("축복받은 무기 마법 주문서", 50);
+        addScroll("저주받은 무기 마법 주문서", 50);
+        addScroll("축복받은 갑옷 마법 주문서", 50);
+        addScroll("저주받은 갑옷 마법 주문서", 50);
     }
 
-    // 게임 로딩 시 아이템 셋팅
+    // 접속 시 초기화 함수 실행
     initStartingItems();
 
     // --- [이하 기존 로직 100% 동일] ---
@@ -318,7 +365,6 @@
         div.innerText = msg; 
         log.appendChild(div); 
         
-        // 채팅창 높이 제한 안에서 스크롤이 자동으로 아래를 향하도록 처리
         log.scrollTop = log.scrollHeight; 
     }
 
