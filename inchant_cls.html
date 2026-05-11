@@ -2,7 +2,8 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Lineage Classic - Real UI & Perfect Logic</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lineage Classic - Responsive UI</title>
     <style>
         /* 1. 클래식 픽셀 폰트 */
         @font-face {
@@ -11,7 +12,6 @@
         }
 
         :root {
-            /* 리니지 클라이언트 특유의 돌/금속 색상표 */
             --bg-stone: #626573;
             --border-light: #9ba0af;
             --border-dark: #2a2c33;
@@ -22,143 +22,154 @@
         }
 
         body {
-            /* 게임 필드 배경 (흙바닥) */
             background: #2a2218 url('https://www.transparenttextures.com/patterns/dirt.png'); 
             font-family: 'DungGeunMo', 'Gulim', sans-serif;
-            margin: 0; height: 100vh; overflow: hidden;
-            user-select: none; color: #ccc;
+            margin: 0; padding: 20px 10px;
+            color: #ccc; user-select: none;
+            display: flex; justify-content: center;
+            min-height: 100vh; box-sizing: border-box;
         }
 
-        /* 2. 관리자 보급 패널 (화면 상단 중앙에 작게 배치) */
-        .admin-bar {
-            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-            background: #000; border: 1px solid #444; border-top: none;
-            padding: 5px 15px; display: flex; gap: 8px; align-items: center;
-            z-index: 1000; box-shadow: 0 5px 10px rgba(0,0,0,0.8);
+        /* 2. 전체 래퍼 (기본 880px, 중앙 정렬) */
+        .app-container {
+            width: 100%;
+            max-width: 880px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
-        select, input, button { background: #111; color: #fff; border: 1px solid #555; padding: 4px; font-family: inherit; font-size: 13px; }
-        button { cursor: pointer; color: var(--gold); background: #222; }
-        button:hover { background: #333; }
 
-        /* 3. 게임 윈도우 창 프레임 (입체 돌 질감) */
+        /* 공통 창 프레임 (입체 돌 질감) */
         .window {
             background: var(--bg-stone);
             box-shadow: 
                 inset 1px 1px 0px #b2b6c7, inset -1px -1px 0px #111,
                 inset 2px 2px 0px var(--border-light), inset -2px -2px 0px var(--border-dark),
                 5px 5px 15px rgba(0,0,0,0.8);
-            border-radius: 8px; padding: 12px; position: absolute;
+            border-radius: 8px; padding: 12px;
             color: #fff; text-shadow: 1px 1px 0 #000;
         }
 
-        /* 좌측: 스테이터스 창 */
-        .status-window {
-            top: 40px; left: 20px; width: 230px; height: 460px;
-            display: flex; flex-direction: column; gap: 8px;
-            background: radial-gradient(circle at 70% 60%, rgba(30,35,45,0.4) 0%, transparent 50%), var(--bg-stone);
+        /* 3. 상단 아이템 보급창 */
+        .admin-bar {
+            display: flex; gap: 10px; align-items: center; justify-content: space-between;
+            background: linear-gradient(135deg, var(--metal-mid), var(--metal-dark));
         }
-        .stat-line { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 2px; }
-        .stat-box { background: rgba(0,0,0,0.3); border: 1px solid var(--border-dark); border-bottom-color: var(--border-light); border-right-color: var(--border-light); padding: 2px 6px; text-align: right; width: 40px; }
+        .admin-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        select, input, button { background: #111; color: #fff; border: 1px solid #555; padding: 6px; font-family: inherit; font-size: 14px; }
+        button { cursor: pointer; color: var(--gold); background: #222; }
+        button:hover { background: #333; }
 
-        /* 우측: 인벤토리 창 */
+        /* 4. 메인 콘텐츠 (좌측: 인벤토리 / 우측: 채팅창) */
+        .main-content {
+            display: flex; gap: 20px; align-items: stretch;
+        }
+
+        /* 좌측: 인벤토리 */
         .inventory-window {
-            top: 40px; right: 20px; width: 300px; height: 460px;
+            flex-shrink: 0;
+            width: 300px;
             display: flex; flex-direction: column;
         }
         
         #status { font-size: 13px; color: var(--gold); text-align: center; margin-bottom: 5px; height: 15px; }
 
-        /* 인벤토리 5x6 그리드 (총 30칸) */
         .inv-grid {
-            display: grid; grid-template-columns: repeat(5, 54px); grid-template-rows: repeat(6, 54px); gap: 2px;
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px;
             background: var(--border-dark); padding: 3px;
             border-top: 1px solid #111; border-left: 1px solid #111;
             border-bottom: 1px solid #999; border-right: 1px solid #999;
         }
 
         .slot {
-            width: 54px; height: 54px; background: var(--slot-bg);
-            /* 원형 룬 문양 느낌 */
+            aspect-ratio: 1 / 1; /* 가로세로 비율 1:1 유지 */
+            background: var(--slot-bg);
             background-image: radial-gradient(circle, var(--slot-circle) 35%, transparent 40%);
             border-top: 2px solid #0a0b0c; border-left: 2px solid #0a0b0c;
             border-bottom: 2px solid #484b55; border-right: 2px solid #484b55;
             position: relative; display: flex; justify-content: center; align-items: center; cursor: grab;
         }
         .slot:active { cursor: grabbing; }
-        .slot img { width: 40px; height: 40px; object-fit: contain; image-rendering: pixelated; pointer-events: none; }
+        .slot img { width: 75%; height: 75%; object-fit: contain; image-rendering: pixelated; pointer-events: none; }
         .slot:hover { border-color: #888; }
         
-        /* 드래그 & 타겟팅 상태 */
         .slot.active-scroll { border: 2px solid var(--gold); box-shadow: inset 0 0 10px rgba(255,235,153,0.3); }
         .slot.drag-over { border: 2px dashed #8be9fd; opacity: 0.7; }
         body.mode-target .slot { cursor: crosshair; }
 
-        /* 텍스트 표기 (강화수치, 수량, 이름표) */
         .lvl-text { position: absolute; top: 2px; left: 4px; color: var(--green); font-size: 14px; text-shadow: 1px 1px 0 #000; z-index: 10; pointer-events: none; }
         .count-text { position: absolute; bottom: 2px; right: 4px; color: #fff; font-size: 12px; text-shadow: 1px 1px 0 #000; z-index: 10; pointer-events: none; }
         .item-label { position: absolute; font-size: 9px; color: #555; text-align: center; pointer-events: none; letter-spacing: -1px; }
 
-        /* 4. 하단 채팅창 */
-        .bottom-bar {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 150px;
+        /* 우측: 채팅 및 로그창 */
+        .chat-window {
+            flex-grow: 1; display: flex; flex-direction: column;
             background: linear-gradient(to bottom, #1a1c22, #0d0f12);
-            border-top: 3px solid #b2b6c7; display: flex; flex-direction: column;
-        }
-        #log {
-            flex-grow: 1; padding: 10px 20px; font-size: 14px; line-height: 1.6;
-            overflow-y: auto; text-shadow: 1px 1px 0 #000;
         }
         
-        /* 로그 텍스트 색상 */
+        #log {
+            flex-grow: 1; padding: 10px; font-size: 14px; line-height: 1.6;
+            overflow-y: auto; text-shadow: 1px 1px 0 #000; min-height: 300px;
+        }
+        
         .s-suc { color: var(--green); } .s-fail { color: var(--red); } .s-cur { color: var(--blue); } .s-sys { color: var(--gold); }
+
+        /* ==========================================
+           5. 반응형 (Responsive) - 430px 이하 모바일 환경
+           ========================================== */
+        @media (max-width: 430px) {
+            body { padding: 10px; }
+            .app-container { gap: 10px; }
+            
+            /* 상단 보급창 세로 배치 */
+            .admin-bar { flex-direction: column; align-items: stretch; }
+            .admin-controls { flex-direction: column; align-items: stretch; }
+            .admin-controls select, .admin-controls input, .admin-controls button { width: 100%; box-sizing: border-box; }
+            
+            /* 인벤토리와 채팅창 세로 배치 */
+            .main-content { flex-direction: column; gap: 10px; }
+            .inventory-window { width: 100%; }
+            .chat-window { height: 250px; }
+            #log { min-height: 200px; }
+        }
     </style>
 </head>
 <body id="b">
 
     <audio id="soundDrop" src="https://actions.google.com/sounds/v1/foley/drop_leather.ogg"></audio>
 
-    <div class="admin-bar">
-        <span style="color:var(--gold);">[ITEM]</span>
-        <select id="type" onchange="updateList()"></select>
-        <select id="items"></select>
-        <input type="number" id="amt" value="1" min="1" max="99" style="width:40px;">
-        <button onclick="give()">지급</button>
-        <button onclick="location.reload()" style="margin-left:10px;">초기화</button>
-    </div>
-
-    <div class="window status-window">
-        <div class="stat-line"><span>Level</span><span class="stat-box">1</span></div>
-        <div style="height:2px; background:var(--border-dark); margin:5px 0;"></div>
-        <div class="stat-line"><span style="color:#fff;">Hit Point</span><span style="color:var(--pink);">14/14</span></div>
-        <div class="stat-line"><span style="color:#fff;">Mana Point</span><span style="color:var(--blue);">2/2</span></div>
-        <div class="stat-line"><span style="color:#fff;">Armor Class</span><span>10</span></div>
-        <div style="margin-top:15px;">
-            <div class="stat-line" style="width:110px;"><span>Str</span><span class="stat-box">20</span></div>
-            <div class="stat-line" style="width:110px;"><span>Dex</span><span class="stat-box">10</span></div>
-            <div class="stat-line" style="width:110px;"><span>Con</span><span class="stat-box">11</span></div>
-            <div class="stat-line" style="width:110px;"><span>Int</span><span class="stat-box">10</span></div>
-            <div class="stat-line" style="width:110px;"><span>Wis</span><span class="stat-box">11</span></div>
-            <div class="stat-line" style="width:110px;"><span>Cha</span><span class="stat-box">13</span></div>
+    <div class="app-container">
+        <div class="admin-bar window">
+            <span style="color:var(--gold); font-weight:bold;">[ITEM SHOP]</span>
+            <div class="admin-controls">
+                <select id="type" onchange="updateList()"></select>
+                <select id="items"></select>
+                <input type="number" id="amt" value="1" min="1" max="99" placeholder="수량">
+                <button onclick="give()">지급</button>
+                <button onclick="location.reload()">초기화</button>
+            </div>
         </div>
-    </div>
 
-    <div class="window inventory-window">
-        <div id="status">주문서를 더블클릭 하십시오.</div>
-        <div class="inv-grid" id="grid"></div>
-    </div>
+        <div class="main-content">
+            <div class="inventory-window window">
+                <div id="status">주문서를 더블클릭 하십시오.</div>
+                <div class="inv-grid" id="grid"></div>
+            </div>
 
-    <div class="bottom-bar">
-        <div id="log">
-            <div class="s-sys">도움말을 보려면 CTRL-H 를 눌러 주십시오.</div>
-            <div class="s-sys">게임마스터는 고객님께 개인 정보(비밀번호 등)를 절대 묻지 않습니다.</div>
-            <div style="color:#aaa;">테스트 서버에 오신 것을 환영합니다! 상단에서 아이템을 획득하세요.</div>
+            <div class="chat-window window">
+                <div id="log">
+                    <div class="s-sys">도움말을 보려면 CTRL-H 를 눌러 주십시오.</div>
+                    <div class="s-sys">게임마스터는 고객님께 개인 정보(비밀번호 등)를 절대 묻지 않습니다.</div>
+                    <div style="color:#aaa;">테스트 서버에 오신 것을 환영합니다!</div>
+                </div>
+            </div>
         </div>
     </div>
 
 <script>
     const getLCImg = (path) => `https://images.weserv.nl/?url=https://www.lcinfo.io${path}`;
 
-    // --- 데이터베이스 (이전 로직 완벽 동일) ---
+    // --- 데이터베이스 로직 동일 ---
     const db = {
         "무기": [
             { name: "싸울아비 장검", safe: 6, img: getLCImg("/static/images/items/4.png"), target: 'w', stackable: false },
@@ -178,7 +189,7 @@
         ]
     };
 
-    let inv = Array(30).fill(null); // 클라이언트 UI에 맞게 30칸으로 확장
+    let inv = Array(30).fill(null); // 30칸
     let activeIdx = null;
     let dragIdx = null; 
 
@@ -212,7 +223,7 @@
         draw();
     }
 
-    // --- 렌더링 로직 ---
+    // --- 렌더링 로직 (반응형을 위해 슬롯 구조 최적화) ---
     function draw() {
         const g = document.getElementById('grid');
         g.innerHTML = inv.map((item, i) => {
@@ -317,11 +328,10 @@
         div.innerText = msg;
         log.appendChild(div);
         
-        // 스크롤을 항상 맨 아래로 유지
+        // 스크롤 맨 아래 유지
         log.scrollTop = log.scrollHeight;
     }
 
-    // 초기화
     document.getElementById('type').innerHTML = Object.keys(db).map(k => `<option>${k}</option>`).join('');
     updateList(); draw();
 </script>
