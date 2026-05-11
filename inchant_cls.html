@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lineage Classic - Real Chat Messages</title>
+    <title>Lineage Classic - Final Real Image Edition</title>
     <style>
         /* 기존 CSS 100% 동일 유지 */
         @font-face {
@@ -75,8 +75,10 @@
         .chat-tab { background: linear-gradient(to bottom, #5d6166, #2a2c33); border: 1px solid #111; border-top: 1px solid #9ba0af; border-left: 1px solid #9ba0af; padding: 4px 12px; font-size: 12px; color: #aaa; cursor: pointer; border-top-left-radius: 4px; border-top-right-radius: 4px; }
         .chat-tab.active { background: #000; color: var(--gold); border-bottom: 1px solid #000; }
         
+        /* 변경된 부분: height를 고정하여 내부 스크롤만 작동하도록 수정 */
         #log {
-            flex-grow: 1; padding: 10px; font-size: 14px; line-height: 1.6; overflow-y: auto; text-shadow: 1px 1px 0 #000; min-height: 300px;
+            flex-grow: 1; padding: 10px; font-size: 14px; line-height: 1.6; overflow-y: auto; text-shadow: 1px 1px 0 #000; 
+            height: 380px; max-height: 380px; /* 높이 고정 추가 */
             background: #000; border-top: 2px solid #050505; border-left: 2px solid #050505; border-bottom: 2px solid #444; border-right: 2px solid #444;
         }
         #log::-webkit-scrollbar { width: 16px; }
@@ -103,7 +105,9 @@
             body { padding: 10px; } .app-container { gap: 10px; }
             .admin-bar, .admin-controls { flex-direction: column; align-items: stretch; }
             .admin-controls select, .admin-controls input, .admin-controls button { width: 100%; box-sizing: border-box; }
-            .main-content { flex-direction: column; gap: 10px; } .inventory-window { width: 100%; } .chat-window { height: 350px; } #log { min-height: 200px; }
+            .main-content { flex-direction: column; gap: 10px; } .inventory-window { width: 100%; } 
+            .chat-window { height: auto; } /* 모바일에서는 자동 높이 */
+            #log { height: 200px; max-height: 200px; } /* 모바일용 높이 축소 */
         }
     </style>
 </head>
@@ -196,6 +200,29 @@
     let pressTimer;
     const popup = document.getElementById('itemPopup');
 
+    // ==========================================
+    // 새로 추가된 로직: 기본 장비 초기 지급 설정
+    // ==========================================
+    function initStartingItems() {
+        let slotIndex = 0;
+        
+        // 무기 목록 한 개씩 지급
+        db["무기"].forEach(item => {
+            if (slotIndex < 30) inv[slotIndex++] = { ...item, lvl: 0, qty: 1 };
+        });
+        
+        // 방어구 목록 한 개씩 지급
+        db["방어구"].forEach(item => {
+            if (slotIndex < 30) inv[slotIndex++] = { ...item, lvl: 0, qty: 1 };
+        });
+        
+        // 무기(11개) + 방어구(13개) = 총 24개. (남은 6칸은 빈칸 유지)
+    }
+
+    // 게임 로딩 시 아이템 셋팅
+    initStartingItems();
+
+    // --- [이하 기존 로직 100% 동일] ---
     function startPress(e, i) {
         if (!inv[i]) return;
         let cX = e.clientX || (e.touches && e.touches[0].clientX);
@@ -246,14 +273,10 @@
     function handleDoubleClick(i) { const item = inv[i]; if(item && item.stackable) { activeIdx = i; document.getElementById('b').classList.add('mode-target'); document.getElementById('status').innerHTML = `[${item.name}] 대상을 선택하십시오.`; draw(); } }
     function handleClick(i) { const item = inv[i]; if (activeIdx !== null) { if (activeIdx === i) { cancel(); return; } if (item && !item.stackable && item.target === inv[activeIdx].target) enchant(activeIdx, i); else { addLog("아무 일도 일어나지 않았습니다.", "s-fail"); cancel(); } } else if(item) { document.getElementById('status').innerText = (item.lvl !== undefined && item.lvl !== null ? (item.lvl >= 0 ? '+'+item.lvl+' ' : item.lvl+' ') : '') + item.name; } }
 
-    // ==========================================
-    // 채팅 메시지 고증 업데이트 로직 (다른 로직은 100% 동일 유지)
-    // ==========================================
     function enchant(si, ti) {
         const scroll = inv[si];
         const target = inv[ti];
         
-        // 인챈트 전 아이템 이름 기억 (예: +0 일본도는 "일본도", +6 일본도는 "+6 일본도")
         let targetName = (target.lvl !== 0 && target.lvl !== null ? (target.lvl > 0 ? '+' + target.lvl + ' ' : target.lvl + ' ') : '') + target.name;
         
         if (scroll.sType === 'c') {
@@ -269,7 +292,6 @@
                 }
                 target.lvl += up;
                 
-                // 빛깔 분기: 리니지 고증 (7부터 푸른빛, 9부터 붉은빛)
                 let lightMsg = "강렬하게 은빛으로 빛납니다.";
                 if (target.lvl >= 9) lightMsg = "영롱하게 붉은빛을 냅니다.";
                 else if (target.lvl >= 7) lightMsg = "강렬하게 푸른빛을 냅니다.";
@@ -288,7 +310,17 @@
     }
 
     function cancel() { activeIdx = null; document.getElementById('b').classList.remove('mode-target'); document.getElementById('status').innerText = "주문서를 더블클릭 하십시오."; draw(); }
-    function addLog(msg, cls) { const log = document.getElementById('log'); const div = document.createElement('div'); div.className = cls; div.innerText = msg; log.appendChild(div); log.scrollTop = log.scrollHeight; }
+    
+    function addLog(msg, cls) { 
+        const log = document.getElementById('log'); 
+        const div = document.createElement('div'); 
+        div.className = cls; 
+        div.innerText = msg; 
+        log.appendChild(div); 
+        
+        // 채팅창 높이 제한 안에서 스크롤이 자동으로 아래를 향하도록 처리
+        log.scrollTop = log.scrollHeight; 
+    }
 
     document.getElementById('type').innerHTML = Object.keys(db).map(k => `<option>${k}</option>`).join('');
     updateList(); draw();
