@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Lineage Classic Simulator - Drag & Drop</title>
+    <title>Lineage Classic - Double Click Patch</title>
     <style>
         :root { --bg: #0b0c0d; --panel: #25272b; --slot: #121417; --border: #45484d; --gold: #e0bb40; --green: #44ff44; }
         body { background: var(--bg); color: #ccc; font-family: 'Malgun Gothic', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; user-select: none; }
@@ -15,11 +15,12 @@
         .inv-wrapper { background: #34373c; border: 3px double #555; padding: 10px; }
         .inv-grid { display: grid; grid-template-columns: repeat(4, 56px); grid-template-rows: repeat(6, 56px); gap: 4px; background: #111; padding: 5px; }
 
-        /* 슬롯 및 드래그 상태 디자인 */
         .slot { width: 56px; height: 56px; background: var(--slot); border: 1px solid #333; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; cursor: grab; }
         .slot:active { cursor: grabbing; }
         .slot img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; pointer-events: none; }
         .slot:hover { border-color: #888; }
+        
+        /* 주문서 활성화 상태 (금색 테두리) */
         .slot.active-scroll { border: 2px solid var(--gold); background: #2a2515; }
         .slot.drag-over { border: 2px dashed #8be9fd; opacity: 0.7; }
 
@@ -27,9 +28,11 @@
         .lvl-text { position: absolute; top: 2px; left: 4px; color: var(--green); font-size: 12px; font-weight: bold; text-shadow: 1px 1px 2px #000; z-index: 10; pointer-events: none; }
 
         .side-panel { width: 260px; display: flex; flex-direction: column; gap: 10px; }
-        #status { background: #000; border: 1px solid #444; padding: 10px; color: var(--gold); font-size: 0.85rem; min-height: 40px; }
+        #status { background: #000; border: 1px solid #444; padding: 10px; color: var(--gold); font-size: 0.85rem; min-height: 40px; line-height: 1.4; }
         #log { background: #050505; border: 1px solid #333; padding: 10px; font-size: 0.8rem; overflow-y: auto; height: 320px; color: #aaa; }
         .s-suc { color: #50fa7b; } .s-fail { color: #ff5555; }
+        
+        /* 타겟팅 상태일 때 전체 마우스 커서 변경 */
         body.mode-target .slot { cursor: crosshair; }
     </style>
 </head>
@@ -49,7 +52,7 @@
             <div class="inv-grid" id="grid"></div>
         </div>
         <div class="side-panel">
-            <div id="status">LCInfo 기반 아이템 시스템</div>
+            <div id="status">주문서를 <b>더블클릭</b>하여 사용하세요.</div>
             <div id="log"></div>
             <button onclick="location.reload()" style="font-size:10px;">인벤토리 초기화</button>
         </div>
@@ -69,15 +72,15 @@
             { name: "마법 망토", safe: 4, img: getLCImg("/static/images/items/115.png"), target: 'a' }
         ],
         "주문서": [
-            { name: "무기 주문서", sType: 'n', img: getLCImg("/static/images/items/154.png"), target: 'w', isScroll: true },
-            { name: "축복 무기 주문서", sType: 'b', img: getLCImg("/static/images/items/155.png"), target: 'w', isScroll: true },
-            { name: "갑옷 주문서", sType: 'n', img: getLCImg("/static/images/items/157.png"), target: 'a', isScroll: true }
+            { name: "무기 마법 주문서", sType: 'n', img: getLCImg("/static/images/items/154.png"), target: 'w', isScroll: true },
+            { name: "축복받은 무기 마법 주문서", sType: 'b', img: getLCImg("/static/images/items/155.png"), target: 'w', isScroll: true },
+            { name: "갑옷 마법 주문서", sType: 'n', img: getLCImg("/static/images/items/157.png"), target: 'a', isScroll: true }
         ]
     };
 
     let inv = Array(24).fill(null);
     let activeIdx = null;
-    let dragIdx = null; // 드래그 중인 아이템의 인덱스
+    let dragIdx = null; 
 
     function updateList() {
         const t = document.getElementById('type').value;
@@ -99,20 +102,18 @@
         draw();
     }
 
-    // --- 인벤토리 렌더링 및 드래그 이벤트 연동 ---
     function draw() {
         const g = document.getElementById('grid');
         g.innerHTML = inv.map((item, i) => {
             const isSel = activeIdx === i ? 'active-scroll' : '';
             if(!item) {
-                return `<div class="slot" 
-                            ondragover="allowDrop(event)" 
-                            ondrop="drop(event, ${i})"></div>`;
+                return `<div class="slot" ondragover="allowDrop(event)" ondrop="drop(event, ${i})"></div>`;
             }
             return `
                 <div class="slot ${isSel}" 
                      draggable="true"
-                     onclick="clickSlot(${i})"
+                     onclick="handleClick(${i})"
+                     ondblclick="handleDoubleClick(${i})"
                      ondragstart="dragStart(event, ${i})"
                      ondragover="allowDrop(event)"
                      ondragenter="dragEnter(event)"
@@ -126,73 +127,81 @@
         }).join('');
     }
 
-    // --- 드래그 앤 드롭 로직 ---
+    // --- 드래그 앤 드롭 로직 (변경 없음) ---
     function dragStart(e, i) {
-        if (activeIdx !== null) return; // 주문서 활성화 중에는 드래그 방지
+        if (activeIdx !== null) return; 
         dragIdx = i;
         e.dataTransfer.effectAllowed = "move";
-        // 약간의 딜레이를 줘서 드래그 시 원본 이미지가 부드럽게 남게 함
         setTimeout(() => e.target.style.opacity = "0.5", 0); 
     }
-
-    function allowDrop(e) {
-        e.preventDefault(); // 드롭을 허용하려면 반드시 필요
-    }
-
-    function dragEnter(e) {
-        e.preventDefault();
-        if (e.target.classList.contains('slot')) {
-            e.target.classList.add('drag-over');
-        }
-    }
-
-    function dragLeave(e) {
-        if (e.target.classList.contains('slot')) {
-            e.target.classList.remove('drag-over');
-        }
-    }
-
+    function allowDrop(e) { e.preventDefault(); }
+    function dragEnter(e) { e.preventDefault(); if (e.target.classList.contains('slot')) e.target.classList.add('drag-over'); }
+    function dragLeave(e) { if (e.target.classList.contains('slot')) e.target.classList.remove('drag-over'); }
     function drop(e, targetIdx) {
         e.preventDefault();
-        if (e.target.classList.contains('slot')) {
-            e.target.classList.remove('drag-over');
-        }
-        
+        if (e.target.classList.contains('slot')) e.target.classList.remove('drag-over');
         if (dragIdx === null || dragIdx === targetIdx) return;
 
-        // 아이템 위치 교환 (Swap)
         const temp = inv[dragIdx];
         inv[dragIdx] = inv[targetIdx];
         inv[targetIdx] = temp;
 
-        // "턱!" 소리 재생
         const dropSound = document.getElementById('soundDrop');
-        dropSound.currentTime = 0; // 연속해서 놓을 때를 대비해 재생 위치 초기화
-        dropSound.play().catch(err => console.log("사운드 재생 에러:", err));
+        dropSound.currentTime = 0; 
+        dropSound.play().catch(err => console.log("Sound err:", err));
 
         dragIdx = null;
         draw();
     }
 
-    // --- 클릭 및 인챈트 로직 ---
-    function clickSlot(i) {
+    // --- 클릭(따닥/딱) 로직 분리 ---
+    
+    // 1. 더블클릭: 주문서 활성화 ("따닥")
+    function handleDoubleClick(i) {
         const item = inv[i];
         if(!item) return;
 
+        // 주문서일 경우에만 활성화
+        if (activeIdx === null && item.isScroll) {
+            activeIdx = i;
+            document.getElementById('b').classList.add('mode-target');
+            document.getElementById('status').innerHTML = `[${item.name}]<br>대상을 클릭하세요...`;
+            draw();
+        }
+    }
+
+    // 2. 싱글클릭: 강화 실행 ("딱") 또는 단순 정보 확인
+    function handleClick(i) {
+        const item = inv[i];
+        if(!item) return;
+
+        // 이미 주문서가 활성화(따닥)된 상태라면? -> 대상 클릭으로 간주
         if (activeIdx !== null) {
+            // 실수로 활성화된 주문서를 다시 클릭한 경우 취소
+            if (activeIdx === i) {
+                cancelEnchant();
+                return;
+            }
+
             const scroll = inv[activeIdx];
             if (item.target === scroll.target && !item.isScroll) {
                 enchant(activeIdx, i);
             } else {
                 addLog("대상이 올바르지 않습니다.", "s-fail");
-                activeIdx = null;
-                document.getElementById('b').classList.remove('mode-target');
+                cancelEnchant();
             }
-        } else if (item.isScroll) {
-            activeIdx = i;
-            document.getElementById('b').classList.add('mode-target');
-            document.getElementById('status').innerText = `${item.name} 사용 중...`;
+        } 
+        // 주문서가 활성화되지 않은 평상시 상태라면? -> 아이템 정보만 출력
+        else {
+            const lvlStr = item.lvl !== null ? `+${item.lvl} ` : '';
+            document.getElementById('status').innerText = `${lvlStr}${item.name}`;
         }
+    }
+
+    function cancelEnchant() {
+        activeIdx = null;
+        document.getElementById('b').classList.remove('mode-target');
+        document.getElementById('status').innerText = "사용이 취소되었습니다.";
         draw();
     }
 
@@ -213,10 +222,10 @@
             addLog(`실패: +${target.lvl} ${target.name} 증발`, "s-fail");
             inv[ti] = null;
         }
-        inv[si] = null;
+        inv[si] = null; // 주문서 증발
         activeIdx = null;
         document.getElementById('b').classList.remove('mode-target');
-        document.getElementById('status').innerText = "강화 완료";
+        document.getElementById('status').innerText = "강화가 완료되었습니다.";
         draw();
     }
 
