@@ -2,112 +2,67 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Lineage Classic - Retro UI Patch</title>
+    <title>Lineage Classic - Stacking & Scroll Patch</title>
     <style>
-        /* 1. 레트로 픽셀 폰트 적용 (둥근모꼴 웹폰트) */
         @font-face {
             font-family: 'DungGeunMo';
             src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/DungGeunMo.woff') format('woff');
-            font-weight: normal; font-style: normal;
         }
 
         :root { 
-            --gold: #e0bb40; --green: #44ff44; --red: #ff5555;
-            /* 리니지 특유의 탁한 회색/푸른빛 메탈 컬러 */
-            --metal-light: #5d6166;
-            --metal-mid: #2b2e33;
-            --metal-dark: #15171a;
-            --metal-black: #050607;
+            --gold: #e0bb40; --green: #44ff44; --red: #ff5555; --blue: #5bc0de;
+            --metal-light: #5d6166; --metal-mid: #2b2e33; --metal-dark: #15171a; --metal-black: #050607;
         }
 
-        /* 2. 바탕 화면 및 전체 폰트 세팅 */
         body { 
-            background: #000; 
-            /* 화면 배경도 거친 질감 느낌의 그라데이션 적용 */
-            background-image: radial-gradient(circle at 50% 50%, #1a1c20 0%, #000 100%);
-            color: #ccc; 
-            font-family: 'DungGeunMo', 'Gulim', '굴림', sans-serif; 
+            background: #000; background-image: radial-gradient(circle at 50% 50%, #1a1c20 0%, #000 100%);
+            color: #ccc; font-family: 'DungGeunMo', 'Gulim', sans-serif; 
             display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; user-select: none; 
         }
         
-        /* 3. 클래식 게임 윈도우 창 (입체적인 쇠틀 느낌) */
         .classic-window {
             background: linear-gradient(135deg, var(--metal-mid), var(--metal-dark));
-            /* 테두리 명암으로 볼록 튀어나온 메탈 질감 구현 */
-            border-top: 2px solid var(--metal-light);
-            border-left: 2px solid var(--metal-light);
-            border-bottom: 2px solid var(--metal-black);
-            border-right: 2px solid var(--metal-black);
-            padding: 4px;
-            box-shadow: 5px 5px 15px rgba(0,0,0,0.8);
-            margin-bottom: 20px;
+            border-top: 2px solid var(--metal-light); border-left: 2px solid var(--metal-light);
+            border-bottom: 2px solid var(--metal-black); border-right: 2px solid var(--metal-black);
+            padding: 4px; box-shadow: 5px 5px 15px rgba(0,0,0,0.8); margin-bottom: 20px;
         }
 
-        .classic-inner {
-            background: #0d0f12;
-            border: 1px solid #000;
-            padding: 15px;
-            display: flex; gap: 10px; align-items: center;
-        }
+        .classic-inner { background: #0d0f12; border: 1px solid #000; padding: 15px; display: flex; gap: 10px; align-items: center; }
 
-        select, input, button { 
-            background: #000; color: #fff; border: 1px solid #444; padding: 6px; 
-            font-family: inherit; font-size: 14px;
-        }
+        select, input, button { background: #000; color: #fff; border: 1px solid #444; padding: 6px; font-family: inherit; font-size: 14px; }
         button { 
             background: linear-gradient(to bottom, #3a3d42, #1e2024);
-            border-top: 1px solid #666; border-left: 1px solid #666;
-            border-bottom: 1px solid #000; border-right: 1px solid #000;
-            cursor: pointer; color: var(--gold); 
+            border-top: 1px solid #666; border-left: 1px solid #666; color: var(--gold); cursor: pointer; 
         }
-        button:active { border-top: 1px solid #000; border-left: 1px solid #000; border-bottom: 1px solid #666; border-right: 1px solid #666; }
 
         .main-container { display: flex; gap: 20px; }
 
-        /* 4. 인벤토리 슬롯 (안으로 움푹 패인 효과) */
-        .inv-grid { 
-            display: grid; grid-template-columns: repeat(4, 56px); grid-template-rows: repeat(6, 56px); gap: 2px; 
-            background: #000; padding: 4px; border: 1px solid #222;
-        }
+        .inv-grid { display: grid; grid-template-columns: repeat(4, 56px); grid-template-rows: repeat(6, 56px); gap: 2px; background: #000; padding: 4px; border: 1px solid #222; }
 
         .slot { 
-            width: 56px; height: 56px; 
-            background: #111317; 
-            /* 음각 테두리 */
+            width: 56px; height: 56px; background: #111317; 
             border-top: 2px solid #050505; border-left: 2px solid #050505;
             border-bottom: 2px solid #2a2c30; border-right: 2px solid #2a2c30;
             position: relative; display: flex; justify-content: center; align-items: center; cursor: grab; 
         }
-        .slot:active { cursor: grabbing; }
         .slot img { width: 90%; height: 90%; object-fit: contain; image-rendering: pixelated; pointer-events: none; }
-        .slot:hover { background: #1a1d22; }
         
-        .slot.active-scroll { 
-            background: #2a2515; 
-            border-top: 2px solid var(--gold); border-left: 2px solid var(--gold);
-            border-bottom: 2px solid #8a7327; border-right: 2px solid #8a7327;
-        }
+        .slot.active-scroll { border: 2px solid var(--gold); background: #2a2515; }
         .slot.drag-over { border: 2px dashed #8be9fd; opacity: 0.7; }
 
-        .item-label { position: absolute; font-size: 10px; color: #555; text-align: center; pointer-events: none; letter-spacing: -1px; }
-        .lvl-text { 
-            position: absolute; top: 2px; left: 4px; color: var(--green); 
-            font-size: 14px; text-shadow: 1px 1px 0 #000, -1px -1px 0 #000; z-index: 10; pointer-events: none; 
-        }
-
-        /* 5. 상태창 & 로그창 */
-        .side-panel { width: 280px; display: flex; flex-direction: column; gap: 10px; }
+        /* 강화 수치 텍스트 */
+        .lvl-text { position: absolute; top: 2px; left: 4px; color: var(--green); font-size: 14px; text-shadow: 1px 1px 0 #000; z-index: 10; pointer-events: none; }
         
-        .panel-box {
-            background: #050608;
-            border-top: 2px solid #000; border-left: 2px solid #000;
-            border-bottom: 2px solid #333; border-right: 2px solid #333;
-            padding: 10px;
-        }
+        /* 주문서 겹침 숫자 텍스트 */
+        .count-text { position: absolute; bottom: 2px; right: 4px; color: #fff; font-size: 11px; text-shadow: 1px 1px 0 #000; z-index: 10; pointer-events: none; }
 
-        #status { color: var(--gold); font-size: 14px; min-height: 40px; line-height: 1.5; }
-        #log { font-size: 13px; overflow-y: auto; height: 320px; color: #aaa; line-height: 1.6; }
-        .s-suc { color: var(--green); } .s-fail { color: var(--red); }
+        .item-label { position: absolute; font-size: 9px; color: #444; text-align: center; pointer-events: none; }
+
+        .side-panel { width: 280px; display: flex; flex-direction: column; gap: 10px; }
+        .panel-box { background: #050608; border: 1px solid #333; padding: 10px; }
+        #status { color: var(--gold); font-size: 14px; min-height: 40px; }
+        #log { font-size: 13px; overflow-y: auto; height: 320px; color: #aaa; }
+        .s-suc { color: var(--green); } .s-fail { color: var(--red); } .s-cur { color: var(--blue); }
         
         body.mode-target .slot { cursor: crosshair; }
     </style>
@@ -118,28 +73,24 @@
 
     <div class="classic-window">
         <div class="classic-inner">
-            <span style="color:var(--gold);">[SYSTEM]</span>
+            <span style="color:var(--gold);">[지급]</span>
             <select id="type" onchange="updateList()"></select>
             <select id="items"></select>
-            <input type="number" id="amt" value="1" min="1" max="10" style="width:40px;">
-            <button onclick="give()">지급</button>
+            <input type="number" id="amt" value="1" min="1" max="99" style="width:50px;">
+            <button onclick="give()">확인</button>
         </div>
     </div>
 
     <div class="main-container">
         <div class="classic-window">
-            <div style="text-align:center; color:#999; margin-bottom:5px; font-size:14px; letter-spacing: 1px;">INVENTORY</div>
             <div class="inv-grid" id="grid"></div>
         </div>
         
         <div class="side-panel">
-            <div class="classic-window" style="margin-bottom:0;">
-                <div id="status" class="panel-box">주문서를 <b>더블클릭</b>하여 사용하세요.</div>
-            </div>
-            
+            <div class="classic-window" style="margin-bottom:0;"><div id="status" class="panel-box">주문서를 따닥! 장비를 딱!</div></div>
             <div class="classic-window" style="flex-grow:1; display:flex; flex-direction:column;">
-                <div id="log" class="panel-box" style="flex-grow:1; border-bottom:none;"></div>
-                <button onclick="location.reload()" style="padding:10px; width:100%;">RESTART</button>
+                <div id="log" class="panel-box" style="flex-grow:1;"></div>
+                <button onclick="location.reload()" style="padding:10px;">인벤토리 정리</button>
             </div>
         </div>
     </div>
@@ -148,19 +99,21 @@
     const getLCImg = (path) => `https://images.weserv.nl/?url=https://www.lcinfo.io${path}`;
 
     const db = {
-        "무기류": [
-            { name: "싸울아비 장검", safe: 6, img: getLCImg("/static/images/items/4.png"), target: 'w' },
-            { name: "일본도", safe: 6, img: getLCImg("/static/images/items/1.png"), target: 'w' },
-            { name: "레이피어", safe: 6, img: getLCImg("/static/images/items/3.png"), target: 'w' }
+        "무기": [
+            { name: "싸울아비 장검", safe: 6, img: getLCImg("/static/images/items/4.png"), target: 'w', stackable: false },
+            { name: "레이피어", safe: 6, img: getLCImg("/static/images/items/3.png"), target: 'w', stackable: false }
         ],
         "방어구": [
-            { name: "판금 갑옷", safe: 4, img: getLCImg("/static/images/items/35.png"), target: 'a' },
-            { name: "마법 망토", safe: 4, img: getLCImg("/static/images/items/115.png"), target: 'a' }
+            { name: "판금 갑옷", safe: 4, img: getLCImg("/static/images/items/35.png"), target: 'a', stackable: false },
+            { name: "마법 망토", safe: 4, img: getLCImg("/static/images/items/115.png"), target: 'a', stackable: false }
         ],
         "주문서": [
-            { name: "무기 마법 주문서", sType: 'n', img: getLCImg("/static/images/items/154.png"), target: 'w', isScroll: true },
-            { name: "축복받은 무기 마법 주문서", sType: 'b', img: getLCImg("/static/images/items/155.png"), target: 'w', isScroll: true },
-            { name: "갑옷 마법 주문서", sType: 'n', img: getLCImg("/static/images/items/157.png"), target: 'a', isScroll: true }
+            { name: "무기 마법 주문서", sType: 'n', target: 'w', img: getLCImg("/static/images/items/154.png"), stackable: true },
+            { name: "축복받은 무기 마법 주문서", sType: 'b', target: 'w', img: getLCImg("/static/images/items/155.png"), stackable: true },
+            { name: "저주받은 무기 마법 주문서", sType: 'c', target: 'w', img: getLCImg("/static/images/items/156.png"), stackable: true },
+            { name: "갑옷 마법 주문서", sType: 'n', target: 'a', img: getLCImg("/static/images/items/157.png"), stackable: true },
+            { name: "축복받은 갑옷 마법 주문서", sType: 'b', target: 'a', img: getLCImg("/static/images/items/158.png"), stackable: true },
+            { name: "저주받은 갑옷 마법 주문서", sType: 'c', target: 'a', img: getLCImg("/static/images/items/159.png"), stackable: true }
         ]
     };
 
@@ -180,10 +133,21 @@
         const a = parseInt(document.getElementById('amt').value);
         const item = db[t][i];
 
-        for(let k=0; k<a; k++) {
-            const empty = inv.findIndex(s => s === null);
-            if(empty === -1) break;
-            inv[empty] = { ...item, lvl: item.isScroll ? null : 0 };
+        if (item.stackable) {
+            // 스택 가능 아이템: 기존 슬롯 확인
+            let existingIdx = inv.findIndex(s => s && s.name === item.name);
+            if (existingIdx !== -1) {
+                inv[existingIdx].qty += a;
+            } else {
+                let emptyIdx = inv.findIndex(s => s === null);
+                if (emptyIdx !== -1) inv[emptyIdx] = { ...item, qty: a };
+            }
+        } else {
+            // 스택 불가 아이템 (장비): 빈 칸마다 하나씩
+            for(let k=0; k<a; k++) {
+                let emptyIdx = inv.findIndex(s => s === null);
+                if (emptyIdx !== -1) inv[emptyIdx] = { ...item, lvl: 0, qty: 1 };
+            }
         }
         draw();
     }
@@ -192,115 +156,98 @@
         const g = document.getElementById('grid');
         g.innerHTML = inv.map((item, i) => {
             const isSel = activeIdx === i ? 'active-scroll' : '';
-            if(!item) {
-                return `<div class="slot" ondragover="allowDrop(event)" ondrop="drop(event, ${i})"></div>`;
-            }
+            if(!item) return `<div class="slot" ondragover="allowDrop(event)" ondrop="drop(event, ${i})"></div>`;
+            
             return `
-                <div class="slot ${isSel}" 
-                     draggable="true"
-                     onclick="handleClick(${i})"
-                     ondblclick="handleDoubleClick(${i})"
-                     ondragstart="dragStart(event, ${i})"
-                     ondragover="allowDrop(event)"
-                     ondragenter="dragEnter(event)"
-                     ondragleave="dragLeave(event)"
-                     ondrop="drop(event, ${i})">
+                <div class="slot ${isSel}" draggable="true"
+                     onclick="handleClick(${i})" ondblclick="handleDoubleClick(${i})"
+                     ondragstart="dragStart(event, ${i})" ondragover="allowDrop(event)"
+                     ondragenter="dragEnter(event)" ondragleave="dragLeave(event)" ondrop="drop(event, ${i})">
                     <span class="item-label">${item.name.substring(0,2)}</span>
                     <img src="${item.img}" onerror="this.style.display='none'">
-                    ${item.lvl !== null ? `<div class="lvl-text">+${item.lvl}</div>` : ''}
+                    ${item.lvl !== undefined && item.lvl !== null ? `<div class="lvl-text">${item.lvl >=0 ? '+'+item.lvl : item.lvl}</div>` : ''}
+                    ${item.qty > 1 ? `<div class="count-text">${item.qty}</div>` : ''}
                 </div>
             `;
         }).join('');
     }
 
-    function dragStart(e, i) {
-        if (activeIdx !== null) return; 
-        dragIdx = i;
-        e.dataTransfer.effectAllowed = "move";
-        setTimeout(() => e.target.style.opacity = "0.5", 0); 
-    }
+    // --- 드래그 로직 ---
+    function dragStart(e, i) { if (activeIdx !== null) return; dragIdx = i; setTimeout(() => e.target.style.opacity = "0.5", 0); }
     function allowDrop(e) { e.preventDefault(); }
     function dragEnter(e) { e.preventDefault(); if (e.target.classList.contains('slot')) e.target.classList.add('drag-over'); }
     function dragLeave(e) { if (e.target.classList.contains('slot')) e.target.classList.remove('drag-over'); }
     function drop(e, targetIdx) {
         e.preventDefault();
         if (e.target.classList.contains('slot')) e.target.classList.remove('drag-over');
-        if (dragIdx === null || dragIdx === targetIdx) return;
-
         const temp = inv[dragIdx];
         inv[dragIdx] = inv[targetIdx];
         inv[targetIdx] = temp;
-
-        const dropSound = document.getElementById('soundDrop');
-        dropSound.currentTime = 0; 
-        dropSound.play().catch(err => console.log("Sound err:", err));
-
-        dragIdx = null;
-        draw();
+        document.getElementById('soundDrop').play();
+        dragIdx = null; draw();
     }
-    
+
+    // --- 클릭 로직 ---
     function handleDoubleClick(i) {
         const item = inv[i];
-        if(!item) return;
-
-        if (activeIdx === null && item.isScroll) {
+        if(item && item.stackable) {
             activeIdx = i;
             document.getElementById('b').classList.add('mode-target');
-            document.getElementById('status').innerHTML = `[${item.name}]<br>대상을 클릭하세요...`;
+            document.getElementById('status').innerHTML = `[${item.name}] 대상을 선택...`;
             draw();
         }
     }
 
     function handleClick(i) {
         const item = inv[i];
-        if(!item) return;
-
         if (activeIdx !== null) {
-            if (activeIdx === i) {
-                cancelEnchant();
-                return;
-            }
-            const scroll = inv[activeIdx];
-            if (item.target === scroll.target && !item.isScroll) {
+            if (activeIdx === i) { cancel(); return; }
+            if (item && !item.stackable && item.target === inv[activeIdx].target) {
                 enchant(activeIdx, i);
             } else {
                 addLog("대상이 올바르지 않습니다.", "s-fail");
-                cancelEnchant();
+                cancel();
             }
-        } else {
-            const lvlStr = item.lvl !== null ? `+${item.lvl} ` : '';
-            document.getElementById('status').innerText = `${lvlStr}${item.name}`;
+        } else if(item) {
+            document.getElementById('status').innerText = (item.lvl !== undefined ? '+'+item.lvl+' ' : '') + item.name;
         }
-    }
-
-    function cancelEnchant() {
-        activeIdx = null;
-        document.getElementById('b').classList.remove('mode-target');
-        document.getElementById('status').innerText = "사용이 취소되었습니다.";
-        draw();
     }
 
     function enchant(si, ti) {
         const scroll = inv[si];
         const target = inv[ti];
-        const chance = target.lvl < target.safe ? 1.0 : 0.33;
-
-        if (Math.random() < chance) {
-            let up = 1;
-            if (scroll.sType === 'b') {
-                if (target.lvl <= 2) up = Math.floor(Math.random()*3)+1;
-                else if (target.lvl <= 5) up = Math.floor(Math.random()*2)+1;
-            }
-            target.lvl += up;
-            addLog(`성공: +${target.lvl} ${target.name}`, "s-suc");
+        
+        if (scroll.sType === 'c') {
+            // 저주: 무조건 성공, 수치 -1 (최소치 제한 없음, 리니지 클래식 고증)
+            target.lvl -= 1;
+            addLog(`저주받은 기운이 깃들어 +${target.lvl} ${target.name}이 되었습니다.`, "s-cur");
         } else {
-            addLog(`실패: +${target.lvl} ${target.name} 증발`, "s-fail");
-            inv[ti] = null;
+            // 일반/축복: 확률
+            const successRate = target.lvl < target.safe ? 1.0 : 0.33;
+            if (Math.random() < successRate) {
+                let up = 1;
+                if (scroll.sType === 'b') {
+                    if (target.lvl <= 2) up = Math.floor(Math.random()*3)+1;
+                    else if (target.lvl <= 5) up = Math.floor(Math.random()*2)+1;
+                }
+                target.lvl += up;
+                addLog(`성공: +${target.lvl} ${target.name} (상승:${up})`, "s-suc");
+            } else {
+                addLog(`실패: +${target.lvl} ${target.name}이 증발했습니다.`, "s-fail");
+                inv[ti] = null;
+            }
         }
-        inv[si] = null; 
-        activeIdx = null;
-        document.getElementById('b').classList.remove('mode-target');
-        document.getElementById('status').innerText = "강화가 완료되었습니다.";
+        
+        // 주문서 소모 (스택 차감)
+        inv[si].qty -= 1;
+        if (inv[si].qty <= 0) inv[si] = null;
+        
+        cancel();
+    }
+
+    function cancel() {
+        activeIdx = null; document.getElementById('b').classList.remove('mode-target');
+        document.getElementById('status').innerText = "인벤토리가 고요합니다.";
         draw();
     }
 
