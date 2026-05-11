@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lineage Classic - Responsive UI</title>
+    <title>Lineage Classic - Real Chat UI</title>
     <style>
         /* 1. 클래식 픽셀 폰트 */
         @font-face {
@@ -53,7 +53,7 @@
         /* 3. 상단 아이템 보급창 */
         .admin-bar {
             display: flex; gap: 10px; align-items: center; justify-content: space-between;
-            background: linear-gradient(135deg, var(--metal-mid), var(--metal-dark));
+            background: linear-gradient(135deg, #2b2e33, #15171a);
         }
         .admin-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         select, input, button { background: #111; color: #fff; border: 1px solid #555; padding: 6px; font-family: inherit; font-size: 14px; }
@@ -82,7 +82,7 @@
         }
 
         .slot {
-            aspect-ratio: 1 / 1; /* 가로세로 비율 1:1 유지 */
+            aspect-ratio: 1 / 1; 
             background: var(--slot-bg);
             background-image: radial-gradient(circle, var(--slot-circle) 35%, transparent 40%);
             border-top: 2px solid #0a0b0c; border-left: 2px solid #0a0b0c;
@@ -101,35 +101,80 @@
         .count-text { position: absolute; bottom: 2px; right: 4px; color: #fff; font-size: 12px; text-shadow: 1px 1px 0 #000; z-index: 10; pointer-events: none; }
         .item-label { position: absolute; font-size: 9px; color: #555; text-align: center; pointer-events: none; letter-spacing: -1px; }
 
-        /* 우측: 채팅 및 로그창 */
+        /* ==========================================
+           새로 디벨롭된 리니지 클래식 채팅창 UI
+           ========================================== */
         .chat-window {
             flex-grow: 1; display: flex; flex-direction: column;
-            background: linear-gradient(to bottom, #1a1c22, #0d0f12);
+            background: var(--bg-stone);
+            padding: 12px; gap: 4px;
         }
-        
+
+        /* 채팅 탭 영역 */
+        .chat-tabs {
+            display: flex; gap: 2px; margin-bottom: 2px;
+        }
+        .chat-tab {
+            background: linear-gradient(to bottom, #5d6166, #2a2c33);
+            border: 1px solid #111; border-top: 1px solid #9ba0af; border-left: 1px solid #9ba0af;
+            padding: 4px 12px; font-size: 12px; color: #aaa; cursor: pointer;
+            border-top-left-radius: 4px; border-top-right-radius: 4px;
+        }
+        .chat-tab.active {
+            background: #000; color: var(--gold);
+            border-bottom: 1px solid #000; /* 배경과 이어지는 느낌 */
+        }
+
+        /* 실제 로그창 영역 (음각) */
         #log {
             flex-grow: 1; padding: 10px; font-size: 14px; line-height: 1.6;
             overflow-y: auto; text-shadow: 1px 1px 0 #000; min-height: 300px;
+            background: #000;
+            border-top: 2px solid #050505; border-left: 2px solid #050505;
+            border-bottom: 2px solid #444; border-right: 2px solid #444;
         }
-        
+
+        /* 커스텀 스크롤바 (리니지 스타일) */
+        #log::-webkit-scrollbar { width: 16px; }
+        #log::-webkit-scrollbar-track { background: #111; border-left: 1px solid #333; }
+        #log::-webkit-scrollbar-thumb { 
+            background: #3a3d42; 
+            border-top: 2px solid #666; border-left: 2px solid #666;
+            border-bottom: 2px solid #000; border-right: 2px solid #000;
+        }
+        #log::-webkit-scrollbar-thumb:active { background: #222; }
+
+        /* 채팅 입력란 (하단) */
+        .chat-input-wrapper {
+            display: flex; align-items: center; background: #000;
+            border-top: 2px solid #050505; border-left: 2px solid #050505;
+            border-bottom: 2px solid #444; border-right: 2px solid #444;
+            padding: 2px; margin-top: 2px;
+        }
+        .chat-type-label {
+            color: #aaa; font-size: 13px; padding: 0 8px; border-right: 1px solid #333;
+        }
+        .chat-input {
+            flex-grow: 1; background: transparent; border: none; color: #fff;
+            padding: 6px 8px; font-family: inherit; font-size: 14px; outline: none; text-shadow: 1px 1px 0 #000;
+        }
+
         .s-suc { color: var(--green); } .s-fail { color: var(--red); } .s-cur { color: var(--blue); } .s-sys { color: var(--gold); }
 
         /* ==========================================
-           5. 반응형 (Responsive) - 430px 이하 모바일 환경
+           5. 반응형 (Responsive) - 430px 이하
            ========================================== */
         @media (max-width: 430px) {
             body { padding: 10px; }
             .app-container { gap: 10px; }
             
-            /* 상단 보급창 세로 배치 */
             .admin-bar { flex-direction: column; align-items: stretch; }
             .admin-controls { flex-direction: column; align-items: stretch; }
             .admin-controls select, .admin-controls input, .admin-controls button { width: 100%; box-sizing: border-box; }
             
-            /* 인벤토리와 채팅창 세로 배치 */
             .main-content { flex-direction: column; gap: 10px; }
             .inventory-window { width: 100%; }
-            .chat-window { height: 250px; }
+            .chat-window { height: 350px; }
             #log { min-height: 200px; }
         }
     </style>
@@ -157,19 +202,31 @@
             </div>
 
             <div class="chat-window window">
+                <div class="chat-tabs">
+                    <div class="chat-tab active">전체</div>
+                    <div class="chat-tab">혈맹</div>
+                    <div class="chat-tab">파티</div>
+                    <div class="chat-tab">장사</div>
+                </div>
+                
                 <div id="log">
                     <div class="s-sys">도움말을 보려면 CTRL-H 를 눌러 주십시오.</div>
                     <div class="s-sys">게임마스터는 고객님께 개인 정보(비밀번호 등)를 절대 묻지 않습니다.</div>
                     <div style="color:#aaa;">테스트 서버에 오신 것을 환영합니다!</div>
+                </div>
+
+                <div class="chat-input-wrapper">
+                    <span class="chat-type-label">일반</span>
+                    <input type="text" class="chat-input" placeholder="엔터키를 눌러 채팅을 입력할 수 없습니다." readonly>
                 </div>
             </div>
         </div>
     </div>
 
 <script>
+    // 기존 기능 및 로직 100% 동일 유지
     const getLCImg = (path) => `https://images.weserv.nl/?url=https://www.lcinfo.io${path}`;
 
-    // --- 데이터베이스 로직 동일 ---
     const db = {
         "무기": [
             { name: "싸울아비 장검", safe: 6, img: getLCImg("/static/images/items/4.png"), target: 'w', stackable: false },
@@ -189,11 +246,10 @@
         ]
     };
 
-    let inv = Array(30).fill(null); // 30칸
+    let inv = Array(30).fill(null);
     let activeIdx = null;
     let dragIdx = null; 
 
-    // --- 지급 시스템 ---
     function updateList() {
         const t = document.getElementById('type').value;
         const s = document.getElementById('items');
@@ -223,7 +279,6 @@
         draw();
     }
 
-    // --- 렌더링 로직 (반응형을 위해 슬롯 구조 최적화) ---
     function draw() {
         const g = document.getElementById('grid');
         g.innerHTML = inv.map((item, i) => {
@@ -244,7 +299,6 @@
         }).join('');
     }
 
-    // --- 드래그 로직 ---
     function dragStart(e, i) { if (activeIdx !== null) return; dragIdx = i; setTimeout(() => e.target.style.opacity = "0.5", 0); }
     function allowDrop(e) { e.preventDefault(); }
     function dragEnter(e) { e.preventDefault(); if (e.target.classList.contains('slot')) e.target.classList.add('drag-over'); }
@@ -259,7 +313,6 @@
         dragIdx = null; draw();
     }
 
-    // --- 클릭 및 게임 로직 ---
     function handleDoubleClick(i) {
         const item = inv[i];
         if(item && item.stackable) {
@@ -320,7 +373,6 @@
         draw();
     }
 
-    // --- 채팅창 로그 함수 ---
     function addLog(msg, cls) {
         const log = document.getElementById('log');
         const div = document.createElement('div');
@@ -328,7 +380,6 @@
         div.innerText = msg;
         log.appendChild(div);
         
-        // 스크롤 맨 아래 유지
         log.scrollTop = log.scrollHeight;
     }
 
