@@ -2,37 +2,113 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Lineage Classic - Double Click Patch</title>
+    <title>Lineage Classic - Retro UI Patch</title>
     <style>
-        :root { --bg: #0b0c0d; --panel: #25272b; --slot: #121417; --border: #45484d; --gold: #e0bb40; --green: #44ff44; }
-        body { background: var(--bg); color: #ccc; font-family: 'Malgun Gothic', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; user-select: none; }
+        /* 1. 레트로 픽셀 폰트 적용 (둥근모꼴 웹폰트) */
+        @font-face {
+            font-family: 'DungGeunMo';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/DungGeunMo.woff') format('woff');
+            font-weight: normal; font-style: normal;
+        }
+
+        :root { 
+            --gold: #e0bb40; --green: #44ff44; --red: #ff5555;
+            /* 리니지 특유의 탁한 회색/푸른빛 메탈 컬러 */
+            --metal-light: #5d6166;
+            --metal-mid: #2b2e33;
+            --metal-dark: #15171a;
+            --metal-black: #050607;
+        }
+
+        /* 2. 바탕 화면 및 전체 폰트 세팅 */
+        body { 
+            background: #000; 
+            /* 화면 배경도 거친 질감 느낌의 그라데이션 적용 */
+            background-image: radial-gradient(circle at 50% 50%, #1a1c20 0%, #000 100%);
+            color: #ccc; 
+            font-family: 'DungGeunMo', 'Gulim', '굴림', sans-serif; 
+            display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; user-select: none; 
+        }
         
-        .admin-bar { background: #1a1b1e; border: 2px solid var(--border); padding: 15px; display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
-        select, input, button { background: #000; color: #fff; border: 1px solid #555; padding: 8px; }
-        button { cursor: pointer; color: var(--gold); font-weight: bold; }
+        /* 3. 클래식 게임 윈도우 창 (입체적인 쇠틀 느낌) */
+        .classic-window {
+            background: linear-gradient(135deg, var(--metal-mid), var(--metal-dark));
+            /* 테두리 명암으로 볼록 튀어나온 메탈 질감 구현 */
+            border-top: 2px solid var(--metal-light);
+            border-left: 2px solid var(--metal-light);
+            border-bottom: 2px solid var(--metal-black);
+            border-right: 2px solid var(--metal-black);
+            padding: 4px;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.8);
+            margin-bottom: 20px;
+        }
+
+        .classic-inner {
+            background: #0d0f12;
+            border: 1px solid #000;
+            padding: 15px;
+            display: flex; gap: 10px; align-items: center;
+        }
+
+        select, input, button { 
+            background: #000; color: #fff; border: 1px solid #444; padding: 6px; 
+            font-family: inherit; font-size: 14px;
+        }
+        button { 
+            background: linear-gradient(to bottom, #3a3d42, #1e2024);
+            border-top: 1px solid #666; border-left: 1px solid #666;
+            border-bottom: 1px solid #000; border-right: 1px solid #000;
+            cursor: pointer; color: var(--gold); 
+        }
+        button:active { border-top: 1px solid #000; border-left: 1px solid #000; border-bottom: 1px solid #666; border-right: 1px solid #666; }
 
         .main-container { display: flex; gap: 20px; }
-        .inv-wrapper { background: #34373c; border: 3px double #555; padding: 10px; }
-        .inv-grid { display: grid; grid-template-columns: repeat(4, 56px); grid-template-rows: repeat(6, 56px); gap: 4px; background: #111; padding: 5px; }
 
-        .slot { width: 56px; height: 56px; background: var(--slot); border: 1px solid #333; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; cursor: grab; }
+        /* 4. 인벤토리 슬롯 (안으로 움푹 패인 효과) */
+        .inv-grid { 
+            display: grid; grid-template-columns: repeat(4, 56px); grid-template-rows: repeat(6, 56px); gap: 2px; 
+            background: #000; padding: 4px; border: 1px solid #222;
+        }
+
+        .slot { 
+            width: 56px; height: 56px; 
+            background: #111317; 
+            /* 음각 테두리 */
+            border-top: 2px solid #050505; border-left: 2px solid #050505;
+            border-bottom: 2px solid #2a2c30; border-right: 2px solid #2a2c30;
+            position: relative; display: flex; justify-content: center; align-items: center; cursor: grab; 
+        }
         .slot:active { cursor: grabbing; }
-        .slot img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; pointer-events: none; }
-        .slot:hover { border-color: #888; }
+        .slot img { width: 90%; height: 90%; object-fit: contain; image-rendering: pixelated; pointer-events: none; }
+        .slot:hover { background: #1a1d22; }
         
-        /* 주문서 활성화 상태 (금색 테두리) */
-        .slot.active-scroll { border: 2px solid var(--gold); background: #2a2515; }
+        .slot.active-scroll { 
+            background: #2a2515; 
+            border-top: 2px solid var(--gold); border-left: 2px solid var(--gold);
+            border-bottom: 2px solid #8a7327; border-right: 2px solid #8a7327;
+        }
         .slot.drag-over { border: 2px dashed #8be9fd; opacity: 0.7; }
 
-        .item-label { position: absolute; font-size: 9px; color: #555; text-align: center; pointer-events: none; }
-        .lvl-text { position: absolute; top: 2px; left: 4px; color: var(--green); font-size: 12px; font-weight: bold; text-shadow: 1px 1px 2px #000; z-index: 10; pointer-events: none; }
+        .item-label { position: absolute; font-size: 10px; color: #555; text-align: center; pointer-events: none; letter-spacing: -1px; }
+        .lvl-text { 
+            position: absolute; top: 2px; left: 4px; color: var(--green); 
+            font-size: 14px; text-shadow: 1px 1px 0 #000, -1px -1px 0 #000; z-index: 10; pointer-events: none; 
+        }
 
-        .side-panel { width: 260px; display: flex; flex-direction: column; gap: 10px; }
-        #status { background: #000; border: 1px solid #444; padding: 10px; color: var(--gold); font-size: 0.85rem; min-height: 40px; line-height: 1.4; }
-        #log { background: #050505; border: 1px solid #333; padding: 10px; font-size: 0.8rem; overflow-y: auto; height: 320px; color: #aaa; }
-        .s-suc { color: #50fa7b; } .s-fail { color: #ff5555; }
+        /* 5. 상태창 & 로그창 */
+        .side-panel { width: 280px; display: flex; flex-direction: column; gap: 10px; }
         
-        /* 타겟팅 상태일 때 전체 마우스 커서 변경 */
+        .panel-box {
+            background: #050608;
+            border-top: 2px solid #000; border-left: 2px solid #000;
+            border-bottom: 2px solid #333; border-right: 2px solid #333;
+            padding: 10px;
+        }
+
+        #status { color: var(--gold); font-size: 14px; min-height: 40px; line-height: 1.5; }
+        #log { font-size: 13px; overflow-y: auto; height: 320px; color: #aaa; line-height: 1.6; }
+        .s-suc { color: var(--green); } .s-fail { color: var(--red); }
+        
         body.mode-target .slot { cursor: crosshair; }
     </style>
 </head>
@@ -40,21 +116,31 @@
 
     <audio id="soundDrop" src="https://actions.google.com/sounds/v1/foley/drop_leather.ogg"></audio>
 
-    <div class="admin-bar">
-        <select id="type" onchange="updateList()"></select>
-        <select id="items"></select>
-        <input type="number" id="amt" value="1" min="1" max="10" style="width:40px;">
-        <button onclick="give()">아이템 보급</button>
+    <div class="classic-window">
+        <div class="classic-inner">
+            <span style="color:var(--gold);">[SYSTEM]</span>
+            <select id="type" onchange="updateList()"></select>
+            <select id="items"></select>
+            <input type="number" id="amt" value="1" min="1" max="10" style="width:40px;">
+            <button onclick="give()">지급</button>
+        </div>
     </div>
 
     <div class="main-container">
-        <div class="inv-wrapper">
+        <div class="classic-window">
+            <div style="text-align:center; color:#999; margin-bottom:5px; font-size:14px; letter-spacing: 1px;">INVENTORY</div>
             <div class="inv-grid" id="grid"></div>
         </div>
+        
         <div class="side-panel">
-            <div id="status">주문서를 <b>더블클릭</b>하여 사용하세요.</div>
-            <div id="log"></div>
-            <button onclick="location.reload()" style="font-size:10px;">인벤토리 초기화</button>
+            <div class="classic-window" style="margin-bottom:0;">
+                <div id="status" class="panel-box">주문서를 <b>더블클릭</b>하여 사용하세요.</div>
+            </div>
+            
+            <div class="classic-window" style="flex-grow:1; display:flex; flex-direction:column;">
+                <div id="log" class="panel-box" style="flex-grow:1; border-bottom:none;"></div>
+                <button onclick="location.reload()" style="padding:10px; width:100%;">RESTART</button>
+            </div>
         </div>
     </div>
 
@@ -127,7 +213,6 @@
         }).join('');
     }
 
-    // --- 드래그 앤 드롭 로직 (변경 없음) ---
     function dragStart(e, i) {
         if (activeIdx !== null) return; 
         dragIdx = i;
@@ -153,15 +238,11 @@
         dragIdx = null;
         draw();
     }
-
-    // --- 클릭(따닥/딱) 로직 분리 ---
     
-    // 1. 더블클릭: 주문서 활성화 ("따닥")
     function handleDoubleClick(i) {
         const item = inv[i];
         if(!item) return;
 
-        // 주문서일 경우에만 활성화
         if (activeIdx === null && item.isScroll) {
             activeIdx = i;
             document.getElementById('b').classList.add('mode-target');
@@ -170,19 +251,15 @@
         }
     }
 
-    // 2. 싱글클릭: 강화 실행 ("딱") 또는 단순 정보 확인
     function handleClick(i) {
         const item = inv[i];
         if(!item) return;
 
-        // 이미 주문서가 활성화(따닥)된 상태라면? -> 대상 클릭으로 간주
         if (activeIdx !== null) {
-            // 실수로 활성화된 주문서를 다시 클릭한 경우 취소
             if (activeIdx === i) {
                 cancelEnchant();
                 return;
             }
-
             const scroll = inv[activeIdx];
             if (item.target === scroll.target && !item.isScroll) {
                 enchant(activeIdx, i);
@@ -190,9 +267,7 @@
                 addLog("대상이 올바르지 않습니다.", "s-fail");
                 cancelEnchant();
             }
-        } 
-        // 주문서가 활성화되지 않은 평상시 상태라면? -> 아이템 정보만 출력
-        else {
+        } else {
             const lvlStr = item.lvl !== null ? `+${item.lvl} ` : '';
             document.getElementById('status').innerText = `${lvlStr}${item.name}`;
         }
@@ -222,7 +297,7 @@
             addLog(`실패: +${target.lvl} ${target.name} 증발`, "s-fail");
             inv[ti] = null;
         }
-        inv[si] = null; // 주문서 증발
+        inv[si] = null; 
         activeIdx = null;
         document.getElementById('b').classList.remove('mode-target');
         document.getElementById('status').innerText = "강화가 완료되었습니다.";
