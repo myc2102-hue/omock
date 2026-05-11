@@ -2,12 +2,11 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Lineage Classic Real DB Simulator</title>
+    <title>Lineage Classic Simulator - Drag & Drop</title>
     <style>
         :root { --bg: #0b0c0d; --panel: #25272b; --slot: #121417; --border: #45484d; --gold: #e0bb40; --green: #44ff44; }
         body { background: var(--bg); color: #ccc; font-family: 'Malgun Gothic', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; user-select: none; }
         
-        /* 보급창 */
         .admin-bar { background: #1a1b1e; border: 2px solid var(--border); padding: 15px; display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
         select, input, button { background: #000; color: #fff; border: 1px solid #555; padding: 8px; }
         button { cursor: pointer; color: var(--gold); font-weight: bold; }
@@ -16,23 +15,27 @@
         .inv-wrapper { background: #34373c; border: 3px double #555; padding: 10px; }
         .inv-grid { display: grid; grid-template-columns: repeat(4, 56px); grid-template-rows: repeat(6, 56px); gap: 4px; background: #111; padding: 5px; }
 
-        .slot { width: 56px; height: 56px; background: var(--slot); border: 1px solid #333; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-        .slot img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+        /* 슬롯 및 드래그 상태 디자인 */
+        .slot { width: 56px; height: 56px; background: var(--slot); border: 1px solid #333; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; cursor: grab; }
+        .slot:active { cursor: grabbing; }
+        .slot img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; pointer-events: none; }
         .slot:hover { border-color: #888; }
         .slot.active-scroll { border: 2px solid var(--gold); background: #2a2515; }
+        .slot.drag-over { border: 2px dashed #8be9fd; opacity: 0.7; }
 
-        /* 이미지 로드 실패 시 보일 텍스트 */
         .item-label { position: absolute; font-size: 9px; color: #555; text-align: center; pointer-events: none; }
-        .lvl-text { position: absolute; top: 2px; left: 4px; color: var(--green); font-size: 12px; font-weight: bold; text-shadow: 1px 1px 2px #000; z-index: 10; }
+        .lvl-text { position: absolute; top: 2px; left: 4px; color: var(--green); font-size: 12px; font-weight: bold; text-shadow: 1px 1px 2px #000; z-index: 10; pointer-events: none; }
 
         .side-panel { width: 260px; display: flex; flex-direction: column; gap: 10px; }
         #status { background: #000; border: 1px solid #444; padding: 10px; color: var(--gold); font-size: 0.85rem; min-height: 40px; }
         #log { background: #050505; border: 1px solid #333; padding: 10px; font-size: 0.8rem; overflow-y: auto; height: 320px; color: #aaa; }
         .s-suc { color: #50fa7b; } .s-fail { color: #ff5555; }
-        body.mode-target { cursor: crosshair; }
+        body.mode-target .slot { cursor: crosshair; }
     </style>
 </head>
 <body id="b">
+
+    <audio id="soundDrop" src="https://actions.google.com/sounds/v1/foley/drop_leather.ogg"></audio>
 
     <div class="admin-bar">
         <select id="type" onchange="updateList()"></select>
@@ -53,31 +56,28 @@
     </div>
 
 <script>
-    // LCInfo.io 이미지 경로 규칙 적용 (우회 프록시 포함)
     const getLCImg = (path) => `https://images.weserv.nl/?url=https://www.lcinfo.io${path}`;
 
     const db = {
         "무기류": [
             { name: "싸울아비 장검", safe: 6, img: getLCImg("/static/images/items/4.png"), target: 'w' },
             { name: "일본도", safe: 6, img: getLCImg("/static/images/items/1.png"), target: 'w' },
-            { name: "레이피어", safe: 6, img: getLCImg("/static/images/items/3.png"), target: 'w' },
-            { name: "집행검", safe: 0, img: getLCImg("/static/images/items/265.png"), target: 'w' }
+            { name: "레이피어", safe: 6, img: getLCImg("/static/images/items/3.png"), target: 'w' }
         ],
         "방어구": [
             { name: "판금 갑옷", safe: 4, img: getLCImg("/static/images/items/35.png"), target: 'a' },
-            { name: "요정족 판금", safe: 6, img: getLCImg("/static/images/items/43.png"), target: 'a' },
             { name: "마법 망토", safe: 4, img: getLCImg("/static/images/items/115.png"), target: 'a' }
         ],
         "주문서": [
             { name: "무기 주문서", sType: 'n', img: getLCImg("/static/images/items/154.png"), target: 'w', isScroll: true },
             { name: "축복 무기 주문서", sType: 'b', img: getLCImg("/static/images/items/155.png"), target: 'w', isScroll: true },
-            { name: "갑옷 주문서", sType: 'n', img: getLCImg("/static/images/items/157.png"), target: 'a', isScroll: true },
-            { name: "축복 갑옷 주문서", sType: 'b', img: getLCImg("/static/images/items/158.png"), target: 'a', isScroll: true }
+            { name: "갑옷 주문서", sType: 'n', img: getLCImg("/static/images/items/157.png"), target: 'a', isScroll: true }
         ]
     };
 
     let inv = Array(24).fill(null);
     let activeIdx = null;
+    let dragIdx = null; // 드래그 중인 아이템의 인덱스
 
     function updateList() {
         const t = document.getElementById('type').value;
@@ -99,13 +99,25 @@
         draw();
     }
 
+    // --- 인벤토리 렌더링 및 드래그 이벤트 연동 ---
     function draw() {
         const g = document.getElementById('grid');
         g.innerHTML = inv.map((item, i) => {
-            if(!item) return `<div class="slot"></div>`;
             const isSel = activeIdx === i ? 'active-scroll' : '';
+            if(!item) {
+                return `<div class="slot" 
+                            ondragover="allowDrop(event)" 
+                            ondrop="drop(event, ${i})"></div>`;
+            }
             return `
-                <div class="slot ${isSel}" onclick="clickSlot(${i})">
+                <div class="slot ${isSel}" 
+                     draggable="true"
+                     onclick="clickSlot(${i})"
+                     ondragstart="dragStart(event, ${i})"
+                     ondragover="allowDrop(event)"
+                     ondragenter="dragEnter(event)"
+                     ondragleave="dragLeave(event)"
+                     ondrop="drop(event, ${i})">
                     <span class="item-label">${item.name.substring(0,2)}</span>
                     <img src="${item.img}" onerror="this.style.display='none'">
                     ${item.lvl !== null ? `<div class="lvl-text">+${item.lvl}</div>` : ''}
@@ -114,6 +126,55 @@
         }).join('');
     }
 
+    // --- 드래그 앤 드롭 로직 ---
+    function dragStart(e, i) {
+        if (activeIdx !== null) return; // 주문서 활성화 중에는 드래그 방지
+        dragIdx = i;
+        e.dataTransfer.effectAllowed = "move";
+        // 약간의 딜레이를 줘서 드래그 시 원본 이미지가 부드럽게 남게 함
+        setTimeout(() => e.target.style.opacity = "0.5", 0); 
+    }
+
+    function allowDrop(e) {
+        e.preventDefault(); // 드롭을 허용하려면 반드시 필요
+    }
+
+    function dragEnter(e) {
+        e.preventDefault();
+        if (e.target.classList.contains('slot')) {
+            e.target.classList.add('drag-over');
+        }
+    }
+
+    function dragLeave(e) {
+        if (e.target.classList.contains('slot')) {
+            e.target.classList.remove('drag-over');
+        }
+    }
+
+    function drop(e, targetIdx) {
+        e.preventDefault();
+        if (e.target.classList.contains('slot')) {
+            e.target.classList.remove('drag-over');
+        }
+        
+        if (dragIdx === null || dragIdx === targetIdx) return;
+
+        // 아이템 위치 교환 (Swap)
+        const temp = inv[dragIdx];
+        inv[dragIdx] = inv[targetIdx];
+        inv[targetIdx] = temp;
+
+        // "턱!" 소리 재생
+        const dropSound = document.getElementById('soundDrop');
+        dropSound.currentTime = 0; // 연속해서 놓을 때를 대비해 재생 위치 초기화
+        dropSound.play().catch(err => console.log("사운드 재생 에러:", err));
+
+        dragIdx = null;
+        draw();
+    }
+
+    // --- 클릭 및 인챈트 로직 ---
     function clickSlot(i) {
         const item = inv[i];
         if(!item) return;
