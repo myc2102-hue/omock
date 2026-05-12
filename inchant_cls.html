@@ -282,7 +282,7 @@
             리니지클래식 어레인서버 ID: <span>데포로쥬</span> 문의
         </div>
         <div style="text-align:center; color:#555; font-size:11px; margin-top:16px; line-height:1.5; text-shadow:none; padding:0 10px;">
-            본 사이트는 비공식 제작 시뮬레이터이며, ㈜엔씨소프트(NCSOFT)와 어떠한 제휴·협력·승인 관계도 없습니다.<br>
+            본 사이트는 비공식 팬 제작 시뮬레이터이며, ㈜엔씨소프트(NCSOFT)와 어떠한 제휴·협력·승인 관계도 없습니다.<br>
             리니지(Lineage) 및 관련 상표, 이미지, 게임 데이터 등 모든 지적재산권은 ㈜엔씨소프트에 귀속됩니다.<br>
             본 사이트는 영리 목적이 아닌 팬 활동의 일환으로 제작되었으며, 권리자의 요청 시 즉시 삭제됩니다.
         </div>
@@ -319,11 +319,17 @@ const firebaseConfig = {
             return;
         }
         
-        // 예약된 아이디 차단 (관리자/운영자 사칭 방지)
-        const reserved = ["데포로쥬", "관리자", "운영자", "GM", "gm", "admin", "Admin", "ADMIN"];
-        if (reserved.some(r => inputName === r || inputName.toLowerCase() === r.toLowerCase())) {
-            alert("사용할 수 없는 캐릭터명입니다.");
-            return;
+        // 비밀 관리자 접속: admin → 데포로쥬로 자동 변환
+        if (inputName.toLowerCase() === "admin") {
+            myUserId = "데포로쥬";
+        } else {
+            // 예약된 아이디 차단 (관리자/운영자 사칭 방지)
+            const reserved = ["데포로쥬", "관리자", "운영자", "GM", "gm"];
+            if (reserved.some(r => inputName === r || inputName.toLowerCase() === r.toLowerCase())) {
+                alert("사용할 수 없는 캐릭터명입니다.");
+                return;
+            }
+            myUserId = inputName;
         }
         
         myUserId = inputName;
@@ -561,6 +567,7 @@ const firebaseConfig = {
         let targetName = (target.lvl !== 0 && target.lvl !== null ? (target.lvl > 0 ? '+' + target.lvl + ' ' : target.lvl + ' ') : '') + target.name;
         
         if (scroll.sType === 'c') {
+            // 저주받은 주문서: 100% 성공, 강화 수치 1 하락
             if (target.lvl <= 0) {
                 addLog("아무 일도 일어나지 않았습니다.", "s-fail");
                 cancel(); 
@@ -570,12 +577,124 @@ const firebaseConfig = {
                 addLog(`${targetName}이(가) 칠흑같이 검게 빛납니다.`, "s-cur");
             }
         } else {
-            const successRate = target.lvl < target.safe ? 1.0 : 0.33;
-            if (Math.random() < successRate) {
+            // ==========================================
+            // 6sword 공식 확률표 기반 강화 로직
+            // 각 테이블: lvl → [성공%, 유지%, 파괴%]
+            // ==========================================
+            
+            // === 일반 재질 방어구 (+4 안전강화) ===
+            // 대부분의 갑옷, 투구, 장갑, 부츠 등
+            const ARMOR_NORMAL = {
+                4:  [25,    0,     75],
+                5:  [20,    0,     80],
+                6:  [16.67, 0,     83.33],
+                7:  [14.29, 0,     85.71],
+                8:  [12.5,  0,     87.5],
+                9:  [0.30,  10.81, 88.89],
+                10: [0.24,  9.76,  90],
+                11: [0.20,  8.89,  90.91],
+                12: [0.17,  8.16,  91.67],
+                13: [0.15,  7.59,  92.31],
+                14: [0.13,  7.02,  92.86]
+            };
+            
+            // === 일반 재질 방어구 (+6 안전강화) ===
+            // 요정족 갑옷, 무관/신관 세트, 그림자 장비 등
+            const ARMOR_SPECIAL = {
+                6:  [16.67, 0,     83.33],
+                7:  [14.29, 0,     85.71],
+                8:  [12.5,  0,     87.5],
+                9:  [0.30,  10.81, 88.89],
+                10: [0.24,  9.76,  90],
+                11: [0.20,  8.89,  90.91],
+                12: [0.17,  8.16,  91.67],
+                13: [0.15,  7.59,  92.31],
+                14: [0.13,  7.02,  92.86]
+            };
+            
+            // === 뼈 재질 방어구 (안전강화 없음) ===
+            // 특수 재질은 +0에서도 50% 확률로 깨짐
+            const ARMOR_BONE = {
+                0:  [50,    0,     50],
+                1:  [33.33, 0,     66.67],
+                2:  [25,    0,     75],
+                3:  [20,    0,     80],
+                4:  [16.67, 0,     83.33],
+                5:  [14.29, 0,     85.71],
+                6:  [12.5,  0,     87.5],
+                7:  [11.11, 0,     88.89],
+                8:  [10,    0,     90],
+                9:  [0.25,  8.85,  90.91],
+                10: [0.20,  8.13,  91.67],
+                11: [0.17,  7.52,  92.31],
+                12: [0.15,  7.00,  92.86],
+                13: [0.13,  6.54,  93.33],
+                14: [0.11,  6.14,  93.75]
+            };
+            
+            // === 축복받은 갑옷 마법 주문서 - 위험 구간 ===
+            // (일반 재질 +4 안전강화 기준, +6 이상은 동일)
+            const BLESSED_ARMOR_NORMAL = {
+                4:  [12.5,  0,     75],    // (+3) 표기
+                5:  [12.5,  0,     80],    // (+2) 표기  
+                6:  [10,    0,     80],    // (+1) 표기
+                7:  [10,    0,     85.71], // (+2) 표기 — 아래는 근사치
+                8:  [16.67, 0,     83.33],
+                9:  [14.29, 0,     85.71],
+                10: [12.5,  0,     87.5],
+                11: [1.11,  10,    88.89],
+                12: [0.91,  9.09,  90],
+                13: [0.76,  8.33,  90.91],
+                14: [0.64,  7.69,  91.67],
+                15: [0.55,  7.14,  92.31],
+                16: [0.48,  6.67,  92.86]
+            };
+            
+            // 아이템 타입에 따라 확률표 선택
+            function getRate(item) {
+                const lvl = item.lvl;
+                
+                // 안전 강화 이하: 100% 성공
+                if (lvl < item.safe) return [100, 0, 0];
+                
+                if (item.target === 'w') {
+                    // ======= 무기 확률표 (이전 스크린샷 기반) =======
+                    // +6~+8: 33.3% 성공, 66.7% 파괴
+                    // +9~: 성공/유지/파괴 3분기
+                    const W = {
+                        6:  [33.3,  0,     66.7],
+                        7:  [33.3,  0,     66.7],
+                        8:  [33.3,  0,     66.7],
+                        9:  [0.98,  32.4,  66.7],
+                        10: [0.81,  32.5,  66.7],
+                        11: [0.74,  32.6,  66.7],
+                        12: [0.17,  6.99,  92.84],
+                        13: [0.15,  7.05,  92.81],
+                        14: [0.15,  7.02,  92.84]
+                    };
+                    return W[lvl] || [0.10, 5.0, 94.9];
+                    
+                } else {
+                    // ======= 방어구 =======
+                    let table;
+                    if (item.safe >= 6) {
+                        table = ARMOR_SPECIAL;  // 요정족, 무관/신관 등
+                    } else if (item.safe <= 0) {
+                        table = ARMOR_BONE;     // 뼈 재질 (안전강화 없음)
+                    } else {
+                        table = ARMOR_NORMAL;   // 일반 재질
+                    }
+                    return table[lvl] || [0.10, 5.0, 94.9];
+                }
+            }
+            
+            const [successRate, keepRate, destroyRate] = getRate(target);
+            
+            if (successRate >= 100) {
+                // === 안전 강화 구간: 100% 성공 ===
                 let up = 1;
                 if (scroll.sType === 'b') {
-                    if (target.lvl <= 2) up = Math.floor(Math.random()*3)+1;
-                    else if (target.lvl <= 5) up = Math.floor(Math.random()*2)+1;
+                    up = Math.floor(Math.random() * 3) + 1;
                 }
                 target.lvl += up;
                 
@@ -584,18 +703,42 @@ const firebaseConfig = {
                 else if (target.lvl >= 7) lightMsg = "강렬하게 푸른빛을 냅니다.";
                 
                 addLog(`${targetName}이(가) ${lightMsg}`, "s-suc");
-
-                // 🔥 파이어베이스 랭킹 DB에 등록 🔥
                 realDB.ref("enchants").push({
-                    user: myUserId,
-                    item: target.name,
-                    lvl: target.lvl,
+                    user: myUserId, item: target.name, lvl: target.lvl,
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 });
-
+                
             } else {
-                addLog(`${targetName}이(가) 강렬하게 빛나더니 증발하여 사라졌습니다.`, "s-fail");
-                inv[ti] = null;
+                // === 위험 구간: 성공 / 유지 / 파괴 판정 ===
+                const roll = Math.random() * 100;
+                
+                if (roll < successRate) {
+                    // 성공!
+                    let up = 1;
+                    if (scroll.sType === 'b') {
+                        up = Math.floor(Math.random() * 3) + 1;
+                    }
+                    target.lvl += up;
+                    
+                    let lightMsg = "강렬하게 은빛으로 빛납니다.";
+                    if (target.lvl >= 9) lightMsg = "영롱하게 붉은빛을 냅니다.";
+                    else if (target.lvl >= 7) lightMsg = "강렬하게 푸른빛을 냅니다.";
+                    
+                    addLog(`${targetName}이(가) ${lightMsg}`, "s-suc");
+                    realDB.ref("enchants").push({
+                        user: myUserId, item: target.name, lvl: target.lvl,
+                        timestamp: firebase.database.ServerValue.TIMESTAMP
+                    });
+                    
+                } else if (roll < successRate + keepRate) {
+                    // 유지 (아무 일도 일어나지 않음)
+                    addLog(`${targetName}이(가) 강렬하게 빛났지만 아무 일도 일어나지 않았습니다.`, "s-sys");
+                    
+                } else {
+                    // 파괴
+                    addLog(`${targetName}이(가) 강렬하게 빛나더니 증발하여 사라졌습니다.`, "s-fail");
+                    inv[ti] = null;
+                }
             }
         }
         
