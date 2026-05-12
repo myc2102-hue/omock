@@ -340,9 +340,15 @@ const getLCImg = (iconId) => `${ASSET_SERVER}${iconId}.png`;
         
         let targetName = (target.lvl !== 0 && target.lvl !== null ? (target.lvl > 0 ? '+' + target.lvl + ' ' : target.lvl + ' ') : '') + target.name;
         
-        if (scroll.sType === 'c') {
-            target.lvl -= 1;
-            addLog(`${targetName}이(가) 칠흑같이 검게 빛납니다.`, "s-cur");
+  if (scroll.sType === 'c') {
+            if (target.lvl <= 0) {
+                addLog("아무 일도 일어나지 않았습니다.", "s-fail");
+                cancel(); // 타겟팅(십자선) 모드를 먼저 해제하고
+                return;   // 여기서 함수를 바로 종료시킵니다! (아래 주문서 소모 로직 무시)
+            } else {
+                target.lvl -= 1;
+                addLog(`${targetName}이(가) 칠흑같이 검게 빛납니다.`, "s-cur");
+            }
         } else {
             const successRate = target.lvl < target.safe ? 1.0 : 0.33;
             if (Math.random() < successRate) {
