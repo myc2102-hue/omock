@@ -35,70 +35,56 @@
             display: flex; align-items: center; justify-content: center; flex-direction: column;
         }
         #loginBox {
-            background: linear-gradient(180deg, #3a3d4a 0%, #22242a 100%);
-            border: 2px solid #9ba0af;
-            border-top: 3px solid #b2b6c7;
-            border-left: 3px solid #b2b6c7;
-            border-bottom: 3px solid #111;
-            border-right: 3px solid #111;
-            padding: 0; text-align: center; border-radius: 4px;
-            box-shadow: 8px 8px 30px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.1);
-            width: 340px;
+            width: 420px; position: relative;
+            background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+            border: 2px solid #3a3530; border-radius: 6px;
+            overflow: hidden; padding: 30px 35px;
         }
-        #loginBox .login-titlebar {
-            background: linear-gradient(90deg, #1a1c22 0%, #2a2d38 50%, #1a1c22 100%);
-            border-bottom: 1px solid #555;
-            padding: 10px 15px;
-            display: flex; align-items: center; justify-content: center;
-            position: relative;
+        #loginBox::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, transparent, #8b7b5e 20%, #c4a95a 50%, #8b7b5e 80%, transparent);
         }
-        #loginBox .login-titlebar::before {
-            content: '─── '; color: #555; margin-right: 8px;
+        #loginBox::after {
+            content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, transparent, #8b7b5e 20%, #c4a95a 50%, #8b7b5e 80%, transparent);
         }
-        #loginBox .login-titlebar::after {
-            content: ' ───'; color: #555; margin-left: 8px;
-        }
-        #loginBox .login-body {
-            padding: 25px 30px 30px;
-        }
-        #loginBox .login-title {
-            color: var(--gold); font-size: 22px; margin: 0;
-            text-shadow: 2px 2px 4px #000, 0 0 10px rgba(255,235,153,0.3);
-            letter-spacing: 3px;
-        }
-        #loginBox .login-subtitle {
-            color: #888; font-size: 12px; margin-top: 4px;
-            letter-spacing: 1px;
-        }
-        #loginBox .login-input {
-            font-size: 16px; padding: 10px; text-align: center; width: 200px;
-            background: #0a0b0c; color: #fff; border: 2px solid #333;
-            border-top-color: #111; border-left-color: #111;
-            border-bottom-color: #666; border-right-color: #666;
+        .login-corner { position: absolute; width: 20px; height: 20px; }
+        .login-corner.tl { top: -4px; left: -4px; border-top: 3px solid #c4a95a; border-left: 3px solid #c4a95a; border-radius: 4px 0 0 0; }
+        .login-corner.tr { top: -4px; right: -4px; border-top: 3px solid #c4a95a; border-right: 3px solid #c4a95a; border-radius: 0 4px 0 0; }
+        .login-corner.bl { bottom: -4px; left: -4px; border-bottom: 3px solid #c4a95a; border-left: 3px solid #c4a95a; border-radius: 0 0 0 4px; }
+        .login-corner.br { bottom: -4px; right: -4px; border-bottom: 3px solid #c4a95a; border-right: 3px solid #c4a95a; border-radius: 0 0 4px 0; }
+        .login-side-l { position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
+            background: linear-gradient(180deg, transparent, #8b7b5e 20%, #c4a95a 50%, #8b7b5e 80%, transparent); }
+        .login-side-r { position: absolute; top: 0; right: 0; bottom: 0; width: 3px;
+            background: linear-gradient(180deg, transparent, #8b7b5e 20%, #c4a95a 50%, #8b7b5e 80%, transparent); }
+        .login-title { font-family: serif; font-size: 26px; font-weight: 500; color: #c4a95a;
+            letter-spacing: 6px; text-shadow: 0 0 20px rgba(196,169,90,0.3); text-align: center; }
+        .login-subtitle { font-size: 11px; color: #6b6355; letter-spacing: 3px; text-align: center; margin-top: 4px; }
+        .login-divider { height: 1px; margin: 16px 0;
+            background: linear-gradient(90deg, transparent, #5a5040 30%, #8b7b5e 50%, #5a5040 70%, transparent); }
+        .login-label { color: #8b8070; font-size: 13px; margin-bottom: 8px; letter-spacing: 1px; }
+        .login-input {
+            width: 100%; box-sizing: border-box; padding: 10px 14px;
+            background: #0a0a0a; color: #c4a95a; font-size: 14px; text-align: center;
+            border: 1px solid #3a3530; border-top-color: #222; border-left-color: #222;
+            border-bottom-color: #555; border-right-color: #555;
             font-family: 'DungGeunMo', 'Gulim', sans-serif;
         }
-        #loginBox .login-input:focus {
-            outline: none; border-color: var(--gold);
-            box-shadow: 0 0 8px rgba(255,235,153,0.2);
+        .login-input:focus { outline: none; border-color: #c4a95a; box-shadow: 0 0 8px rgba(196,169,90,0.2); }
+        .login-btn {
+            display: inline-block; padding: 10px 50px; cursor: pointer;
+            background: linear-gradient(180deg, #2a2520 0%, #1a1510 100%);
+            border: 1px solid #5a5040; border-top-color: #8b7b5e; border-left-color: #8b7b5e;
+            border-bottom-color: #2a2520; border-right-color: #2a2520;
+            color: #c4a95a; font-size: 15px; letter-spacing: 4px;
+            font-family: 'DungGeunMo', 'Gulim', sans-serif; text-shadow: 1px 1px 0 #000;
         }
-        #loginBox .login-btn {
-            font-size: 15px; padding: 10px 40px;
-            background: linear-gradient(180deg, #4a4d5a 0%, #2a2d38 100%);
-            color: var(--gold); border: 2px solid #666;
-            border-top-color: #999; border-left-color: #999;
-            border-bottom-color: #222; border-right-color: #222;
-            cursor: pointer; font-family: 'DungGeunMo', 'Gulim', sans-serif;
-            letter-spacing: 2px;
-            text-shadow: 1px 1px 0 #000;
-        }
-        #loginBox .login-btn:hover {
-            background: linear-gradient(180deg, #5a5d6a 0%, #3a3d48 100%);
-            color: #fff;
-        }
-        #loginBox .login-btn:active {
-            border-top-color: #222; border-left-color: #222;
-            border-bottom-color: #999; border-right-color: #999;
-        }
+        .login-btn:hover { background: linear-gradient(180deg, #3a3530 0%, #2a2520 100%); color: #fff; }
+        .login-btn:active { border-top-color: #2a2520; border-left-color: #2a2520;
+            border-bottom-color: #8b7b5e; border-right-color: #8b7b5e; }
+        .login-sound-option { font-size: 13px; cursor: pointer; }
+        .login-sound-on { color: #c4a95a; text-decoration: underline; text-underline-offset: 3px; }
+        .login-sound-off { color: #6b6355; }
 
         .app-container { width: 100%; max-width: 968px; display: flex; flex-direction: column; gap: 22px; }
 
@@ -222,18 +208,47 @@
 
     <div id="loginOverlay">
         <div id="loginBox">
-            <div class="login-titlebar">
-                <span style="color:var(--gold); font-size:13px;">강화 시뮬레이터</span>
+            <div class="login-corner tl"></div>
+            <div class="login-corner tr"></div>
+            <div class="login-corner bl"></div>
+            <div class="login-corner br"></div>
+            <div class="login-side-l"></div>
+            <div class="login-side-r"></div>
+
+            <div class="login-title">강화 시뮬레이터</div>
+            <div class="login-subtitle">ENCHANT SIMULATOR</div>
+            <div class="login-divider"></div>
+
+            <div style="margin-bottom: 20px;">
+                <div class="login-label">[ 캐릭터명 ]</div>
+                <input type="text" id="usernameInput" class="login-input" placeholder="캐릭터명을 입력하세요" maxlength="10">
             </div>
-            <div class="login-body">
-                <div class="login-title">강화 시뮬레이터</div>
-                <div class="login-subtitle">ENCHANT SIMULATOR</div>
-                <div style="margin: 20px 0 6px; color:#aaa; font-size:13px;">캐릭터명을 입력하세요</div>
-                <input type="text" id="usernameInput" class="login-input" placeholder="캐릭터명" maxlength="10">
-                <br><br>
+
+            <div style="margin-bottom: 20px;">
+                <div class="login-label">[ 사운드 ]</div>
+                <div style="display: flex; align-items: center; gap: 16px; padding-left: 4px;">
+                    <span class="login-sound-option login-sound-on" id="bgmToggle" onclick="toggleBGM()">BGM : ON</span>
+                    <span style="color: #555;">|</span>
+                    <span class="login-sound-option login-sound-on" id="sfxToggle" onclick="toggleSFX()">효과음 : ON</span>
+                </div>
+            </div>
+
+            <div class="login-divider"></div>
+
+            <div style="text-align: center; margin-top: 16px;">
                 <button onclick="joinServer()" class="login-btn">접 속 하 기</button>
-                <div style="margin-top:16px; color:#555; font-size:10px;">비공식 팬 제작 시뮬레이터</div>
             </div>
+            <div style="text-align: center; margin-top: 14px;">
+                <span style="color: #3a3530; font-size: 10px; letter-spacing: 1px;">비공식 팬 제작 시뮬레이터</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BGM 플레이어 (숨김) -->
+    <div id="bgmContainer" style="position:fixed; bottom:10px; right:10px; z-index:9998; background:#111; border:1px solid #555; border-radius:6px; padding:6px; display:none;">
+        <iframe id="bgmPlayer" width="250" height="50" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        <div style="text-align:center; margin-top:4px;">
+            <button onclick="document.getElementById('bgmContainer').style.display='none'; document.getElementById('bgmPlayer').src='';" style="font-size:11px; padding:2px 8px; color:#c4a95a;">BGM 닫기</button>
         </div>
     </div>
 
@@ -310,6 +325,22 @@ const firebaseConfig = {
     
     // 유저 아이디 전역 변수
     let myUserId = "익명";
+    let bgmEnabled = true;
+    let sfxEnabled = true;
+
+    // 사운드 토글 함수
+    function toggleBGM() {
+        bgmEnabled = !bgmEnabled;
+        const el = document.getElementById('bgmToggle');
+        el.textContent = bgmEnabled ? 'BGM : ON' : 'BGM : OFF';
+        el.className = bgmEnabled ? 'login-sound-option login-sound-on' : 'login-sound-option login-sound-off';
+    }
+    function toggleSFX() {
+        sfxEnabled = !sfxEnabled;
+        const el = document.getElementById('sfxToggle');
+        el.textContent = sfxEnabled ? '효과음 : ON' : '효과음 : OFF';
+        el.className = sfxEnabled ? 'login-sound-option login-sound-on' : 'login-sound-option login-sound-off';
+    }
 
     // 접속(로그인) 함수
     function joinServer() {
@@ -332,7 +363,7 @@ const firebaseConfig = {
             myUserId = inputName;
         }
         
-  document.getElementById("loginOverlay").style.display = "none";
+        document.getElementById("loginOverlay").style.display = "none";
         
         // 채팅 활성화
         const chatInput = document.getElementById("chatInputBox");
@@ -340,6 +371,12 @@ const firebaseConfig = {
         chatInput.placeholder = "엔터키를 눌러 채팅을 입력하세요.";
         
         addLog(`${myUserId} 님이 서버에 접속하셨습니다.`, "s-sys");
+
+        // BGM 재생 (ON일 때만)
+        if (bgmEnabled) {
+            document.getElementById('bgmPlayer').src = "https://www.youtube.com/embed/pDJk7Lt0wxE?autoplay=1&loop=1&playlist=pDJk7Lt0wxE";
+            document.getElementById('bgmContainer').style.display = 'block';
+        }
     }
 
     // 채팅 전송 이벤트 (엔터키)
@@ -555,7 +592,7 @@ const firebaseConfig = {
     function allowDrop(e) { e.preventDefault(); }
     function dragEnter(e) { e.preventDefault(); if (e.target.classList.contains('slot')) e.target.classList.add('drag-over'); }
     function dragLeave(e) { if (e.target.classList.contains('slot')) e.target.classList.remove('drag-over'); }
-    function drop(e, targetIdx) { e.preventDefault(); if (e.target.classList.contains('slot')) e.target.classList.remove('drag-over'); const temp = inv[dragIdx]; inv[dragIdx] = inv[targetIdx]; inv[targetIdx] = temp; document.getElementById('soundDrop').play(); dragIdx = null; draw(); }
+    function drop(e, targetIdx) { e.preventDefault(); if (e.target.classList.contains('slot')) e.target.classList.remove('drag-over'); const temp = inv[dragIdx]; inv[dragIdx] = inv[targetIdx]; inv[targetIdx] = temp; if (sfxEnabled) document.getElementById('soundDrop').play(); dragIdx = null; draw(); }
     function handleDoubleClick(i) { const item = inv[i]; if(item && item.stackable) { activeIdx = i; document.getElementById('b').classList.add('mode-target'); document.getElementById('status').innerHTML = `[${item.name}] 대상을 선택하십시오.`; draw(); } }
     function handleClick(i) { const item = inv[i]; if (activeIdx !== null) { if (activeIdx === i) { cancel(); return; } if (item && !item.stackable && item.target === inv[activeIdx].target) enchant(activeIdx, i); else { addLog("아무 일도 일어나지 않았습니다.", "s-fail"); cancel(); } } else if(item) { document.getElementById('status').innerText = (item.lvl !== undefined && item.lvl !== null ? (item.lvl >= 0 ? '+'+item.lvl+' ' : item.lvl+' ') : '') + item.name; } }
 
@@ -649,45 +686,87 @@ const firebaseConfig = {
                 16: [0.48,  6.67,  92.86]
             };
             
-            // 아이템 타입에 따라 확률표 선택
-            function getRate(item) {
+            // 아이템 타입 + 주문서 타입에 따라 확률표 선택
+            function getRate(item, scrollType) {
                 const lvl = item.lvl;
                 
                 // 안전 강화 이하: 100% 성공
                 if (lvl < item.safe) return [100, 0, 0];
                 
                 if (item.target === 'w') {
-                    // ======= 무기 확률표 (이전 스크린샷 기반) =======
-                    // +6~+8: 33.3% 성공, 66.7% 파괴
-                    // +9~: 성공/유지/파괴 3분기
-                    const W = {
-                        6:  [33.3,  0,     66.7],
-                        7:  [33.3,  0,     66.7],
-                        8:  [33.3,  0,     66.7],
-                        9:  [0.98,  32.4,  66.7],
-                        10: [0.81,  32.5,  66.7],
-                        11: [0.74,  32.6,  66.7],
-                        12: [0.17,  6.99,  92.84],
-                        13: [0.15,  7.05,  92.81],
-                        14: [0.15,  7.02,  92.84]
-                    };
-                    return W[lvl] || [0.10, 5.0, 94.9];
+                    // ======= 무기 =======
+                    if (scrollType === 'b') {
+                        // 축복받은 무기 마법 주문서
+                        const WB = {
+                            6:  [33.3,  0,     66.7],
+                            7:  [33.3,  0,     66.7],
+                            8:  [33.3,  0,     66.7],
+                            9:  [3.33,  30.0,  66.67],
+                            10: [3.03,  30.30, 66.67],
+                            11: [3.03,  30.30, 66.67],
+                            12: [3.03,  30.30, 66.67],
+                            13: [3.03,  30.30, 66.67],
+                            14: [3.03,  30.30, 66.67]
+                        };
+                        return WB[lvl] || [3.03, 30.30, 66.67];
+                    } else {
+                        // 일반 무기 마법 주문서
+                        const W = {
+                            6:  [33.3,  0,     66.7],
+                            7:  [33.3,  0,     66.7],
+                            8:  [33.3,  0,     66.7],
+                            9:  [0.98,  32.4,  66.7],
+                            10: [0.81,  32.5,  66.7],
+                            11: [0.74,  32.6,  66.7],
+                            12: [0.17,  6.99,  92.84],
+                            13: [0.15,  7.05,  92.81],
+                            14: [0.15,  7.02,  92.84]
+                        };
+                        return W[lvl] || [0.10, 5.0, 94.9];
+                    }
                     
                 } else {
                     // ======= 방어구 =======
-                    let table;
-                    if (item.safe >= 6) {
-                        table = ARMOR_SPECIAL;  // 요정족, 무관/신관 등
-                    } else if (item.safe <= 0) {
-                        table = ARMOR_BONE;     // 뼈 재질 (안전강화 없음)
+                    if (scrollType === 'b') {
+                        // 축복받은 갑옷 마법 주문서
+                        // +9 미만은 일반과 동일, +9 이상은 축복 전용 확률
+                        let table;
+                        if (item.safe >= 6) {
+                            table = ARMOR_SPECIAL;
+                        } else if (item.safe <= 0) {
+                            table = ARMOR_BONE;
+                        } else {
+                            table = ARMOR_NORMAL;
+                        }
+                        // +9 이상이면 축복 전용 확률로 덮어쓰기
+                        if (lvl >= 9) {
+                            const AB = {
+                                9:  [3.33,  30.0,  66.67],
+                                10: [3.03,  30.30, 66.67],
+                                11: [3.03,  30.30, 66.67],
+                                12: [3.03,  30.30, 66.67],
+                                13: [3.03,  30.30, 66.67],
+                                14: [3.03,  30.30, 66.67]
+                            };
+                            return AB[lvl] || [3.03, 30.30, 66.67];
+                        }
+                        return table[lvl] || [0.10, 5.0, 94.9];
                     } else {
-                        table = ARMOR_NORMAL;   // 일반 재질
+                        // 일반 갑옷 마법 주문서
+                        let table;
+                        if (item.safe >= 6) {
+                            table = ARMOR_SPECIAL;
+                        } else if (item.safe <= 0) {
+                            table = ARMOR_BONE;
+                        } else {
+                            table = ARMOR_NORMAL;
+                        }
+                        return table[lvl] || [0.10, 5.0, 94.9];
                     }
-                    return table[lvl] || [0.10, 5.0, 94.9];
                 }
             }
             
-            const [successRate, keepRate, destroyRate] = getRate(target);
+            const [successRate, keepRate, destroyRate] = getRate(target, scroll.sType);
             
             if (successRate >= 100) {
                 // === 안전 강화 구간: 100% 성공 ===
