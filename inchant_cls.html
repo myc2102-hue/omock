@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lineage Classic - Massive DB Expansion</title>
     <style>
-        /* 기존 CSS 100% 동일 유지 */
         @font-face {
             font-family: 'DungGeunMo';
             src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/DungGeunMo.woff') format('woff');
@@ -20,11 +19,12 @@
         body {
             background: #2a2218 url('https://www.transparenttextures.com/patterns/dirt.png'); 
             font-family: 'DungGeunMo', 'Gulim', sans-serif;
-            margin: 0; padding: 20px 10px; color: #ccc; user-select: none;
+            margin: 0; padding: 22px 11px; color: #ccc; user-select: none;
             display: flex; justify-content: center; min-height: 100vh; box-sizing: border-box;
+            font-size: 15.4px;
         }
 
-        .app-container { width: 100%; max-width: 880px; display: flex; flex-direction: column; gap: 20px; }
+        .app-container { width: 100%; max-width: 968px; display: flex; flex-direction: column; gap: 22px; }
 
         .window {
             background: var(--bg-stone);
@@ -32,19 +32,19 @@
                 inset 1px 1px 0px #b2b6c7, inset -1px -1px 0px #111,
                 inset 2px 2px 0px var(--border-light), inset -2px -2px 0px var(--border-dark),
                 5px 5px 15px rgba(0,0,0,0.8);
-            border-radius: 8px; padding: 12px; color: #fff; text-shadow: 1px 1px 0 #000;
+            border-radius: 8px; padding: 13px; color: #fff; text-shadow: 1px 1px 0 #000;
         }
 
-        .admin-bar { display: flex; gap: 10px; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #2b2e33, #15171a); }
-        .admin-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-        select, input, button { background: #111; color: #fff; border: 1px solid #555; padding: 6px; font-family: inherit; font-size: 14px; }
+        .admin-bar { display: flex; gap: 11px; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #2b2e33, #15171a); }
+        .admin-controls { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
+        select, input, button { background: #111; color: #fff; border: 1px solid #555; padding: 7px; font-family: inherit; font-size: 15.4px; }
         button { cursor: pointer; color: var(--gold); background: #222; }
         button:hover { background: #333; }
 
-        .main-content { display: flex; gap: 20px; align-items: stretch; }
+        .main-content { display: flex; gap: 22px; align-items: stretch; }
 
-        .inventory-window { flex-shrink: 0; width: 300px; display: flex; flex-direction: column; }
-        #status { font-size: 13px; color: var(--gold); text-align: center; margin-bottom: 5px; height: 15px; }
+        .inventory-window { flex-shrink: 0; width: 330px; display: flex; flex-direction: column; }
+        #status { font-size: 14.3px; color: var(--gold); text-align: center; margin-bottom: 5px; height: 17px; }
 
         .inv-grid {
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px;
@@ -67,51 +67,60 @@
         .slot.drag-over { border: 2px dashed #8be9fd; opacity: 0.7; }
         body.mode-target .slot { cursor: crosshair; }
 
-        .lvl-text { position: absolute; top: 2px; left: 4px; color: var(--green); font-size: 14px; text-shadow: 1px 1px 0 #000; z-index: 10; pointer-events: none; }
-        .count-text { position: absolute; bottom: 2px; right: 4px; color: #fff; font-size: 12px; text-shadow: 1px 1px 0 #000; z-index: 10; pointer-events: none; }
+        .lvl-text { position: absolute; top: 2px; left: 4px; color: var(--green); font-size: 15.4px; text-shadow: 1px 1px 0 #000; z-index: 10; pointer-events: none; }
+        .count-text { position: absolute; bottom: 2px; right: 4px; color: #fff; font-size: 13.2px; text-shadow: 1px 1px 0 #000; z-index: 10; pointer-events: none; }
 
-        .chat-window { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg-stone); padding: 12px; gap: 4px; }
+        .slot .fallback-icon {
+            display: none;
+            width: 80%; height: 80%;
+            justify-content: center; align-items: center;
+            font-size: 10px; color: #aaa; text-align: center;
+            line-height: 1.1; word-break: keep-all;
+            pointer-events: none;
+        }
+
+        .chat-window { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg-stone); padding: 13px; gap: 4px; }
         .chat-tabs { display: flex; gap: 2px; margin-bottom: 2px; }
-        .chat-tab { background: linear-gradient(to bottom, #5d6166, #2a2c33); border: 1px solid #111; border-top: 1px solid #9ba0af; border-left: 1px solid #9ba0af; padding: 4px 12px; font-size: 12px; color: #aaa; cursor: pointer; border-top-left-radius: 4px; border-top-right-radius: 4px; }
+        .chat-tab { background: linear-gradient(to bottom, #5d6166, #2a2c33); border: 1px solid #111; border-top: 1px solid #9ba0af; border-left: 1px solid #9ba0af; padding: 4px 13px; font-size: 13.2px; color: #aaa; cursor: pointer; border-top-left-radius: 4px; border-top-right-radius: 4px; }
         .chat-tab.active { background: #000; color: var(--gold); border-bottom: 1px solid #000; }
         
         #log {
-            flex-grow: 1; padding: 10px; font-size: 14px; line-height: 1.6; overflow-y: auto; text-shadow: 1px 1px 0 #000; 
-            height: 380px; max-height: 380px; 
+            flex-grow: 1; padding: 11px; font-size: 15.4px; line-height: 1.6; overflow-y: auto; text-shadow: 1px 1px 0 #000; 
+            height: 418px; max-height: 418px; 
             background: #000; border-top: 2px solid #050505; border-left: 2px solid #050505; border-bottom: 2px solid #444; border-right: 2px solid #444;
         }
-        #log::-webkit-scrollbar { width: 16px; }
+        #log::-webkit-scrollbar { width: 17px; }
         #log::-webkit-scrollbar-track { background: #111; border-left: 1px solid #333; }
         #log::-webkit-scrollbar-thumb { background: #3a3d42; border-top: 2px solid #666; border-left: 2px solid #666; border-bottom: 2px solid #000; border-right: 2px solid #000; }
         #log::-webkit-scrollbar-thumb:active { background: #222; }
 
         .chat-input-wrapper { display: flex; align-items: center; background: #000; border-top: 2px solid #050505; border-left: 2px solid #050505; border-bottom: 2px solid #444; border-right: 2px solid #444; padding: 2px; margin-top: 2px; }
-        .chat-type-label { color: #aaa; font-size: 13px; padding: 0 8px; border-right: 1px solid #333; }
-        .chat-input { flex-grow: 1; background: transparent; border: none; color: #fff; padding: 6px 8px; font-family: inherit; font-size: 14px; outline: none; text-shadow: 1px 1px 0 #000; }
+        .chat-type-label { color: #aaa; font-size: 14.3px; padding: 0 9px; border-right: 1px solid #333; }
+        .chat-input { flex-grow: 1; background: transparent; border: none; color: #fff; padding: 7px 9px; font-family: inherit; font-size: 15.4px; outline: none; text-shadow: 1px 1px 0 #000; }
 
         .s-suc { color: var(--green); } .s-fail { color: var(--red); } .s-cur { color: var(--blue); } .s-sys { color: var(--gold); }
 
         .item-popup {
             display: none; position: fixed; background: rgba(0, 0, 0, 0.85);
-            border: 1px solid #555; color: #ccc; padding: 10px; font-size: 13px;
+            border: 1px solid #555; color: #ccc; padding: 11px; font-size: 14.3px;
             z-index: 9999; pointer-events: none; box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
-            line-height: 1.6; min-width: 150px;
+            line-height: 1.6; min-width: 165px;
         }
-        .item-popup .p-title { color: var(--gold); font-size: 15px; margin-bottom: 4px; border-bottom: 1px solid #333; padding-bottom: 4px; }
+        .item-popup .p-title { color: var(--gold); font-size: 16.5px; margin-bottom: 4px; border-bottom: 1px solid #333; padding-bottom: 4px; }
         .item-popup .p-safe { color: #aaa; }
 
         .credits-section {
-            text-align: center; color: #aaa; font-size: 13px; margin-top: 10px; line-height: 1.6; text-shadow: 1px 1px 0 #000;
+            text-align: center; color: #aaa; font-size: 14.3px; margin-top: 11px; line-height: 1.6; text-shadow: 1px 1px 0 #000;
         }
         .credits-section span { color: var(--gold); }
         
-        @media (max-width: 430px) {
+        @media (max-width: 480px) {
             body { padding: 10px; } .app-container { gap: 10px; }
             .admin-bar, .admin-controls { flex-direction: column; align-items: stretch; }
             .admin-controls select, .admin-controls input, .admin-controls button { width: 100%; box-sizing: border-box; }
             .main-content { flex-direction: column; gap: 10px; } .inventory-window { width: 100%; } 
             .chat-window { height: auto; } 
-            #log { height: 200px; max-height: 200px; } 
+            #log { height: 220px; max-height: 220px; } 
         }
     </style>
 </head>
@@ -161,59 +170,61 @@
     </div>
 
 <script>
-    const ASSET_SERVER = "https://raw.githubusercontent.com/run-to-the-future/lineage-assets/main/icon/";
-    const getLCImg = (id) => `${ASSET_SERVER}${id}.png`;
+    // lcinfo.io 아이템 아이콘 이미지 서버
+    const ASSET_SERVER = "https://www.lcinfo.io/images/item_icons/";
+    const getLCImg = (iconId) => `${ASSET_SERVER}${iconId}.png`;
 
     // ==========================================
-    // 대규모 데이터베이스 확장 (인벤 DB 수동 연동 완료)
+    // 대규모 데이터베이스 확장
+    // lcinfo.io 아이콘 번호 매핑
     // ==========================================
     const db = {
         "무기": [
-            { name: "일본도", safe: 6, img: getLCImg(1), target: 'w', stackable: false, info: ["타격치: 10/12", "근거리 명중: +1", "안전 인챈트: 6", "클래스: 군주, 기사, 요정", "재질: 철", "무게: 40"] },
-            { name: "레이피어", safe: 6, img: getLCImg(3), target: 'w', stackable: false, info: ["타격치: 11/6", "추가 타격: 언데드", "안전 인챈트: 6", "클래스: 기사, 요정", "재질: 오리하루콘", "무게: 60"] },
-            { name: "다마스커스 검", safe: 6, img: getLCImg(6), target: 'w', stackable: false, info: ["타격치: 10/11", "특징: 무기가 손상되지 않음", "안전 인챈트: 6", "클래스: 군주, 기사, 요정", "재질: 철", "무게: 45"] },
-            { name: "메일 브레이커", safe: 6, img: getLCImg(15), target: 'w', stackable: false, info: ["타격치: 4/5", "근거리 명중: +10", "특징: 손상되지 않음", "안전 인챈트: 6", "재질: 오리하루콘", "무게: 40"] },
-            { name: "싸울아비 장검", safe: 6, img: getLCImg(4), target: 'w', stackable: false, info: ["타격치: 16/10", "근거리 명중: +2", "안전 인챈트: 6", "클래스: 기사", "재질: 금속", "무게: 120"] },
-            { name: "붉은 기사의 대검", safe: 6, img: getLCImg(62), target: 'w', stackable: false, info: ["타격치: 14/16", "옵션: STR +1", "특징: 양손 무기", "안전 인챈트: 6", "재질: 철", "무게: 120"] },
-            { name: "오리하르콘 단검", safe: 6, img: getLCImg(7), target: 'w', stackable: false, info: ["타격치: 7/7", "추가 타격: 언데드", "특징: 손상되지 않음", "안전 인챈트: 6", "재질: 오리하루콘", "무게: 45"] },
-            { name: "마나의 지팡이", safe: 6, img: getLCImg(110), target: 'w', stackable: false, info: ["타격치: 3/3", "옵션: 타격 시 MP 흡수", "클래스: 마법사", "안전 인챈트: 6", "재질: 나무", "무게: 15"] },
-            { name: "힘의 지팡이", safe: 6, img: getLCImg(111), target: 'w', stackable: false, info: ["타격치: 9/9", "옵션: STR +3, 근거리 명중 -3", "클래스: 마법사", "안전 인챈트: 6", "재질: 금속", "무게: 50"] },
-            { name: "요정족 창", safe: 6, img: getLCImg(80), target: 'w', stackable: false, info: ["타격치: 7/7", "특징: 양손 무기", "안전 인챈트: 6", "클래스: 군주, 기사, 요정", "재질: 미스릴", "무게: 40"] },
-            { name: "은장검", safe: 6, img: getLCImg(12), target: 'w', stackable: false, info: ["타격치: 8/12", "추가 타격: 언데드", "안전 인챈트: 6", "재질: 은", "무게: 50"] },
-            { name: "그라디우스", safe: 6, img: getLCImg(5), target: 'w', stackable: false, info: ["타격치: 9/11", "안전 인챈트: 6", "재질: 철", "무게: 40"] },
-            { name: "장검", safe: 6, img: getLCImg(2), target: 'w', stackable: false, info: ["타격치: 8/12", "안전 인챈트: 6", "재질: 철", "무게: 40"] },
-            { name: "크로스보우", safe: 6, img: getLCImg(145), target: 'w', stackable: false, info: ["타격치: 3/2", "옵션: DEX +1, 원거리 명중 +2", "특징: 양손 무기", "안전 인챈트: 6", "재질: 목재", "무게: 50"] },
-            { name: "장궁", safe: 6, img: getLCImg(138), target: 'w', stackable: false, info: ["타격치: 3/3", "특징: 양손 무기", "안전 인챈트: 6", "재질: 목재", "무게: 30"] }
+            { name: "일본도", safe: 6, img: getLCImg(107), target: 'w', stackable: false, info: ["타격치: 10/12", "근거리 명중: +1", "안전 인챈트: 6", "클래스: 군주, 기사, 요정", "재질: 철", "무게: 40"] },
+            { name: "레이피어", safe: 6, img: getLCImg(104), target: 'w', stackable: false, info: ["타격치: 11/6", "추가 타격: 언데드", "안전 인챈트: 6", "클래스: 기사, 요정", "재질: 오리하루콘", "무게: 60"] },
+            { name: "다마스커스 검", safe: 6, img: getLCImg(108), target: 'w', stackable: false, info: ["타격치: 10/11", "특징: 무기가 손상되지 않음", "안전 인챈트: 6", "클래스: 군주, 기사, 요정", "재질: 철", "무게: 45"] },
+            { name: "메일 브레이커", safe: 6, img: getLCImg(276), target: 'w', stackable: false, info: ["타격치: 4/5", "근거리 명중: +10", "특징: 손상되지 않음", "안전 인챈트: 6", "재질: 오리하루콘", "무게: 40"] },
+            { name: "싸울아비 장검", safe: 6, img: getLCImg(112), target: 'w', stackable: false, info: ["타격치: 16/10", "근거리 명중: +2", "안전 인챈트: 6", "클래스: 기사", "재질: 강철", "무게: 120"] },
+            { name: "붉은 기사의 대검", safe: 6, img: getLCImg(90), target: 'w', stackable: false, info: ["타격치: 14/16", "옵션: STR +1", "특징: 양손 무기", "안전 인챈트: 6", "재질: 철", "무게: 120"] },
+            { name: "오리하르콘 단검", safe: 6, img: getLCImg(33), target: 'w', stackable: false, info: ["타격치: 7/7", "추가 타격: 언데드", "특징: 손상되지 않음", "안전 인챈트: 6", "재질: 오리하루콘", "무게: 45"] },
+            { name: "마나의 지팡이", safe: 6, img: getLCImg(119), target: 'w', stackable: false, info: ["타격치: 3/3", "옵션: 타격 시 MP 흡수", "클래스: 마법사", "안전 인챈트: 6", "재질: 나무", "무게: 15"] },
+            { name: "힘의 지팡이", safe: 6, img: getLCImg(120), target: 'w', stackable: false, info: ["타격치: 9/9", "옵션: STR +3, 근거리 명중 -3", "클래스: 마법사", "안전 인챈트: 6", "재질: 금속", "무게: 50"] },
+            { name: "요정족 창", safe: 6, img: getLCImg(131), target: 'w', stackable: false, info: ["타격치: 7/7", "특징: 양손 무기", "안전 인챈트: 6", "클래스: 군주, 기사, 요정", "재질: 미스릴", "무게: 40"] },
+            { name: "은장검", safe: 6, img: getLCImg(106), target: 'w', stackable: false, info: ["타격치: 8/12", "추가 타격: 언데드", "안전 인챈트: 6", "재질: 은", "무게: 50"] },
+            { name: "그라디우스", safe: 6, img: getLCImg(109), target: 'w', stackable: false, info: ["타격치: 9/11", "안전 인챈트: 6", "재질: 철", "무게: 40"] },
+            { name: "장검", safe: 6, img: getLCImg(105), target: 'w', stackable: false, info: ["타격치: 8/12", "안전 인챈트: 6", "재질: 철", "무게: 40"] },
+            { name: "크로스보우", safe: 6, img: getLCImg(135), target: 'w', stackable: false, info: ["타격치: 3/2", "옵션: DEX +1, 원거리 명중 +2", "특징: 양손 무기", "안전 인챈트: 6", "재질: 목재", "무게: 50"] },
+            { name: "장궁", safe: 6, img: getLCImg(134), target: 'w', stackable: false, info: ["타격치: 3/3", "특징: 양손 무기", "안전 인챈트: 6", "재질: 목재", "무게: 30"] }
         ],
         "방어구": [
-            { name: "기사의 면갑", safe: 4, img: getLCImg(65), target: 'a', stackable: false, info: ["방어력: -3", "안전 인챈트: 4", "클래스: 기사", "재질: 철", "무게: 30"] },
-            { name: "티셔츠", safe: 4, img: getLCImg(30), target: 'a', stackable: false, info: ["방어력: 0", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 천", "무게: 5"] },
-            { name: "요정족 방패", safe: 6, img: getLCImg(49), target: 'a', stackable: false, info: ["방어력: -2", "안전 인챈트: 6", "클래스: 요정", "재질: 미스릴", "무게: 50"] },
-            { name: "강철 부츠", safe: 4, img: getLCImg(17), target: 'a', stackable: false, info: ["방어력: -3", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 철", "무게: 50"] },
-            { name: "파워 글로브", safe: 4, img: getLCImg(54), target: 'a', stackable: false, info: ["방어력: 0", "옵션: STR +2", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 철", "무게: 20"] },
-            { name: "보호 망토", safe: 4, img: getLCImg(114), target: 'a', stackable: false, info: ["방어력: -3", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 천", "무게: 10"] },
-            { name: "무명 로브", safe: 4, img: getLCImg(20), target: 'a', stackable: false, info: ["방어력: -2", "안전 인챈트: 4", "클래스: 마법사", "재질: 천", "무게: 20"] },
-            { name: "요정족 사슬 갑옷", safe: 6, img: getLCImg(42), target: 'a', stackable: false, info: ["방어력: -5", "안전 인챈트: 6", "클래스: 요정", "재질: 미스릴", "무게: 100"] },
-            { name: "요정족 판금 갑옷", safe: 6, img: getLCImg(43), target: 'a', stackable: false, info: ["방어력: -6", "안전 인챈트: 6", "클래스: 요정", "재질: 미스릴", "무게: 150"] },
-            { name: "요정족 흉갑", safe: 6, img: getLCImg(44), target: 'a', stackable: false, info: ["방어력: -4", "안전 인챈트: 6", "클래스: 요정", "재질: 미스릴", "무게: 60"] },
-            { name: "판금 갑옷", safe: 4, img: getLCImg(35), target: 'a', stackable: false, info: ["방어력: -8", "안전 인챈트: 4", "클래스: 기사", "재질: 철", "무게: 250"] },
-            { name: "수정 갑옷", safe: 4, img: getLCImg(34), target: 'a', stackable: false, info: ["방어력: -8", "안전 인챈트: 4", "클래스: 기사", "재질: 유리", "무게: 250"] },
-            { name: "강철 갑옷", safe: 4, img: getLCImg(33), target: 'a', stackable: false, info: ["방어력: -7", "안전 인챈트: 4", "클래스: 기사", "재질: 철", "무게: 300"] },
-            { name: "신관의 로브", safe: 4, img: getLCImg(25), target: 'a', stackable: false, info: ["방어력: -6", "옵션: MP 회복 +5, MR +4", "안전 인챈트: 4", "클래스: 마법사, 요정", "재질: 천", "무게: 30"] },
-            { name: "무관의 갑옷", safe: 4, img: getLCImg(36), target: 'a', stackable: false, info: ["방어력: -7", "옵션: HP 회복 +5, MR +4", "안전 인챈트: 4", "클래스: 기사, 군주", "재질: 철", "무게: 150"] },
-            { name: "지룡 비늘 갑옷", safe: 4, img: getLCImg(37), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 땅속성 저항 +50, HP 회복 +4", "안전 인챈트: 4", "클래스: 기사", "재질: 용비늘", "무게: 150"] },
-            { name: "화룡 비늘 갑옷", safe: 4, img: getLCImg(38), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 불속성 저항 +50, HP 회복 +4", "안전 인챈트: 4", "클래스: 기사", "재질: 용비늘", "무게: 150"] },
-            { name: "풍룡 비늘 갑옷", safe: 4, img: getLCImg(39), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 바람속성 저항 +50, HP 회복 +4", "안전 인챈트: 4", "클래스: 기사", "재질: 용비늘", "무게: 150"] },
-            { name: "수룡 비늘 갑옷", safe: 4, img: getLCImg(40), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 물속성 저항 +50, HP 회복 +4", "안전 인챈트: 4", "클래스: 기사", "재질: 용비늘", "무게: 150"] },
-            { name: "마법 방어 투구", safe: 4, img: getLCImg(77), target: 'a', stackable: false, info: ["방어력: -2", "옵션: MR +4", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 철", "무게: 30"] }
+            { name: "기사의 면갑", safe: 4, img: getLCImg(185), target: 'a', stackable: false, info: ["방어력: -3", "안전 인챈트: 4", "클래스: 기사", "재질: 철", "무게: 30"] },
+            { name: "티셔츠", safe: 4, img: getLCImg(155), target: 'a', stackable: false, info: ["방어력: 0", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 천", "무게: 5"] },
+            { name: "요정족 방패", safe: 6, img: getLCImg(176), target: 'a', stackable: false, info: ["방어력: -2", "안전 인챈트: 6", "클래스: 요정", "재질: 미스릴", "무게: 50"] },
+            { name: "강철 부츠", safe: 4, img: getLCImg(196), target: 'a', stackable: false, info: ["방어력: -3", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 철", "무게: 50"] },
+            { name: "파워 글로브", safe: 4, img: getLCImg(191), target: 'a', stackable: false, info: ["방어력: 0", "옵션: STR +2", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 철", "무게: 20"] },
+            { name: "보호 망토", safe: 4, img: getLCImg(201), target: 'a', stackable: false, info: ["방어력: -3", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 천", "무게: 10"] },
+            { name: "무명 로브", safe: 4, img: getLCImg(153), target: 'a', stackable: false, info: ["방어력: -2", "안전 인챈트: 4", "클래스: 마법사", "재질: 천", "무게: 20"] },
+            { name: "요정족 사슬 갑옷", safe: 6, img: getLCImg(164), target: 'a', stackable: false, info: ["방어력: -5", "안전 인챈트: 6", "클래스: 요정", "재질: 미스릴", "무게: 100"] },
+            { name: "요정족 판금 갑옷", safe: 6, img: getLCImg(165), target: 'a', stackable: false, info: ["방어력: -6", "안전 인챈트: 6", "클래스: 요정", "재질: 미스릴", "무게: 150"] },
+            { name: "요정족 흉갑", safe: 6, img: getLCImg(163), target: 'a', stackable: false, info: ["방어력: -4", "안전 인챈트: 6", "클래스: 요정", "재질: 미스릴", "무게: 60"] },
+            { name: "판금 갑옷", safe: 4, img: getLCImg(160), target: 'a', stackable: false, info: ["방어력: -8", "안전 인챈트: 4", "클래스: 기사", "재질: 철", "무게: 250"] },
+            { name: "수정 갑옷", safe: 4, img: getLCImg(161), target: 'a', stackable: false, info: ["방어력: -8", "안전 인챈트: 4", "클래스: 기사", "재질: 유리", "무게: 250"] },
+            { name: "강철 갑옷", safe: 4, img: getLCImg(159), target: 'a', stackable: false, info: ["방어력: -7", "안전 인챈트: 4", "클래스: 기사", "재질: 철", "무게: 300"] },
+            { name: "신관의 로브", safe: 4, img: getLCImg(154), target: 'a', stackable: false, info: ["방어력: -6", "옵션: MP 회복 +5, MR +4", "안전 인챈트: 4", "클래스: 마법사, 요정", "재질: 천", "무게: 30"] },
+            { name: "무관의 갑옷", safe: 4, img: getLCImg(162), target: 'a', stackable: false, info: ["방어력: -7", "옵션: HP 회복 +5, MR +4", "안전 인챈트: 4", "클래스: 기사, 군주", "재질: 철", "무게: 150"] },
+            { name: "지룡 비늘 갑옷", safe: 4, img: getLCImg(166), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 땅속성 저항 +50, HP 회복 +4", "안전 인챈트: 4", "클래스: 기사", "재질: 용비늘", "무게: 150"] },
+            { name: "화룡 비늘 갑옷", safe: 4, img: getLCImg(167), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 불속성 저항 +50, HP 회복 +4", "안전 인챈트: 4", "클래스: 기사", "재질: 용비늘", "무게: 150"] },
+            { name: "풍룡 비늘 갑옷", safe: 4, img: getLCImg(168), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 바람속성 저항 +50, HP 회복 +4", "안전 인챈트: 4", "클래스: 기사", "재질: 용비늘", "무게: 150"] },
+            { name: "수룡 비늘 갑옷", safe: 4, img: getLCImg(169), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 물속성 저항 +50, HP 회복 +4", "안전 인챈트: 4", "클래스: 기사", "재질: 용비늘", "무게: 150"] },
+            { name: "마법 방어 투구", safe: 4, img: getLCImg(186), target: 'a', stackable: false, info: ["방어력: -2", "옵션: MR +4", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 철", "무게: 30"] }
         ],
         "주문서": [
-            { name: "무기 마법 주문서", sType: 'n', target: 'w', img: getLCImg(154), stackable: true, info: ["무기를 강화한다.", "안전 인챈트 수치를 넘기면 소멸", "무게: 1"] },
-            { name: "축복받은 무기 마법 주문서", sType: 'b', target: 'w', img: getLCImg(155), stackable: true, info: ["무기를 강화한다.", "성공 시 1~3 수치가 무작위 상승", "무게: 1"] },
-            { name: "저주받은 무기 마법 주문서", sType: 'c', target: 'w', img: getLCImg(156), stackable: true, info: ["강화 수치를 1 하락시킨다.", "100% 성공", "무게: 1"] },
-            { name: "갑옷 마법 주문서", sType: 'n', target: 'a', img: getLCImg(157), stackable: true, info: ["방어구를 강화한다.", "안전 인챈트 수치를 넘기면 소멸", "무게: 1"] },
-            { name: "축복받은 갑옷 마법 주문서", sType: 'b', target: 'a', img: getLCImg(158), stackable: true, info: ["방어구를 강화한다.", "성공 시 1~3 수치가 무작위 상승", "무게: 1"] },
-            { name: "저주받은 갑옷 마법 주문서", sType: 'c', target: 'a', img: getLCImg(159), stackable: true, info: ["강화 수치를 1 하락시킨다.", "100% 성공", "무게: 1"] }
+            { name: "무기 마법 주문서", sType: 'n', target: 'w', img: getLCImg(210), stackable: true, info: ["무기를 강화한다.", "안전 인챈트 수치를 넘기면 소멸", "무게: 1"] },
+            { name: "축복받은 무기 마법 주문서", sType: 'b', target: 'w', img: getLCImg(211), stackable: true, info: ["무기를 강화한다.", "성공 시 1~3 수치가 무작위 상승", "무게: 1"] },
+            { name: "저주받은 무기 마법 주문서", sType: 'c', target: 'w', img: getLCImg(212), stackable: true, info: ["강화 수치를 1 하락시킨다.", "100% 성공", "무게: 1"] },
+            { name: "갑옷 마법 주문서", sType: 'n', target: 'a', img: getLCImg(213), stackable: true, info: ["방어구를 강화한다.", "안전 인챈트 수치를 넘기면 소멸", "무게: 1"] },
+            { name: "축복받은 갑옷 마법 주문서", sType: 'b', target: 'a', img: getLCImg(214), stackable: true, info: ["방어구를 강화한다.", "성공 시 1~3 수치가 무작위 상승", "무게: 1"] },
+            { name: "저주받은 갑옷 마법 주문서", sType: 'c', target: 'a', img: getLCImg(215), stackable: true, info: ["강화 수치를 1 하락시킨다.", "100% 성공", "무게: 1"] }
         ]
     };
 
@@ -240,7 +251,6 @@
             }
         };
 
-        // 요청하신 정확한 아이템 지급
         addEquipment("싸울아비 장검");
         addEquipment("기사의 면갑");
         addEquipment("판금 갑옷");
@@ -250,7 +260,6 @@
         addEquipment("파워 글로브");
         addEquipment("보호 망토");
 
-        // 요청하신 정확한 주문서 수량 지급
         addScroll("무기 마법 주문서", 200);
         addScroll("갑옷 마법 주문서", 200);
         addScroll("축복받은 무기 마법 주문서", 50);
@@ -261,7 +270,6 @@
 
     initStartingItems();
 
-    // --- [이하 기존 자바스크립트 로직 100% 동일 유지] ---
     function startPress(e, i) {
         if (!inv[i]) return;
         let cX = e.clientX || (e.touches && e.touches[0].clientX);
@@ -284,11 +292,25 @@
     function updateList() { const t = document.getElementById('type').value; const s = document.getElementById('items'); s.innerHTML = db[t].map((v, i) => `<option value="${i}">${v.name}</option>`).join(''); }
     function give() { const t = document.getElementById('type').value, i = document.getElementById('items').value, a = parseInt(document.getElementById('amt').value), item = db[t][i]; if (item.stackable) { let existingIdx = inv.findIndex(s => s && s.name === item.name); if (existingIdx !== -1) inv[existingIdx].qty += a; else { let emptyIdx = inv.findIndex(s => s === null); if (emptyIdx !== -1) inv[emptyIdx] = { ...item, qty: a }; } } else { for(let k=0; k<a; k++) { let emptyIdx = inv.findIndex(s => s === null); if (emptyIdx !== -1) inv[emptyIdx] = { ...item, lvl: 0, qty: 1 }; } } draw(); }
 
+    function onImgError(imgEl, itemName) {
+        imgEl.style.display = 'none';
+        let fb = imgEl.nextElementSibling;
+        if (fb && fb.classList.contains('fallback-icon')) {
+            fb.style.display = 'flex';
+            let shortName = itemName;
+            if (shortName.length > 4) shortName = shortName.substring(0, 4);
+            fb.textContent = shortName;
+        }
+    }
+
     function draw() {
         const g = document.getElementById('grid');
         g.innerHTML = inv.map((item, i) => {
             const isSel = activeIdx === i ? 'active-scroll' : '';
             if(!item) return `<div class="slot" ondragover="allowDrop(event)" ondrop="drop(event, ${i})"></div>`;
+            
+            const safeName = item.name.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            
             return `
                 <div class="slot ${isSel}" draggable="true"
                      onclick="handleClick(${i})" ondblclick="handleDoubleClick(${i})"
@@ -296,7 +318,8 @@
                      ontouchstart="startPress(event, ${i})" ontouchend="endPress()" ontouchcancel="endPress()"
                      ondragstart="dragStart(event, ${i}); endPress();" ondragover="allowDrop(event)"
                      ondragenter="dragEnter(event)" ondragleave="dragLeave(event)" ondrop="drop(event, ${i})">
-                    <img src="${item.img}" onerror="this.style.display='none'">
+                    <img src="${item.img}" onerror="onImgError(this, '${safeName}')">
+                    <div class="fallback-icon"></div>
                     ${item.lvl !== undefined && item.lvl !== null ? `<div class="lvl-text">${item.lvl >=0 ? '+'+item.lvl : item.lvl}</div>` : ''}
                     ${item.qty > 1 ? `<div class="count-text">${item.qty}</div>` : ''}
                 </div>
