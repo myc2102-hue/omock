@@ -260,7 +260,8 @@
                 <select id="items"></select>
                 <input type="number" id="amt" value="1" min="1" max="99" placeholder="수량">
                 <button onclick="give()">지급</button>
-                <button onclick="location.reload()">초기화</button>
+                <button onclick="location.reload()">새로고침</button>
+                <button id="resetBtn" onclick="resetRanking()" style="display: none; background: #8b0000; color: #fff; border-color: #550000;">랭킹 초기화</button>
             </div>
         </div>
 
@@ -358,6 +359,8 @@ const firebaseConfig = {
 // 비밀 관리자 접속: admin → 데포로쥬로 자동 변환
         if (inputName.toLowerCase() === "admin") {
             myUserId = "👑데포로쥬";
+            // 관리자 계정일 경우 숨겨둔 초기화 버튼을 보이게 함!
+            document.getElementById("resetBtn").style.display = "inline-block";
         } else {
             // 예약된 아이디 차단 (관리자/운영자 사칭 방지)
             const reserved = ["데포로쥬", "관리자", "운영자", "GM", "gm"];
@@ -880,6 +883,18 @@ if (roll < successRate) {
     }
 
     document.getElementById('type').innerHTML = Object.keys(db).map(k => `<option>${k}</option>`).join('');
+    // 랭킹 초기화 함수 (파이어베이스 enchants 데이터 삭제)
+    function resetRanking() {
+        if (confirm("정말 전서버 랭킹 데이터를 초기화하시겠습니까? (이 작업은 되돌릴 수 없습니다)")) {
+            // 파이어베이스에서 enchants 통째로 삭제
+            realDB.ref("enchants").remove().then(() => {
+                alert("성공적으로 랭킹이 초기화되었습니다!");
+                addLog("👑 시스템: 데포로쥬님이 전서버 랭킹을 초기화했습니다.", "s-sys");
+            }).catch((error) => {
+                alert("초기화 중 오류가 발생했습니다: " + error.message);
+            });
+        }
+    }
     updateList(); draw();
 </script>
 </body>
