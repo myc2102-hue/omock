@@ -222,10 +222,9 @@
         .rank-2 { color: #f39c12; }
         .rank-3 { color: #f1c40f; }
         
-        #log {
-            /* 랭킹창이 추가되면서 원래 418px이던 높이를 비율에 맞게 308px로 조정 */
+       #log {
             flex-grow: 1; padding: 11px; font-size: 15.4px; line-height: 1.6; overflow-y: auto; text-shadow: 1px 1px 0 #000; 
-            height: 308px; max-height: 308px; 
+            height: 240px; max-height: 240px; /* 🔥 높이 축소 */
             background: #000; border-top: 2px solid #050505; border-left: 2px solid #050505; border-bottom: 2px solid #444; border-right: 2px solid #444;
         }
         #log::-webkit-scrollbar { width: 17px; }
@@ -374,9 +373,16 @@
                 </div>
 
                 <div id="rankingBoard">
-                    <div class="rank-title">🏆 전서버 최고 인챈트 랭킹 TOP 5 🏆</div>
-                    <div id="rankingList">
-                        <div style="text-align:center; color:#777;">데이터를 불러오는 중...</div>
+                    <div class="rank-title">🏆 전서버 실시간 인챈트 랭킹 🏆</div>
+                    <div style="display: flex; gap: 8px; padding: 0 5px 5px 5px;">
+                        <div style="flex: 1; border-right: 1px solid #222; padding-right: 5px;">
+                            <div style="text-align:center; font-size:11px; color:var(--gold); margin-bottom:4px;">[ 무기 TOP 5 ]</div>
+                            <div id="weaponRankList"></div>
+                        </div>
+                        <div style="flex: 1; padding-left: 5px;">
+                            <div style="text-align:center; font-size:11px; color:var(--gold); margin-bottom:4px;">[ 방어구 TOP 5 ]</div>
+                            <div id="armorRankList"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -470,7 +476,12 @@ const firebaseConfig = {
         chatInput.readOnly = false;
         chatInput.placeholder = "엔터키를 눌러 채팅을 입력하세요.";
         
-        addLog(`${myUserId} 님이 서버에 접속하셨습니다.`, "s-sys");
+        // 🔥 변경: 모든 유저가 볼 수 있도록 채팅 DB에 시스템 메시지 저장
+        realDB.ref("chats").push({
+            user: "관리자",
+            message: `${myUserId} 님이 접속하였습니다.`,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
 
         // BGM 재생 (ON일 때만)
         if (bgmEnabled) {
@@ -526,13 +537,31 @@ const firebaseConfig = {
         addLog(`[${data.user}] ${data.message}`, "s-chat");
     });
 
-    // 실시간 랭킹 수신 및 표기
-    realDB.ref("enchants").orderByChild("lvl").limitToLast(100).on("value", (snapshot) => {
+   // 🔥 변경: 무기/방어구 개별 랭킹 수신 로직
+    realDB.ref("enchants").orderByChild("lvl").limitToLast(200).on("value", (snapshot) => {
         let records = [];
-        snapshot.forEach(child => {
-            records.push(child.val());
-        });
+        snapshot.forEach(child => records.push(child.val()));
         
+        // 레벨순 정렬
+        records.sort((a, b) => b.lvl - a.lvl || b.timestamp - a.timestamp);
+        
+        const wList = document.getElementById("weaponRankList");
+        const aList = document.getElementById("armorRankList");
+        
+        const weapons = records.filter(r => r.type === 'w').slice(0, 5);
+        const armors = records.filter(r => r.type === 'a').slice(0, 5);
+
+        const renderRank = (container, data) => {
+            container.innerHTML = data.length ? "" : `<div style="text-align:center; color:#555; font-size:11px;">기록 없음</div>`;
+            data.forEach((r, idx) => {
+                let cls = idx === 0 ? "rank-1" : (idx === 1 ? "rank-2" : (idx === 2 ? "rank-3" : ""));
+                container.innerHTML += `<div class="rank-item ${cls}" style="font-size:11px;"><span>${idx+1}. +${r.lvl} ${r.item}</span></div>`;
+            });
+        };
+
+        renderRank(wList, weapons);
+        renderRank(aList, armors);
+    });
         // 1. 레벨 높은순 정렬, 2. 같은 레벨이면 최근 달성 시간순
         records.sort((a, b) => b.lvl - a.lvl || b.timestamp - a.timestamp);
         
@@ -917,7 +946,10 @@ if (successRate >= 100) {
                 
                 addLog(`${targetName}이(가) ${lightMsg}`, "s-suc");
                 realDB.ref("enchants").push({
-                    user: myUserId, item: target.name, lvl: target.lvl,
+                    user: myUserId, 
+                    item: target.name, 
+                    lvl: target.lvl,
+                    type: target.target, // 🔥 추가: 아이템 타입(w/a) 저장
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 });
                 
