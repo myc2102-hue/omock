@@ -3,339 +3,851 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Monitor v2.6.4</title>
+    <title>강화 시뮬레이터 - Enchant Simulator</title>
+<link rel="icon" href="data:,">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <style>
+        @font-face {
+            font-family: 'DungGeunMo';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/DungGeunMo.woff') format('woff');
+        }
+
         :root {
-            --bg-color: #1e1e1e; --sidebar-bg: #252526; --panel-bg: #2d2d2d;
-            --text-main: #d4d4d4; --accent: #0e639c; --online: #6a9955;
-            --code-green: #6a9955; --code-blue: #569cd6; --code-orange: #ce9178; 
-            --error-red: #f48771; --win-blue: #007acc; --lose-red: #a31515;
-            --board-size: 542px; 
+            --bg-stone: #626573; --border-light: #9ba0af; --border-dark: #2a2c33;
+            --slot-bg: #22242a; --slot-circle: #2a2c33;
+            --gold: #ffeb99; --green: #44ff44; --red: #ff5555; --blue: #66ccff; --pink: #ff77ff;
         }
 
         body {
-            background-color: var(--bg-color);
-            background-image: linear-gradient(rgba(30, 30, 30, 0.93), rgba(30, 30, 30, 0.93)),
-                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500"><text x="0" y="20" font-family="monospace" font-size="12" fill="rgba(100,100,100,0.2)">system.integrity.check();</text></svg>');
-            display: flex; flex-direction: column; align-items: center;
-            min-height: 100vh; margin: 0; padding: 10px;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace; color: var(--text-main);
+            background: #2a2218 url('https://www.transparenttextures.com/patterns/dirt.png'); 
+            font-family: 'DungGeunMo', 'Gulim', sans-serif;
+            margin: 0; padding: 22px 11px; color: #ccc; user-select: none;
+            display: flex; justify-content: center; min-height: 100vh; box-sizing: border-box;
+            font-size: 15.4px;
         }
 
-        /* 사운드 토글 */
-        #sound-toggle { position: fixed; top: 15px; right: 15px; z-index: 3000; padding: 5px 10px; background: #333; border: 1px solid var(--online); color: var(--online); font-size: 0.7rem; cursor: pointer; font-weight: bold; }
-        #sound-toggle.off { color: #888; border-color: #555; }
+        /* 🔥 로그인 오버레이 스타일 🔥 */
+        #loginOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95); z-index: 10000;
+            display: flex; align-items: center; justify-content: center; flex-direction: column;
+        }
+        #loginBox {
+            width: 420px; position: relative;
+            background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+            border: 2px solid #3a3530; border-radius: 6px;
+            overflow: hidden; padding: 30px 35px;
+        }
+        #loginBox::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, transparent, #8b7b5e 20%, #c4a95a 50%, #8b7b5e 80%, transparent);
+        }
+        #loginBox::after {
+            content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, transparent, #8b7b5e 20%, #c4a95a 50%, #8b7b5e 80%, transparent);
+        }
+        .login-corner { position: absolute; width: 20px; height: 20px; }
+        .login-corner.tl { top: -4px; left: -4px; border-top: 3px solid #c4a95a; border-left: 3px solid #c4a95a; border-radius: 4px 0 0 0; }
+        .login-corner.tr { top: -4px; right: -4px; border-top: 3px solid #c4a95a; border-right: 3px solid #c4a95a; border-radius: 0 4px 0 0; }
+        .login-corner.bl { bottom: -4px; left: -4px; border-bottom: 3px solid #c4a95a; border-left: 3px solid #c4a95a; border-radius: 0 0 0 4px; }
+        .login-corner.br { bottom: -4px; right: -4px; border-bottom: 3px solid #c4a95a; border-right: 3px solid #c4a95a; border-radius: 0 0 4px 0; }
+        .login-side-l { position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
+            background: linear-gradient(180deg, transparent, #8b7b5e 20%, #c4a95a 50%, #8b7b5e 80%, transparent); }
+        .login-side-r { position: absolute; top: 0; right: 0; bottom: 0; width: 3px;
+            background: linear-gradient(180deg, transparent, #8b7b5e 20%, #c4a95a 50%, #8b7b5e 80%, transparent); }
+        .login-title { font-family: serif; font-size: 26px; font-weight: 500; color: #c4a95a;
+            letter-spacing: 6px; text-shadow: 0 0 20px rgba(196,169,90,0.3); text-align: center; }
+        .login-subtitle { font-size: 11px; color: #6b6355; letter-spacing: 3px; text-align: center; margin-top: 4px; }
+        .login-divider { height: 1px; margin: 16px 0;
+            background: linear-gradient(90deg, transparent, #5a5040 30%, #8b7b5e 50%, #5a5040 70%, transparent); }
+        .login-label { color: #8b8070; font-size: 13px; margin-bottom: 8px; letter-spacing: 1px; }
+        .login-input {
+            width: 100%; box-sizing: border-box; padding: 10px 14px;
+            background: #0a0a0a; color: #c4a95a; font-size: 14px; text-align: center;
+            border: 1px solid #3a3530; border-top-color: #222; border-left-color: #222;
+            border-bottom-color: #555; border-right-color: #555;
+            font-family: 'DungGeunMo', 'Gulim', sans-serif;
+        }
+        .login-input:focus { outline: none; border-color: #c4a95a; box-shadow: 0 0 8px rgba(196,169,90,0.2); }
+        .login-btn {
+            display: inline-block; padding: 10px 50px; cursor: pointer;
+            background: linear-gradient(180deg, #2a2520 0%, #1a1510 100%);
+            border: 1px solid #5a5040; border-top-color: #8b7b5e; border-left-color: #8b7b5e;
+            border-bottom-color: #2a2520; border-right-color: #2a2520;
+            color: #c4a95a; font-size: 15px; letter-spacing: 4px;
+            font-family: 'DungGeunMo', 'Gulim', sans-serif; text-shadow: 1px 1px 0 #000;
+        }
+        .login-btn:hover { background: linear-gradient(180deg, #3a3530 0%, #2a2520 100%); color: #fff; }
+        .login-btn:active { border-top-color: #2a2520; border-left-color: #2a2520;
+            border-bottom-color: #8b7b5e; border-right-color: #8b7b5e; }
+        .login-sound-option { font-size: 13px; cursor: pointer; }
+        .login-sound-on { color: #c4a95a; text-decoration: underline; text-underline-offset: 3px; }
+        .login-sound-off { color: #6b6355; }
 
-        /* 모달 시스템 */
-        #login-overlay, #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; display: flex; justify-content: center; align-items: center; }
-        .ui-modal { background: var(--panel-bg); border: 2px solid var(--accent); width: 90%; max-width: 420px; text-align: center; box-shadow: 0 0 60px #000; }
-        .ui-modal input { width: 80%; background: #1a1a1a; border: 1px solid #444; color: var(--code-orange); padding: 12px; margin: 20px 0; outline: none; }
+        .app-container { width: 100%; max-width: 968px; display: flex; flex-direction: column; gap: 22px; }
 
-        /* 상단 바 */
-        .status-bar { width: 100%; max-width: 900px; background: #333; padding: 10px; font-size: 0.8rem; display: flex; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid #444; margin-bottom: 20px; align-items: center; justify-content: space-between; }
-        #timer { color: #f1c40f; font-weight: bold; font-size: 1.1rem; }
-        #status { color: var(--code-green); min-width: 250px; font-family: 'Courier New', monospace; }
+        .window {
+            background: var(--bg-stone);
+            box-shadow: 
+                inset 1px 1px 0px #b2b6c7, inset -1px -1px 0px #111,
+                inset 2px 2px 0px var(--border-light), inset -2px -2px 0px var(--border-dark),
+                5px 5px 15px rgba(0,0,0,0.8);
+            border-radius: 8px; padding: 13px; color: #fff; text-shadow: 1px 1px 0 #000;
+        }
 
-        /* 레이아웃 */
-        .game-layout { display: flex; gap: 20px; justify-content: center; align-items: flex-start; width: 100%; max-width: 1000px; }
-        #board { display: grid; grid-template-columns: repeat(15, 1fr); background-color: #1a1a1a; padding: 5px; border: 1px solid #444; width: var(--board-size); height: var(--board-size); box-sizing: border-box; position: relative; flex-shrink: 0; }
-        .cell { aspect-ratio: 1/1; position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 5; }
-        .cell::before { content: ""; position: absolute; width: 100%; height: 1px; background: #333; top: 50%; }
-        .cell::after { content: ""; position: absolute; width: 1px; height: 100%; background: #333; left: 50%; }
+        .admin-bar { display: flex; gap: 11px; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #2b2e33, #15171a); }
+        .admin-controls { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
+        select, input, button { background: #111; color: #fff; border: 1px solid #555; padding: 7px; font-family: inherit; font-size: 15.4px; }
+        button { cursor: pointer; color: var(--gold); background: #222; }
+        button:hover { background: #333; }
+
+        .main-content { display: flex; gap: 22px; align-items: stretch; }
+
+        .inventory-window { flex-shrink: 0; width: 330px; display: flex; flex-direction: column; }
+        #status { font-size: 14.3px; color: var(--gold); text-align: center; margin-bottom: 5px; height: 17px; }
+
+        .inv-grid {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px;
+            background: var(--border-dark); padding: 3px;
+            border-top: 1px solid #111; border-left: 1px solid #111;
+            border-bottom: 1px solid #999; border-right: 1px solid #999;
+        }
+
+        .slot {
+            aspect-ratio: 1 / 1; background: var(--slot-bg);
+            background-image: radial-gradient(circle, var(--slot-circle) 35%, transparent 40%);
+            border-top: 2px solid #0a0b0c; border-left: 2px solid #0a0b0c;
+            border-bottom: 2px solid #484b55; border-right: 2px solid #484b55;
+            position: relative; display: flex; justify-content: center; align-items: center; cursor: grab;
+        }
+        .slot:active { cursor: grabbing; }
+        .slot img { width: 80%; height: 80%; object-fit: contain; image-rendering: pixelated; pointer-events: none; }
+        .slot:hover { border-color: #888; }
+        .slot.active-scroll { border: 2px solid var(--gold); box-shadow: inset 0 0 10px rgba(255,235,153,0.3); }
+        .slot.drag-over { border: 2px dashed #8be9fd; opacity: 0.7; }
+        body.mode-target .slot { cursor: zoom-in; }
+
+        .lvl-text { position: absolute; top: 2px; left: 4px; color: var(--green); font-size: 15.4px; text-shadow: 1px 1px 0 #000; z-index: 10; pointer-events: none; }
+        .count-text { position: absolute; bottom: 2px; right: 4px; color: #fff; font-size: 13.2px; text-shadow: 1px 1px 0 #000; z-index: 10; pointer-events: none; }
+
+        .slot .fallback-icon {
+            display: none;
+            width: 80%; height: 80%;
+            justify-content: center; align-items: center;
+            font-size: 10px; color: #aaa; text-align: center;
+            line-height: 1.1; word-break: keep-all;
+            pointer-events: none;
+        }
+
+        .chat-window { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg-stone); padding: 13px; gap: 4px; }
+        .chat-tabs { display: flex; gap: 2px; margin-bottom: 2px; }
+        .chat-tab { background: linear-gradient(to bottom, #5d6166, #2a2c33); border: 1px solid #111; border-top: 1px solid #9ba0af; border-left: 1px solid #9ba0af; padding: 4px 13px; font-size: 13.2px; color: #aaa; cursor: pointer; border-top-left-radius: 4px; border-top-right-radius: 4px; }
+        .chat-tab.active { background: #000; color: var(--gold); border-bottom: 1px solid #000; }
+
+        /* 🔥 실시간 랭킹 UI 스타일 🔥 */
+        #rankingBoard {
+            background: #050505; border: 1px solid #333; border-bottom: none;
+            padding: 8px; font-size: 14px; color: #ccc;
+        }
+        .rank-title { color: var(--gold); text-align: center; border-bottom: 1px dashed #444; padding-bottom: 4px; margin-bottom: 4px; font-weight: bold; }
+        .rank-item { display: flex; justify-content: space-between; margin-bottom: 2px; }
+        .rank-1 { color: var(--pink); font-weight: bold; }
+        .rank-2 { color: #f39c12; }
+        .rank-3 { color: #f1c40f; }
         
-        /* 💎 바둑돌 3D 강화 */
-        .stone { width: 92%; height: 92%; border-radius: 50%; z-index: 10; animation: pop 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .black { background: radial-gradient(circle at 30% 30%, #555 0%, #111 50%, #000 100%); box-shadow: 2px 4px 8px rgba(0,0,0,0.8), inset -1px -1px 3px rgba(255,255,255,0.2); border: 1px solid #000; }
-        .white { background: radial-gradient(circle at 25% 25%, #ffffff 0%, #ffffff 10%, #f8f8f8 30%, #e0e0e0 70%, #b0b0b0 100%); box-shadow: 2px 5px 10px rgba(0,0,0,0.6), inset -3px -5px 10px rgba(0,0,0,0.15), inset 2px 2px 5px rgba(255,255,255,1); border: 1px solid #d4d4d4; }
-
-        /* 사이드 패널 기본 (PC) */
-        .side-panel { display: flex; flex-direction: column; gap: 10px; width: 320px; height: var(--board-size); flex-shrink: 0; }
-        .ui-panel { background: var(--panel-bg); border: 1px solid #444; font-size: 0.8rem; overflow: hidden; display: flex; flex-direction: column; }
-        .panel-header { padding: 6px 10px; background: #3c3c3c; font-size: 0.7rem; text-transform: uppercase; }
-        #ranking-list { height: 110px; overflow-y: auto; padding: 10px; list-style: none; margin: 0; }
-        #user-list { height: 70px; overflow-y: auto; padding: 10px; list-style: none; margin: 0; }
-        #chat-panel { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-        #chat-log { flex: 1; overflow-y: auto; padding: 10px; background: #1e1e1e; font-size: 0.8rem; }
-        #chat-input { background: #252526; border: none; border-top: 1px solid #444; color: #fff; padding: 12px; outline: none; font-family: monospace; }
-
-        /* 📱 모바일 픽스 (900px 이하) */
-        @media (max-width: 900px) {
-            .game-layout { flex-direction: column; align-items: center; }
-            #board { width: 95vw !important; height: 95vw !important; max-width: var(--board-size); max-height: var(--board-size); }
-            .side-panel { 
-                width: 95vw !important; 
-                max-width: var(--board-size);
-                height: 450px !important; /* 모바일 전체 패널 높이 강제 고정 */
-                margin-top: 10px;
-            }
-            #chat-panel { height: 250px !important; flex: none !important; } /* 채팅 영역 강제 고정 */
-            #chat-log { height: 200px !important; flex: none !important; } /* 로그 영역 강제 고정 */
+        #log {
+            /* 랭킹창이 추가되면서 원래 418px이던 높이를 비율에 맞게 308px로 조정 */
+            flex-grow: 1; padding: 11px; font-size: 15.4px; line-height: 1.6; overflow-y: auto; text-shadow: 1px 1px 0 #000; 
+            height: 308px; max-height: 308px; 
+            background: #000; border-top: 2px solid #050505; border-left: 2px solid #050505; border-bottom: 2px solid #444; border-right: 2px solid #444;
         }
+        #log::-webkit-scrollbar { width: 17px; }
+        #log::-webkit-scrollbar-track { background: #111; border-left: 1px solid #333; }
+        #log::-webkit-scrollbar-thumb { background: #3a3d42; border-top: 2px solid #666; border-left: 2px solid #666; border-bottom: 2px solid #000; border-right: 2px solid #000; }
+        #log::-webkit-scrollbar-thumb:active { background: #222; }
 
-        .controls { margin-top: 30px; text-align: center; width: 100%; }
-        .reset-btn { padding: 12px 25px; background: #444; color: #ccc; cursor: pointer; border: 1px solid #555; font-family: monospace; font-weight: bold; }
-        .donation-text { color: var(--code-green); margin-top: 10px; font-weight: bold; font-size: 0.8rem; }
+        .chat-input-wrapper { display: flex; align-items: center; background: #000; border-top: 2px solid #050505; border-left: 2px solid #050505; border-bottom: 2px solid #444; border-right: 2px solid #444; padding: 2px; margin-top: 2px; }
+        .chat-type-label { color: #aaa; font-size: 14.3px; padding: 0 9px; border-right: 1px solid #333; }
+        .chat-input { flex-grow: 1; background: transparent; border: none; color: #fff; padding: 7px 9px; font-family: inherit; font-size: 15.4px; outline: none; text-shadow: 1px 1px 0 #000; }
+
+        .s-suc { color: var(--green); } .s-fail { color: var(--red); } .s-cur { color: var(--blue); } .s-sys { color: var(--gold); }
+        .s-chat { color: #fff; } /* 실시간 유저 채팅 텍스트 색상 */
+
+        .item-popup {
+            display: none; position: fixed; background: rgba(0, 0, 0, 0.85);
+            border: 1px solid #555; color: #ccc; padding: 11px; font-size: 14.3px;
+            z-index: 9999; pointer-events: none; box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            line-height: 1.6; min-width: 165px;
+        }
+        .item-popup .p-title { color: var(--gold); font-size: 16.5px; margin-bottom: 4px; border-bottom: 1px solid #333; padding-bottom: 4px; }
+        .item-popup .p-safe { color: #aaa; }
+
+        .credits-section {
+            text-align: center; color: #aaa; font-size: 14.3px; margin-top: 11px; line-height: 1.6; text-shadow: 1px 1px 0 #000;
+        }
+        .credits-section span { color: var(--gold); }
+        
+        @media (max-width: 480px) {
+            body { padding: 10px; } .app-container { gap: 10px; }
+            .admin-bar, .admin-controls { flex-direction: column; align-items: stretch; }
+            .admin-controls select, .admin-controls input, .admin-controls button { width: 100%; box-sizing: border-box; }
+            .main-content { flex-direction: column; gap: 10px; } .inventory-window { width: 100%; } 
+            .chat-window { height: auto; } 
+            /* 모바일에서도 랭킹창 공간 확보 */
+            #log { height: 150px; max-height: 150px; } 
+        }
     </style>
 </head>
-<body>
+<body id="b">
 
-    <button id="sound-toggle" onclick="toggleSound()">SOUND_ON</button>
+    <audio id="soundDrop" src="https://actions.google.com/sounds/v1/foley/drop_leather.ogg"></audio>
 
-    <div id="login-overlay">
-        <div class="ui-modal">
-            <div style="color:var(--code-blue); font-weight:bold;">[SECURE_SHELL_v2]</div>
-            <input type="text" id="initial-name" maxlength="10" placeholder="Terminal ID..." onkeypress="if(event.keyCode==13) loginUser()">
-            <button class="reset-btn" style="width:100%; background:var(--accent); border:none; color:white;" onclick="loginUser()">BOOT_SYSTEM</button>
-        </div>
-    </div>
+    <div id="itemPopup" class="item-popup window"></div>
 
-    <div id="modal-overlay" style="display:none;">
-        <div class="ui-modal" id="result-modal-box">
-            <div id="modal-header" style="padding:10px; font-weight:bold; color:white;"></div>
-            <div class="modal-body">
-                <div id="modal-result-title" style="font-size:1.6rem; font-weight:900;"></div>
-                <div id="modal-text" style="margin-top:10px; color:#aaa;"></div>
+    <div id="loginOverlay">
+        <div id="loginBox">
+            <div class="login-corner tl"></div>
+            <div class="login-corner tr"></div>
+            <div class="login-corner bl"></div>
+            <div class="login-corner br"></div>
+            <div class="login-side-l"></div>
+            <div class="login-side-r"></div>
+
+            <div class="login-title">강화 시뮬레이터</div>
+            <div class="login-subtitle">ENCHANT SIMULATOR</div>
+            <div class="login-divider"></div>
+
+            <div style="margin-bottom: 20px;">
+                <div class="login-label">[ 캐릭터명 ]</div>
+                <input type="text" id="usernameInput" class="login-input" placeholder="캐릭터명을 입력하세요" maxlength="10">
             </div>
-            <div style="padding:15px;"><button class="reset-btn" style="width:100%; color:white;" onclick="closeModal()">RECOVERY_INIT</button></div>
+
+            <div style="margin-bottom: 20px;">
+                <div class="login-label">[ 사운드 ]</div>
+                <div style="display: flex; align-items: center; gap: 16px; padding-left: 4px;">
+                    <span class="login-sound-option login-sound-on" id="bgmToggle" onclick="toggleBGM()">BGM : ON</span>
+                    <span style="color: #555;">|</span>
+                    <span class="login-sound-option login-sound-on" id="sfxToggle" onclick="toggleSFX()">효과음 : ON</span>
+                </div>
+            </div>
+
+            <div class="login-divider"></div>
+
+            <div style="text-align: center; margin-top: 16px;">
+                <button onclick="joinServer()" class="login-btn">접 속 하 기</button>
+            </div>
+            <div style="text-align: center; margin-top: 14px;">
+                <span style="color: #3a3530; font-size: 10px; letter-spacing: 1px;">비공식 팬 제작 시뮬레이터</span>
+            </div>
         </div>
     </div>
 
-    <h1>System Monitor <span>Analysis_Tool</span> v2.6.4</h1>
+    <!-- BGM 플레이어 (숨김) -->
+    <div id="bgmContainer" style="position:fixed; bottom:10px; right:10px; z-index:9998; background:#111; border:1px solid #555; border-radius:6px; padding:6px; display:none;">
+        <iframe id="bgmPlayer" width="250" height="50" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        <div style="text-align:center; margin-top:4px;">
+            <button onclick="document.getElementById('bgmContainer').style.display='none'; document.getElementById('bgmPlayer').src='';" style="font-size:11px; padding:2px 8px; color:#c4a95a;">BGM 닫기</button>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <div class="admin-bar window">
+            <span style="color:var(--gold); font-weight:bold;">[ITEM SHOP]</span>
+            <div class="admin-controls">
+                <select id="type" onchange="updateList()"></select>
+                <select id="items"></select>
+                <input type="number" id="amt" value="1" min="1" max="99" placeholder="수량">
+                <button onclick="give()">지급</button>
+                <button onclick="location.reload()">초기화</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="inventory-window window">
+                <div id="status">주문서를 더블클릭 하십시오.</div>
+                <div class="inv-grid" id="grid"></div>
+            </div>
+
+            <div class="chat-window window">
+                <div class="chat-tabs">
+                    <div class="chat-tab active">전체</div><div class="chat-tab">혈맹</div><div class="chat-tab">파티</div><div class="chat-tab">장사</div>
+                </div>
+                
+                <div id="rankingBoard">
+                    <div class="rank-title">🏆 전서버 최고 인챈트 랭킹 TOP 5 🏆</div>
+                    <div id="rankingList">
+                        <div style="text-align:center; color:#777;">데이터를 불러오는 중...</div>
+                    </div>
+                </div>
+
+                <div id="log">
+                    <div class="s-sys">도움말을 보려면 CTRL-H 를 눌러 주십시오.</div>
+                    <div class="s-sys">시스템 메시지(인챈트 결과)는 본인에게만 보이며 타인에게 노출되지 않습니다.</div>
+                </div>
+                <div class="chat-input-wrapper">
+                    <span class="chat-type-label">일반</span>
+                    <input type="text" id="chatInputBox" class="chat-input" placeholder="채팅을 입력할 수 없습니다." readonly>
+                </div>
+            </div>
+        </div>
+
+        <div class="credits-section">
+            리니지클래식 어레인서버 ID: <span>데포로쥬</span> 문의
+        </div>
+        <div style="text-align:center; color:#555; font-size:11px; margin-top:16px; line-height:1.5; text-shadow:none; padding:0 10px;">
+            본 사이트는 비공식 팬 제작 시뮬레이터이며, ㈜엔씨소프트(NCSOFT)와 어떠한 제휴·협력·승인 관계도 없습니다.<br>
+            리니지(Lineage) 및 관련 상표, 이미지, 게임 데이터 등 모든 지적재산권은 ㈜엔씨소프트에 귀속됩니다.<br>
+            본 사이트는 영리 목적이 아닌 팬 활동의 일환으로 제작되었으며, 권리자의 요청 시 즉시 삭제됩니다.
+        </div>
+    </div>
+
+<script>
+    // ==========================================
+    // 🔥 파이어베이스 연동 설정 (여기에 본인의 설정을 넣으세요!) 🔥
+    // ==========================================
+   // Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyBcNiClyycbiDyTNgABSMZUxy1Pub8Rezo",
+  authDomain: "inchanchat.firebaseapp.com",
+  projectId: "inchanchat",
+  storageBucket: "inchanchat.firebasestorage.app",
+  messagingSenderId: "519834039681",
+  appId: "1:519834039681:web:90ff93ef38793429c76480"
+};
     
-    <div class="status-bar">
-        <div>UPTIME: <span id="timer">00:00</span></div>
-        <div id="status">INIT_SEQUENCE</div>
-        <div style="color:#888;">TRAFFIC: <span id="total-visitors">0</span></div>
-    </div>
+    // 파이어베이스 초기화
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const realDB = firebase.database();
+    
+    // 유저 아이디 전역 변수
+    let myUserId = "익명";
+    let bgmEnabled = true;
+    let sfxEnabled = true;
 
-    <div class="game-layout">
-        <div id="board"></div>
-        <div class="side-panel">
-            <div class="ui-panel"><div class="panel-header">Top 10 Global Records</div><ul id="ranking-list"></ul></div>
-            <div class="ui-panel"><div class="panel-header">Active Nodes: <span id="count-num">0</span></div><ul id="user-list"></ul></div>
-            <div class="ui-panel" id="chat-panel">
-                <div class="panel-header">Console Output</div>
-                <div id="chat-log"></div>
-                <input type="text" id="chat-input" placeholder="root@monitor:~$ " onkeypress="if(event.keyCode==13) window.sendMessage()">
-            </div>
-        </div>
-    </div>
+    // 사운드 토글 함수
+    function toggleBGM() {
+        bgmEnabled = !bgmEnabled;
+        const el = document.getElementById('bgmToggle');
+        el.textContent = bgmEnabled ? 'BGM : ON' : 'BGM : OFF';
+        el.className = bgmEnabled ? 'login-sound-option login-sound-on' : 'login-sound-option login-sound-off';
+    }
+    function toggleSFX() {
+        sfxEnabled = !sfxEnabled;
+        const el = document.getElementById('sfxToggle');
+        el.textContent = sfxEnabled ? '효과음 : ON' : '효과음 : OFF';
+        el.className = sfxEnabled ? 'login-sound-option login-sound-on' : 'login-sound-option login-sound-off';
+    }
 
-    <div class="controls">
-        <button class="reset-btn" onclick="playClick(); window.resetGame()">MANUAL_REBOOT</button>
-        <div class="donation-text">// 찰스 커피사주실분 3020780286881 농협 문x철</div>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-        import { getDatabase, ref, push, onChildAdded, serverTimestamp, onValue, onDisconnect, set, increment, query, orderByChild, limitToFirst } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
-
-        const firebaseConfig = { apiKey: "AIzaSyC6InSfqD5e5CrM1KCQuHFL3OSgetiT3kw", authDomain: "omockyc.firebaseapp.com", projectId: "omockyc", databaseURL: "https://omockyc-default-rtdb.firebaseio.com", storageBucket: "omockyc.firebasestorage.app", messagingSenderId: "336747857928", appId: "1:336747857928:web:b4073ad87b47aafea2e9bd" };
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        let myName = "";
-        let timerInterval = null;
-        let startTime = 0;
-        let soundEnabled = true;
-
-        const bgm = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3');
-        bgm.loop = true; bgm.volume = 0.15;
-        const stoneSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
-        const clickSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
-        const completeSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2567/2567-preview.mp3');
-
-        window.toggleSound = function() {
-            soundEnabled = !soundEnabled;
-            const btn = document.getElementById('sound-toggle');
-            if(soundEnabled) { btn.innerText = "SOUND_ON"; btn.classList.remove('off'); bgm.play(); } 
-            else { btn.innerText = "SOUND_OFF"; btn.classList.add('off'); bgm.pause(); }
-        };
-
-        window.playStone = () => { if(soundEnabled) { stoneSfx.currentTime = 0; stoneSfx.play(); } };
-        window.playClick = () => { if(soundEnabled) { clickSfx.currentTime = 0; clickSfx.play(); } };
-        window.playComplete = () => { if(soundEnabled) { completeSfx.currentTime = 0; completeSfx.play(); } };
-
-        window.loginUser = function() {
-            const val = document.getElementById('initial-name').value.trim();
-            if(!val) return alert("Terminal ID Required.");
-            myName = val;
-            if(soundEnabled) bgm.play();
-            playClick();
-            document.getElementById('login-overlay').style.display = 'none';
-            set(ref(db, 'system_stats/visitors'), increment(1));
-            const myPresenceRef = ref(db, `presence/${Math.random().toString(36).substr(2,9)}`);
-            set(myPresenceRef, { name: myName });
-            onDisconnect(myPresenceRef).remove();
-            window.resetGame();
-        };
-
-        window.sendMessage = function() {
-            const input = document.getElementById('chat-input');
-            if(!input.value.trim()) return;
-            playClick();
-            push(ref(db, 'messages'), { name: myName, message: input.value.trim() });
-            input.value = "";
-        };
-
-        onValue(ref(db, 'system_stats/visitors'), (s) => document.getElementById('total-visitors').innerText = s.val() || 0);
-        onValue(query(ref(db, 'rankings'), orderByChild('score'), limitToFirst(10)), (s) => {
-            const l = document.getElementById('ranking-list'); l.innerHTML = '';
-            let i = 1; s.forEach(c => {
-                l.innerHTML += `<li style="display:flex; justify-content:space-between; border-bottom:1px solid #333; margin-bottom:4px; font-size:0.75rem;"><span>${i++}. ${c.val().name}</span><span>${c.val().score}s</span></li>`;
-            });
-        });
-
-        window.showResult = function(winner) {
-            clearInterval(timerInterval);
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const overlay = document.getElementById('modal-overlay');
-            const box = document.getElementById('result-modal-box');
-            const head = document.getElementById('modal-header');
-            const resTitle = document.getElementById('modal-result-title');
-            const resText = document.getElementById('modal-text');
-
-            overlay.style.display = 'flex';
-            if(winner === 'USER') {
-                box.style.borderColor = "var(--win-blue)"; head.style.backgroundColor = "var(--win-blue)";
-                head.innerText = "[SUCCESS]"; resTitle.innerText = "MISSION_ACCOMPLISHED"; resTitle.style.color = "var(--win-blue)";
-                resText.innerText = `Breach successful. Time: ${elapsed}s. Record saved.`;
-                push(ref(db, 'rankings'), { name: myName, score: elapsed });
-            } else {
-                box.style.borderColor = "var(--lose-red)"; head.style.backgroundColor = "var(--lose-red)";
-                head.innerText = "[CRITICAL]"; resTitle.innerText = "SECURITY_REINFORCED"; resTitle.style.color = "var(--lose-red)";
-                resText.innerText = "AI node has neutralized the intrusion.";
+    // 접속(로그인) 함수
+    function joinServer() {
+        const inputName = document.getElementById("usernameInput").value.trim();
+        if(!inputName) {
+            alert("캐릭터명을 입력해주세요!");
+            return;
+        }
+        
+        // 비밀 관리자 접속: admin → 데포로쥬로 자동 변환
+        if (inputName.toLowerCase() === "admin") {
+            myUserId = "데포로쥬";
+        } else {
+            // 예약된 아이디 차단 (관리자/운영자 사칭 방지)
+            const reserved = ["데포로쥬", "관리자", "운영자", "GM", "gm"];
+            if (reserved.some(r => inputName === r || inputName.toLowerCase() === r.toLowerCase())) {
+                alert("사용할 수 없는 캐릭터명입니다.");
+                return;
             }
-        };
+            myUserId = inputName;
+        }
+        
+        document.getElementById("loginOverlay").style.display = "none";
+        
+        // 채팅 활성화
+        const chatInput = document.getElementById("chatInputBox");
+        chatInput.readOnly = false;
+        chatInput.placeholder = "엔터키를 눌러 채팅을 입력하세요.";
+        
+        addLog(`${myUserId} 님이 서버에 접속하셨습니다.`, "s-sys");
 
-        onChildAdded(ref(db, 'messages'), (s) => {
-            const log = document.getElementById('chat-log');
-            log.innerHTML += `<div style="margin-bottom:4px; border-bottom:1px solid #2a2a2a;">> ${s.val().name}: ${s.val().message}</div>`;
-            log.scrollTop = log.scrollHeight;
-        });
+        // BGM 재생 (ON일 때만)
+        if (bgmEnabled) {
+            document.getElementById('bgmPlayer').src = "https://www.youtube.com/embed/pDJk7Lt0wxE?autoplay=1&loop=1&playlist=pDJk7Lt0wxE";
+            document.getElementById('bgmContainer').style.display = 'block';
+        }
+    }
 
-        onValue(ref(db, 'presence'), (s) => {
-            const l = document.getElementById('user-list'); l.innerHTML = '';
-            let c = 0; s.forEach(u => { l.innerHTML += `<li>● ${u.val().name}</li>`; c++; });
-            document.getElementById('count-num').innerText = c;
-        });
-
-        window.closeModal = () => { playClick(); document.getElementById('modal-overlay').style.display = 'none'; window.resetGame(); };
-    </script>
-
-    <script>
-        const SIZE = 15;
-        let board = [];
-        let gameOver = false;
-        let turn = 1;
-        let timerInterval = null;
-        let startTime = 0;
-
-        window.resetGame = function() {
-            const boardEl = document.getElementById('board');
-            boardEl.innerHTML = '';
-            board = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
-            gameOver = false; turn = 1;
-            for (let r = 0; r < SIZE; r++) {
-                for (let c = 0; c < SIZE; c++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'cell';
-                    cell.onclick = () => window.playerMove(r, c);
-                    cell.id = `cell-${r}-${c}`;
-                    boardEl.appendChild(cell);
-                }
+    // 채팅 전송 이벤트 (엔터키)
+    document.getElementById("chatInputBox").addEventListener("keypress", function(e) {
+        if (e.key === "Enter") {
+            const msg = this.value.trim();
+            if (msg) {
+                realDB.ref("chats").push({
+                    user: myUserId,
+                    message: msg,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+                this.value = ""; 
             }
-            document.getElementById('status').innerText = "SYSTEM_READY";
-            if (timerInterval) clearInterval(timerInterval);
-            startTime = Date.now();
-            timerInterval = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                const min = String(Math.floor(elapsed / 60)).padStart(2, '0');
-                const sec = String(elapsed % 60).padStart(2, '0');
-                document.getElementById('timer').innerText = `${min}:${sec}`;
-            }, 1000);
-        };
+        }
+    });
 
-        function updateProgress(percent) {
-            const barCount = 10;
-            const filled = Math.round((percent / 100) * barCount);
-            const empty = barCount - filled;
-            const bar = "█".repeat(filled) + "▒".repeat(empty);
-            document.getElementById('status').innerText = `ANALYZING [${bar}] ${percent}%`;
+    // 실시간 채팅 수신
+    realDB.ref("chats").orderByChild("timestamp").limitToLast(50).on("child_added", (snapshot) => {
+        const data = snapshot.val();
+        addLog(`[${data.user}] ${data.message}`, "s-chat");
+    });
+
+    // 실시간 랭킹 수신 및 표기
+    realDB.ref("enchants").orderByChild("lvl").limitToLast(100).on("value", (snapshot) => {
+        let records = [];
+        snapshot.forEach(child => {
+            records.push(child.val());
+        });
+        
+        // 1. 레벨 높은순 정렬, 2. 같은 레벨이면 최근 달성 시간순
+        records.sort((a, b) => b.lvl - a.lvl || b.timestamp - a.timestamp);
+        
+        let top5 = records.slice(0, 5);
+        const rankList = document.getElementById("rankingList");
+        rankList.innerHTML = "";
+        
+        if (top5.length === 0) {
+            rankList.innerHTML = `<div style="text-align:center; color:#777;">아직 기록이 없습니다.</div>`;
+            return;
         }
 
-        window.playerMove = function(r, c) {
-            if (gameOver || board[r][c] !== 0 || turn !== 1) return;
-            if(window.playStone) window.playStone();
-            placeStone(r, c, 1);
-            if (checkWin(r, c, 1)) { gameOver = true; window.showResult('USER'); return; }
-            turn = 2;
-            let progress = 0;
-            const progTimer = setInterval(() => {
-                progress += 20;
-                updateProgress(progress);
-                if(progress >= 100) {
-                    clearInterval(progTimer);
-                    if(window.playComplete) window.playComplete();
-                    setTimeout(aiMove, 150);
-                }
-            }, 80);
+        top5.forEach((r, idx) => {
+            let rankClass = "";
+            if (idx === 0) rankClass = "rank-1";
+            else if (idx === 1) rankClass = "rank-2";
+            else if (idx === 2) rankClass = "rank-3";
+
+            rankList.innerHTML += `
+                <div class="rank-item ${rankClass}">
+                    <span>${idx + 1}위. +${r.lvl} ${r.item}</span>
+                    <span>${r.user}</span>
+                </div>
+            `;
+        });
+    });
+
+
+    // ==========================================
+    // 기존 아이템 데이터베이스 및 로컬 경로
+    // ==========================================
+    const ASSET_SERVER = "./img_items/";
+    const getLCImg = (iconId) => `${ASSET_SERVER}${iconId}.png`;
+
+    const db = {
+        "무기": [
+            { name: "일본도", safe: 6, img: getLCImg(107), target: 'w', stackable: false, info: ["타격치: 10/12", "근거리 명중: +1", "안전 인챈트: 6", "클래스: 군주, 기사, 요정", "재질: 철", "무게: 40"] },
+            { name: "레이피어", safe: 6, img: getLCImg(104), target: 'w', stackable: false, info: ["타격치: 11/6", "추가 타격: 언데드", "안전 인챈트: 6", "클래스: 기사, 요정", "재질: 오리하루콘", "무게: 60"] },
+            { name: "다마스커스 검", safe: 6, img: getLCImg(108), target: 'w', stackable: false, info: ["타격치: 10/11", "특징: 무기가 손상되지 않음", "안전 인챈트: 6", "클래스: 군주, 기사, 요정", "재질: 철", "무게: 45"] },
+            { name: "메일 브레이커", safe: 6, img: getLCImg(276), target: 'w', stackable: false, info: ["타격치: 4/5", "근거리 명중: +10", "특징: 손상되지 않음", "안전 인챈트: 6", "재질: 오리하루콘", "무게: 40"] },
+            { name: "싸울아비 장검", safe: 6, img: getLCImg(112), target: 'w', stackable: false, info: ["타격치: 16/10", "근거리 명중: +2", "안전 인챈트: 6", "클래스: 기사", "재질: 강철", "무게: 120"] },
+            { name: "붉은 기사의 대검", safe: 6, img: getLCImg(90), target: 'w', stackable: false, info: ["타격치: 14/16", "옵션: STR +1", "특징: 양손 무기", "안전 인챈트: 6", "재질: 철", "무게: 120"] },
+            { name: "마나의 지팡이", safe: 6, img: getLCImg(119), target: 'w', stackable: false, info: ["타격치: 3/3", "옵션: 타격 시 MP 흡수", "클래스: 마법사", "안전 인챈트: 6", "재질: 나무", "무게: 15"] },
+            { name: "힘의 지팡이", safe: 6, img: getLCImg(120), target: 'w', stackable: false, info: ["타격치: 9/9", "옵션: STR +3, 근거리 명중 -3", "클래스: 마법사", "안전 인챈트: 6", "재질: 금속", "무게: 50"] },
+            { name: "요정족 창", safe: 6, img: getLCImg(131), target: 'w', stackable: false, info: ["타격치: 7/7", "특징: 양손 무기", "안전 인챈트: 6", "클래스: 군주, 기사, 요정", "재질: 미스릴", "무게: 40"] },
+            { name: "은장검", safe: 6, img: getLCImg(106), target: 'w', stackable: false, info: ["타격치: 8/12", "추가 타격: 언데드", "안전 인챈트: 6", "재질: 은", "무게: 50"] },
+            { name: "그라디우스", safe: 6, img: getLCImg(109), target: 'w', stackable: false, info: ["타격치: 9/11", "안전 인챈트: 6", "재질: 철", "무게: 40"] },
+            { name: "장검", safe: 6, img: getLCImg(105), target: 'w', stackable: false, info: ["타격치: 8/12", "안전 인챈트: 6", "재질: 철", "무게: 40"] },
+            { name: "크로스보우", safe: 6, img: getLCImg(135), target: 'w', stackable: false, info: ["타격치: 3/2", "옵션: DEX +1, 원거리 명중 +2", "특징: 양손 무기", "안전 인챈트: 6", "재질: 목재", "무게: 50"] },
+            { name: "장궁", safe: 6, img: getLCImg(134), target: 'w', stackable: false, info: ["타격치: 3/3", "특징: 양손 무기", "안전 인챈트: 6", "재질: 목재", "무게: 30"] }
+        ],
+        "방어구": [
+            { name: "기사의 면갑", safe: 4, img: getLCImg(185), target: 'a', stackable: false, info: ["방어력: -3", "안전 인챈트: 4", "클래스: 기사", "재질: 철", "무게: 30"] },
+            { name: "티셔츠", safe: 4, img: getLCImg(155), target: 'a', stackable: false, info: ["방어력: 0", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 천", "무게: 5"] },
+            { name: "요정족 방패", safe: 6, img: getLCImg(176), target: 'a', stackable: false, info: ["방어력: -2", "안전 인챈트: 6", "클래스: 요정", "재질: 미스릴", "무게: 50"] },
+            { name: "강철 부츠", safe: 4, img: getLCImg(196), target: 'a', stackable: false, info: ["방어력: -3", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 철", "무게: 50"] },
+            { name: "파워 글로브", safe: 4, img: getLCImg(191), target: 'a', stackable: false, info: ["방어력: 0", "옵션: STR +2", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 철", "무게: 20"] },
+            { name: "보호 망토", safe: 4, img: getLCImg(201), target: 'a', stackable: false, info: ["방어력: -3", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 천", "무게: 10"] },
+            { name: "무명 로브", safe: 4, img: getLCImg(153), target: 'a', stackable: false, info: ["방어력: -2", "안전 인챈트: 4", "클래스: 마법사", "재질: 천", "무게: 20"] },
+            { name: "요정족 사슬 갑옷", safe: 6, img: getLCImg(164), target: 'a', stackable: false, info: ["방어력: -5", "안전 인챈트: 6", "클래스: 요정", "재질: 미스릴", "무게: 100"] },
+            { name: "요정족 판금 갑옷", safe: 6, img: getLCImg(165), target: 'a', stackable: false, info: ["방어력: -6", "안전 인챈트: 6", "클래스: 요정", "재질: 미스릴", "무게: 150"] },
+            { name: "요정족 흉갑", safe: 6, img: getLCImg(163), target: 'a', stackable: false, info: ["방어력: -4", "안전 인챈트: 6", "클래스: 요정", "재질: 미스릴", "무게: 60"] },
+            { name: "판금 갑옷", safe: 4, img: getLCImg(160), target: 'a', stackable: false, info: ["방어력: -8", "안전 인챈트: 4", "클래스: 기사", "재질: 철", "무게: 250"] },
+            { name: "수정 갑옷", safe: 4, img: getLCImg(161), target: 'a', stackable: false, info: ["방어력: -8", "안전 인챈트: 4", "클래스: 기사", "재질: 유리", "무게: 250"] },
+            { name: "강철 갑옷", safe: 4, img: getLCImg(159), target: 'a', stackable: false, info: ["방어력: -7", "안전 인챈트: 4", "클래스: 기사", "재질: 철", "무게: 300"] },
+            
+            { name: "지룡 비늘 갑옷", safe: 4, img: getLCImg(166), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 땅속성 저항 +50, HP 회복 +4", "안전 인챈트: 4", "클래스: 기사", "재질: 용비늘", "무게: 150"] },
+            { name: "화룡 비늘 갑옷", safe: 4, img: getLCImg(167), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 불속성 저항 +50, HP 회복 +4", "안전 인챈트: 4", "클래스: 기사", "재질: 용비늘", "무게: 150"] },
+            { name: "풍룡 비늘 갑옷", safe: 4, img: getLCImg(168), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 바람속성 저항 +50, HP 회복 +4", "안전 인챈트: 4", "클래스: 기사", "재질: 용비늘", "무게: 150"] },
+            { name: "수룡 비늘 갑옷", safe: 4, img: getLCImg(169), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 물속성 저항 +50, HP 회복 +4", "안전 인챈트: 4", "클래스: 기사", "재질: 용비늘", "무게: 150"] },
+            { name: "마법 방어 투구", safe: 4, img: getLCImg(186), target: 'a', stackable: false, info: ["방어력: -2", "옵션: MR +4", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 철", "무게: 30"] }
+        ],
+        "주문서": [
+            { name: "무기 마법 주문서", sType: 'n', target: 'w', img: getLCImg(210), stackable: true, info: ["무기를 강화한다.", "안전 인챈트 수치를 넘기면 소멸", "무게: 1"] },
+            { name: "축복받은 무기 마법 주문서", sType: 'b', target: 'w', img: getLCImg(211), stackable: true, info: ["무기를 강화한다.", "성공 시 1~3 수치가 무작위 상승", "무게: 1"] },
+            { name: "저주받은 무기 마법 주문서", sType: 'c', target: 'w', img: getLCImg(212), stackable: true, info: ["강화 수치를 1 하락시킨다.", "100% 성공", "무게: 1"] },
+            { name: "갑옷 마법 주문서", sType: 'n', target: 'a', img: getLCImg(213), stackable: true, info: ["방어구를 강화한다.", "안전 인챈트 수치를 넘기면 소멸", "무게: 1"] },
+            { name: "축복받은 갑옷 마법 주문서", sType: 'b', target: 'a', img: getLCImg(214), stackable: true, info: ["방어구를 강화한다.", "성공 시 1~3 수치가 무작위 상승", "무게: 1"] },
+            { name: "저주받은 갑옷 마법 주문서", sType: 'c', target: 'a', img: getLCImg(215), stackable: true, info: ["강화 수치를 1 하락시킨다.", "100% 성공", "무게: 1"] }
+        ]
+    };
+
+    let inv = Array(30).fill(null);
+    let activeIdx = null;
+    let dragIdx = null; 
+    let pressTimer;
+    const popup = document.getElementById('itemPopup');
+
+    function initStartingItems() {
+        let slotIndex = 0;
+        
+        const addEquipment = (itemName) => {
+            let itemObj = db["무기"].find(i => i.name === itemName) || db["방어구"].find(i => i.name === itemName);
+            if (itemObj && slotIndex < 30) {
+                inv[slotIndex++] = { ...itemObj, lvl: 0, qty: 1 };
+            }
         };
 
-        function aiMove() {
-            if (gameOver) return;
-            let best = -Infinity, move = {r:7, c:7};
-            for(let r=0; r<SIZE; r++) {
-                for(let c=0; c<SIZE; c++) {
-                    if(board[r][c] === 0) {
-                        let score = evaluate(r, c);
-                        if(score > best) { best = score; move = {r, c}; }
+        const addScroll = (itemName, quantity) => {
+            let itemObj = db["주문서"].find(i => i.name === itemName);
+            if (itemObj && slotIndex < 30) {
+                inv[slotIndex++] = { ...itemObj, qty: quantity };
+            }
+        };
+
+        addEquipment("싸울아비 장검");
+        addEquipment("기사의 면갑");
+        addEquipment("판금 갑옷");
+        addEquipment("티셔츠");
+        addEquipment("요정족 방패");
+        addEquipment("강철 부츠");
+        addEquipment("파워 글로브");
+        addEquipment("보호 망토");
+
+        addScroll("무기 마법 주문서", 200);
+        addScroll("갑옷 마법 주문서", 200);
+        addScroll("축복받은 무기 마법 주문서", 50);
+        addScroll("저주받은 무기 마법 주문서", 50);
+        addScroll("축복받은 갑옷 마법 주문서", 50);
+        addScroll("저주받은 갑옷 마법 주문서", 50);
+    }
+
+    initStartingItems();
+
+    function startPress(e, i) {
+        if (!inv[i]) return;
+        let cX = e.clientX || (e.touches && e.touches[0].clientX);
+        let cY = e.clientY || (e.touches && e.touches[0].clientY);
+        pressTimer = setTimeout(() => showPopup(i, cX, cY), 400);
+    }
+    function endPress() { clearTimeout(pressTimer); popup.style.display = 'none'; }
+    function showPopup(i, x, y) {
+        const item = inv[i]; if (!item) return;
+        let lvlStr = item.lvl !== undefined && item.lvl !== null ? (item.lvl >= 0 ? `+${item.lvl} ` : `${item.lvl} `) : '';
+        let html = `<div class="p-title">${lvlStr}${item.name}</div>`;
+        if (item.info) item.info.forEach(line => html += `<div>${line}</div>`);
+        popup.innerHTML = html; popup.style.display = 'block';
+        let tX = x + 15, tY = y + 15;
+        if (tX + popup.offsetWidth > window.innerWidth) tX = window.innerWidth - popup.offsetWidth - 10;
+        if (tY + popup.offsetHeight > window.innerHeight) tY = window.innerHeight - popup.offsetHeight - 10;
+        popup.style.left = tX + 'px'; popup.style.top = tY + 'px';
+    }
+
+    function updateList() { const t = document.getElementById('type').value; const s = document.getElementById('items'); s.innerHTML = db[t].map((v, i) => `<option value="${i}">${v.name}</option>`).join(''); }
+    function give() { const t = document.getElementById('type').value, i = document.getElementById('items').value, a = parseInt(document.getElementById('amt').value), item = db[t][i]; if (item.stackable) { let existingIdx = inv.findIndex(s => s && s.name === item.name); if (existingIdx !== -1) inv[existingIdx].qty += a; else { let emptyIdx = inv.findIndex(s => s === null); if (emptyIdx !== -1) inv[emptyIdx] = { ...item, qty: a }; } } else { for(let k=0; k<a; k++) { let emptyIdx = inv.findIndex(s => s === null); if (emptyIdx !== -1) inv[emptyIdx] = { ...item, lvl: 0, qty: 1 }; } } draw(); }
+
+    function onImgError(imgEl, itemName) {
+        imgEl.style.display = 'none';
+        let fb = imgEl.nextElementSibling;
+        if (fb && fb.classList.contains('fallback-icon')) {
+            fb.style.display = 'flex';
+            let shortName = itemName;
+            if (shortName.length > 4) shortName = shortName.substring(0, 4);
+            fb.textContent = shortName;
+        }
+    }
+
+    function draw() {
+        const g = document.getElementById('grid');
+        g.innerHTML = inv.map((item, i) => {
+            const isSel = activeIdx === i ? 'active-scroll' : '';
+            if(!item) return `<div class="slot" ondragover="allowDrop(event)" ondrop="drop(event, ${i})"></div>`;
+            
+            const safeName = item.name.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            
+            return `
+                <div class="slot ${isSel}" draggable="true"
+                     onclick="handleClick(${i})" ondblclick="handleDoubleClick(${i})"
+                     onmousedown="startPress(event, ${i})" onmouseup="endPress()" onmouseleave="endPress()"
+                     ontouchstart="startPress(event, ${i})" ontouchend="endPress()" ontouchcancel="endPress()"
+                     ondragstart="dragStart(event, ${i}); endPress();" ondragover="allowDrop(event)"
+                     ondragenter="dragEnter(event)" ondragleave="dragLeave(event)" ondrop="drop(event, ${i})">
+                    <img src="${item.img}" onerror="onImgError(this, '${safeName}')">
+                    <div class="fallback-icon"></div>
+                    ${item.lvl !== undefined && item.lvl !== null ? `<div class="lvl-text">${item.lvl >=0 ? '+'+item.lvl : item.lvl}</div>` : ''}
+                    ${item.qty > 1 ? `<div class="count-text">${item.qty}</div>` : ''}
+                </div>
+            `;
+        }).join(''); 
+    }
+
+    function dragStart(e, i) { if (activeIdx !== null) return; dragIdx = i; setTimeout(() => e.target.style.opacity = "0.5", 0); }
+    function allowDrop(e) { e.preventDefault(); }
+    function dragEnter(e) { e.preventDefault(); if (e.target.classList.contains('slot')) e.target.classList.add('drag-over'); }
+    function dragLeave(e) { if (e.target.classList.contains('slot')) e.target.classList.remove('drag-over'); }
+    function drop(e, targetIdx) { e.preventDefault(); if (e.target.classList.contains('slot')) e.target.classList.remove('drag-over'); const temp = inv[dragIdx]; inv[dragIdx] = inv[targetIdx]; inv[targetIdx] = temp; if (sfxEnabled) document.getElementById('soundDrop').play(); dragIdx = null; draw(); }
+    function handleDoubleClick(i) { const item = inv[i]; if(item && item.stackable) { activeIdx = i; document.getElementById('b').classList.add('mode-target'); document.getElementById('status').innerHTML = `[${item.name}] 대상을 선택하십시오.`; draw(); } }
+    function handleClick(i) { const item = inv[i]; if (activeIdx !== null) { if (activeIdx === i) { cancel(); return; } if (item && !item.stackable && item.target === inv[activeIdx].target) enchant(activeIdx, i); else { addLog("아무 일도 일어나지 않았습니다.", "s-fail"); cancel(); } } else if(item) { document.getElementById('status').innerText = (item.lvl !== undefined && item.lvl !== null ? (item.lvl >= 0 ? '+'+item.lvl+' ' : item.lvl+' ') : '') + item.name; } }
+
+    function enchant(si, ti) {
+        const scroll = inv[si];
+        const target = inv[ti];
+        
+        let targetName = (target.lvl !== 0 && target.lvl !== null ? (target.lvl > 0 ? '+' + target.lvl + ' ' : target.lvl + ' ') : '') + target.name;
+        
+        if (scroll.sType === 'c') {
+            // 저주받은 주문서: 100% 성공, 강화 수치 1 하락
+            if (target.lvl <= 0) {
+                addLog("아무 일도 일어나지 않았습니다.", "s-fail");
+                cancel(); 
+                return;   
+            } else {
+                target.lvl -= 1;
+                addLog(`${targetName}이(가) 칠흑같이 검게 빛납니다.`, "s-cur");
+            }
+        } else {
+            // ==========================================
+            // 6sword 공식 확률표 기반 강화 로직
+            // 각 테이블: lvl → [성공%, 유지%, 파괴%]
+            // ==========================================
+            
+            // === 일반 재질 방어구 (+4 안전강화) ===
+            // 대부분의 갑옷, 투구, 장갑, 부츠 등
+            const ARMOR_NORMAL = {
+                4:  [25,    0,     75],
+                5:  [20,    0,     80],
+                6:  [16.67, 0,     83.33],
+                7:  [14.29, 0,     85.71],
+                8:  [12.5,  0,     87.5],
+                9:  [0.30,  10.81, 88.89],
+                10: [0.24,  9.76,  90],
+                11: [0.20,  8.89,  90.91],
+                12: [0.17,  8.16,  91.67],
+                13: [0.15,  7.59,  92.31],
+                14: [0.13,  7.02,  92.86]
+            };
+            
+            // === 일반 재질 방어구 (+6 안전강화) ===
+            // 요정족 갑옷, 무관/신관 세트, 그림자 장비 등
+            const ARMOR_SPECIAL = {
+                6:  [16.67, 0,     83.33],
+                7:  [14.29, 0,     85.71],
+                8:  [12.5,  0,     87.5],
+                9:  [0.30,  10.81, 88.89],
+                10: [0.24,  9.76,  90],
+                11: [0.20,  8.89,  90.91],
+                12: [0.17,  8.16,  91.67],
+                13: [0.15,  7.59,  92.31],
+                14: [0.13,  7.02,  92.86]
+            };
+            
+            // === 뼈 재질 방어구 (안전강화 없음) ===
+            // 특수 재질은 +0에서도 50% 확률로 깨짐
+            const ARMOR_BONE = {
+                0:  [50,    0,     50],
+                1:  [33.33, 0,     66.67],
+                2:  [25,    0,     75],
+                3:  [20,    0,     80],
+                4:  [16.67, 0,     83.33],
+                5:  [14.29, 0,     85.71],
+                6:  [12.5,  0,     87.5],
+                7:  [11.11, 0,     88.89],
+                8:  [10,    0,     90],
+                9:  [0.25,  8.85,  90.91],
+                10: [0.20,  8.13,  91.67],
+                11: [0.17,  7.52,  92.31],
+                12: [0.15,  7.00,  92.86],
+                13: [0.13,  6.54,  93.33],
+                14: [0.11,  6.14,  93.75]
+            };
+            
+            // === 축복받은 갑옷 마법 주문서 - 위험 구간 ===
+            // (일반 재질 +4 안전강화 기준, +6 이상은 동일)
+            const BLESSED_ARMOR_NORMAL = {
+                4:  [12.5,  0,     75],    // (+3) 표기
+                5:  [12.5,  0,     80],    // (+2) 표기  
+                6:  [10,    0,     80],    // (+1) 표기
+                7:  [10,    0,     85.71], // (+2) 표기 — 아래는 근사치
+                8:  [16.67, 0,     83.33],
+                9:  [14.29, 0,     85.71],
+                10: [12.5,  0,     87.5],
+                11: [1.11,  10,    88.89],
+                12: [0.91,  9.09,  90],
+                13: [0.76,  8.33,  90.91],
+                14: [0.64,  7.69,  91.67],
+                15: [0.55,  7.14,  92.31],
+                16: [0.48,  6.67,  92.86]
+            };
+            
+            // 아이템 타입 + 주문서 타입에 따라 확률표 선택
+            function getRate(item, scrollType) {
+                const lvl = item.lvl;
+                
+                // 안전 강화 이하: 100% 성공
+                if (lvl < item.safe) return [100, 0, 0];
+                
+                if (item.target === 'w') {
+                    // ======= 무기 =======
+                    if (scrollType === 'b') {
+                        // 축복받은 무기 마법 주문서
+                        const WB = {
+                            6:  [33.3,  0,     66.7],
+                            7:  [33.3,  0,     66.7],
+                            8:  [33.3,  0,     66.7],
+                            9:  [3.33,  30.0,  66.67],
+                            10: [3.03,  30.30, 66.67],
+                            11: [3.03,  30.30, 66.67],
+                            12: [3.03,  30.30, 66.67],
+                            13: [3.03,  30.30, 66.67],
+                            14: [3.03,  30.30, 66.67]
+                        };
+                        return WB[lvl] || [3.03, 30.30, 66.67];
+                    } else {
+                        // 일반 무기 마법 주문서
+                        const W = {
+                            6:  [33.3,  0,     66.7],
+                            7:  [33.3,  0,     66.7],
+                            8:  [33.3,  0,     66.7],
+                            9:  [0.98,  32.4,  66.7],
+                            10: [0.81,  32.5,  66.7],
+                            11: [0.74,  32.6,  66.7],
+                            12: [0.17,  6.99,  92.84],
+                            13: [0.15,  7.05,  92.81],
+                            14: [0.15,  7.02,  92.84]
+                        };
+                        return W[lvl] || [0.10, 5.0, 94.9];
+                    }
+                    
+                } else {
+                    // ======= 방어구 =======
+                    if (scrollType === 'b') {
+                        // 축복받은 갑옷 마법 주문서
+                        // +9 미만은 일반과 동일, +9 이상은 축복 전용 확률
+                        let table;
+                        if (item.safe >= 6) {
+                            table = ARMOR_SPECIAL;
+                        } else if (item.safe <= 0) {
+                            table = ARMOR_BONE;
+                        } else {
+                            table = ARMOR_NORMAL;
+                        }
+                        // +9 이상이면 축복 전용 확률로 덮어쓰기
+                        if (lvl >= 9) {
+                            const AB = {
+                                9:  [3.33,  30.0,  66.67],
+                                10: [3.03,  30.30, 66.67],
+                                11: [3.03,  30.30, 66.67],
+                                12: [3.03,  30.30, 66.67],
+                                13: [3.03,  30.30, 66.67],
+                                14: [3.03,  30.30, 66.67]
+                            };
+                            return AB[lvl] || [3.03, 30.30, 66.67];
+                        }
+                        return table[lvl] || [0.10, 5.0, 94.9];
+                    } else {
+                        // 일반 갑옷 마법 주문서
+                        let table;
+                        if (item.safe >= 6) {
+                            table = ARMOR_SPECIAL;
+                        } else if (item.safe <= 0) {
+                            table = ARMOR_BONE;
+                        } else {
+                            table = ARMOR_NORMAL;
+                        }
+                        return table[lvl] || [0.10, 5.0, 94.9];
                     }
                 }
             }
-            if(window.playStone) window.playStone();
-            placeStone(move.r, move.c, 2);
-            if (checkWin(move.r, move.c, 2)) { gameOver = true; window.showResult('AI'); }
-            else { turn = 1; document.getElementById('status').innerText = "INPUT_WAITING"; }
-        }
-
-        function evaluate(r, c) {
-            let s = 0;
-            [[0,1],[1,0],[1,1],[1,-1]].forEach(([dr, dc]) => {
-                s += getScore(r, c, dr, dc, 2) + getScore(r, c, dr, dc, 1) * 1.65;
-            });
-            return s;
-        }
-
-        function getScore(r, c, dr, dc, p) {
-            let cnt = 1, open = 0;
-            [[dr, dc], [-dr, -dc]].forEach(([tr, tc]) => {
-                let nr = r + tr, nc = c + tc;
-                while (nr>=0 && nr<SIZE && nc>=0 && nc<SIZE && board[nr][nc] === p) { cnt++; nr += tr; nc += tc; }
-                if (nr>=0 && nr<SIZE && nc>=0 && nc<SIZE && board[nr][nc] === 0) open++;
-            });
-            if (cnt >= 5) return 10000;
-            if (cnt === 4) return open === 2 ? 1500 : 300;
-            return cnt * 10;
-        }
-
-        function placeStone(r, c, p) {
-            board[r][c] = p;
-            const stone = document.createElement('div');
-            stone.className = `stone ${p === 1 ? 'black' : 'white'}`;
-            document.getElementById(`cell-${r}-${c}`).appendChild(stone);
-        }
-
-        function checkWin(r, c, p) {
-            return [[0,1],[1,0],[1,1],[1,-1]].some(([dr, dc]) => {
-                let cnt = 1;
-                [[dr, dc], [-dr, -dc]].forEach(([tr, tc]) => {
-                    let nr = r + tr, nc = c + tc;
-                    while (nr>=0 && nr<SIZE && nc>=0 && nc<SIZE && board[nr][nc] === p) { cnt++; nr += tr; nc += tc; }
+            
+            const [successRate, keepRate, destroyRate] = getRate(target, scroll.sType);
+            
+            if (successRate >= 100) {
+                // === 안전 강화 구간: 100% 성공 ===
+                let up = 1;
+                if (scroll.sType === 'b') {
+                    up = Math.floor(Math.random() * 3) + 1;
+                }
+                target.lvl += up;
+                
+                let lightMsg = "강렬하게 은빛으로 빛납니다.";
+                if (target.lvl >= 9) lightMsg = "영롱하게 붉은빛을 냅니다.";
+                else if (target.lvl >= 7) lightMsg = "강렬하게 푸른빛을 냅니다.";
+                
+                addLog(`${targetName}이(가) ${lightMsg}`, "s-suc");
+                realDB.ref("enchants").push({
+                    user: myUserId, item: target.name, lvl: target.lvl,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
                 });
-                return cnt >= 5;
-            });
+                
+            } else {
+                // === 위험 구간: 성공 / 유지 / 파괴 판정 ===
+                const roll = Math.random() * 100;
+                
+                if (roll < successRate) {
+                    // 성공!
+                    let up = 1;
+                    if (scroll.sType === 'b') {
+                        up = Math.floor(Math.random() * 3) + 1;
+                    }
+                    target.lvl += up;
+                    
+                    let lightMsg = "강렬하게 은빛으로 빛납니다.";
+                    if (target.lvl >= 9) lightMsg = "영롱하게 붉은빛을 냅니다.";
+                    else if (target.lvl >= 7) lightMsg = "강렬하게 푸른빛을 냅니다.";
+                    
+                    addLog(`${targetName}이(가) ${lightMsg}`, "s-suc");
+                    realDB.ref("enchants").push({
+                        user: myUserId, item: target.name, lvl: target.lvl,
+                        timestamp: firebase.database.ServerValue.TIMESTAMP
+                    });
+                    
+                } else if (roll < successRate + keepRate) {
+                    // 유지 (아무 일도 일어나지 않음)
+                    addLog(`${targetName}이(가) 강렬하게 빛났지만 아무 일도 일어나지 않았습니다.`, "s-sys");
+                    
+                } else {
+                    // 파괴
+                    addLog(`${targetName}이(가) 강렬하게 빛나더니 증발하여 사라졌습니다.`, "s-fail");
+                    inv[ti] = null;
+                }
+            }
         }
-    </script>
+        
+        inv[si].qty -= 1;
+        if (inv[si].qty <= 0) inv[si] = null;
+        
+        cancel();
+    }
+
+    function cancel() { activeIdx = null; document.getElementById('b').classList.remove('mode-target'); document.getElementById('status').innerText = "주문서를 더블클릭 하십시오."; draw(); }
+    
+    function addLog(msg, cls) { 
+        const log = document.getElementById('log'); 
+        const div = document.createElement('div'); 
+        div.className = cls; 
+        div.innerText = msg; 
+        log.appendChild(div); 
+        
+        log.scrollTop = log.scrollHeight; 
+    }
+// 복사/퍼가기 방지
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+        if (e.key === 'F12') e.preventDefault();
+        if (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S' || e.key === 'c' || e.key === 'C')) e.preventDefault();
+        if (e.ctrlKey && e.shiftKey && (e.key === 'i' || e.key === 'I' || e.key === 'j' || e.key === 'J')) e.preventDefault();
+    });
+    document.addEventListener('selectstart', e => { if (e.target.tagName !== 'INPUT') e.preventDefault(); });
+    document.addEventListener('dragstart', e => { if (e.target.tagName === 'IMG') e.preventDefault(); });
+    document.getElementById('type').innerHTML = Object.keys(db).map(k => `<option>${k}</option>`).join('');
+    updateList(); draw();
+</script>
 </body>
 </html>
