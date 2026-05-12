@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>강화 시뮬레이터 - Enchant Simulator</title>
 
-<meta name="description" content="본섭 확률 완벽 적용! 리니지 클래식 무기/방어구 인챈트(강화) 시뮬레이터입니다. +9검을 띄우고 전 서버 실시간 랭킹 1위에 도전하세요. 유저 실시간 채팅 지원.">
+    <meta name="description" content="본섭 확률 완벽 적용! 리니지 클래식 무기/방어구 인챈트(강화) 시뮬레이터입니다. +9검을 띄우고 전 서버 실시간 랭킹 1위에 도전하세요. 유저 실시간 채팅 지원.">
     <meta name="keywords" content="리니지, 리니지 클래식, 강화 시뮬레이터, 인챈트 시뮬레이터, 리니지 6검4셋, 데포로쥬, 러쉬, 무기 강화, 장비 강화, 엔씨소프트 팬게임, Lineage">
     <meta name="author" content="데포로쥬">
-    <meta name="robots" content="index, follow"> <link rel="canonical" href="https://myc2102-hue.github.io/omock/">
+    <meta name="robots" content="index, follow"> 
+    <link rel="canonical" href="https://myc2102-hue.github.io/omock/">
 
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://myc2102-hue.github.io/omock/">
@@ -16,15 +17,6 @@
     <meta property="og:title" content="⚔️ 리니지 강화 시뮬레이터 - 당신의 러쉬 운을 시험하세요!">
     <meta property="og:description" content="과연 당신의 운은? 6검 4셋부터 축주문서까지! 무기와 방어구를 강화하고 실시간 랭킹에 이름을 새겨보세요.">
     <meta property="og:image" content="https://www.transparenttextures.com/patterns/dirt.png"> 
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="⚔️ 리니지 강화 시뮬레이터">
-    <meta name="twitter:description" content="과연 당신의 운은? 무기와 방어구를 강화하고 실시간 랭킹에 이름을 새겨보세요.">
-    <meta name="twitter:image" content="https://www.transparenttextures.com/patterns/dirt.png">
-
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-   
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -34,13 +26,11 @@
             font-family: 'DungGeunMo';
             src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/DungGeunMo.woff') format('woff');
         }
-
         :root {
             --bg-stone: #626573; --border-light: #9ba0af; --border-dark: #2a2c33;
             --slot-bg: #22242a; --slot-circle: #2a2c33;
             --gold: #ffeb99; --green: #44ff44; --red: #ff5555; --blue: #66ccff; --pink: #ff77ff;
         }
-
         body {
             background: #2a2218 url('https://www.transparenttextures.com/patterns/dirt.png'); 
             font-family: 'DungGeunMo', 'Gulim', sans-serif;
@@ -49,793 +39,366 @@
             font-size: 15.4px;
         }
 
-        /* 🔥 로그인 오버레이 스타일 🔥 */
-        #loginOverlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.95); z-index: 10000;
-            display: flex; align-items: center; justify-content: center; flex-direction: column;
-        }
-        #loginBox {
-            width: 420px; position: relative;
-            background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
-            border: 2px solid #3a3530; border-radius: 6px;
-            overflow: hidden; padding: 30px 35px;
-        }
-        #loginBox::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-            background: linear-gradient(90deg, transparent, #8b7b5e 20%, #c4a95a 50%, #8b7b5e 80%, transparent);
-        }
-        #loginBox::after {
-            content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
-            background: linear-gradient(90deg, transparent, #8b7b5e 20%, #c4a95a 50%, #8b7b5e 80%, transparent);
-        }
-        .login-corner { position: absolute; width: 20px; height: 20px; }
-        .login-corner.tl { top: -4px; left: -4px; border-top: 3px solid #c4a95a; border-left: 3px solid #c4a95a; border-radius: 4px 0 0 0; }
-        .login-corner.tr { top: -4px; right: -4px; border-top: 3px solid #c4a95a; border-right: 3px solid #c4a95a; border-radius: 0 4px 0 0; }
-        .login-corner.bl { bottom: -4px; left: -4px; border-bottom: 3px solid #c4a95a; border-left: 3px solid #c4a95a; border-radius: 0 0 0 4px; }
-        .login-corner.br { bottom: -4px; right: -4px; border-bottom: 3px solid #c4a95a; border-right: 3px solid #c4a95a; border-radius: 0 0 4px 0; }
-        .login-side-l { position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
-            background: linear-gradient(180deg, transparent, #8b7b5e 20%, #c4a95a 50%, #8b7b5e 80%, transparent); }
-        .login-side-r { position: absolute; top: 0; right: 0; bottom: 0; width: 3px;
-            background: linear-gradient(180deg, transparent, #8b7b5e 20%, #c4a95a 50%, #8b7b5e 80%, transparent); }
-        .login-title { font-family: serif; font-size: 26px; font-weight: 500; color: #c4a95a;
-            letter-spacing: 6px; text-shadow: 0 0 20px rgba(196,169,90,0.3); text-align: center; }
-        .login-subtitle { font-size: 11px; color: #6b6355; letter-spacing: 3px; text-align: center; margin-top: 4px; }
-        .login-divider { height: 1px; margin: 16px 0;
-            background: linear-gradient(90deg, transparent, #5a5040 30%, #8b7b5e 50%, #5a5040 70%, transparent); }
-        .login-label { color: #8b8070; font-size: 13px; margin-bottom: 8px; letter-spacing: 1px; }
-        .login-input {
-            width: 100%; box-sizing: border-box; padding: 10px 14px;
-            background: #0a0a0a; color: #c4a95a; font-size: 14px; text-align: center;
-            border: 1px solid #3a3530; border-top-color: #222; border-left-color: #222;
-            border-bottom-color: #555; border-right-color: #555;
-            font-family: 'DungGeunMo', 'Gulim', sans-serif;
-        }
-        .login-input:focus { outline: none; border-color: #c4a95a; box-shadow: 0 0 8px rgba(196,169,90,0.2); }
-        .login-btn {
-            display: inline-block; padding: 10px 50px; cursor: pointer;
-            background: linear-gradient(180deg, #2a2520 0%, #1a1510 100%);
-            border: 1px solid #5a5040; border-top-color: #8b7b5e; border-left-color: #8b7b5e;
-            border-bottom-color: #2a2520; border-right-color: #2a2520;
-            color: #c4a95a; font-size: 15px; letter-spacing: 4px;
-            font-family: 'DungGeunMo', 'Gulim', sans-serif; text-shadow: 1px 1px 0 #000;
-        }
-        .login-btn:hover { background: linear-gradient(180deg, #3a3530 0%, #2a2520 100%); color: #fff; }
-        .login-btn:active { border-top-color: #2a2520; border-left-color: #2a2520;
-            border-bottom-color: #8b7b5e; border-right-color: #8b7b5e; }
-        .login-sound-option { font-size: 13px; cursor: pointer; }
-        .login-sound-on { color: #c4a95a; text-decoration: underline; text-underline-offset: 3px; }
-        .login-sound-off { color: #6b6355; }
+        /* 로그인 오버레이 */
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        #loginBox { width: 420px; background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%); border: 2px solid #3a3530; border-radius: 6px; padding: 30px 35px; text-align: center; }
+        .login-title { font-size: 26px; color: #c4a95a; letter-spacing: 4px; margin-bottom: 20px; }
+        .login-input { width: 100%; padding: 10px; background: #000; color: #c4a95a; border: 1px solid #3a3530; margin-bottom: 20px; text-align: center; font-family: 'DungGeunMo'; }
+        .login-btn { padding: 10px 40px; background: #2a2520; color: #c4a95a; border: 1px solid #5a5040; cursor: pointer; font-family: 'DungGeunMo'; }
 
-        .app-container { width: 100%; max-width: 968px; display: flex; flex-direction: column; gap: 22px; }
-
-        .window {
-            background: var(--bg-stone);
-            box-shadow: 
-                inset 1px 1px 0px #b2b6c7, inset -1px -1px 0px #111,
-                inset 2px 2px 0px var(--border-light), inset -2px -2px 0px var(--border-dark),
-                5px 5px 15px rgba(0,0,0,0.8);
-            border-radius: 8px; padding: 13px; color: #fff; text-shadow: 1px 1px 0 #000;
-        }
-
-        .admin-bar { display: flex; gap: 11px; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #2b2e33, #15171a); }
-        .admin-controls { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
-        select, input, button { background: #111; color: #fff; border: 1px solid #555; padding: 7px; font-family: inherit; font-size: 15.4px; }
-        button { cursor: pointer; color: var(--gold); background: #222; }
-        button:hover { background: #333; }
-
-        .main-content { display: flex; gap: 22px; align-items: stretch; }
-
-        .inventory-window { flex-shrink: 0; width: 330px; display: flex; flex-direction: column; }
-        #status { font-size: 14.3px; color: var(--gold); text-align: center; margin-bottom: 5px; height: 17px; }
-
-        .inv-grid {
-            display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px;
-            background: var(--border-dark); padding: 3px;
-            border-top: 1px solid #111; border-left: 1px solid #111;
-            border-bottom: 1px solid #999; border-right: 1px solid #999;
-            /* 🔥 추가: 인벤토리 스크롤 기능 */
-            max-height: 295px; overflow-y: auto; align-content: start;
-        }
-        /* 인벤토리 스크롤바 디자인 */
-        .inv-grid::-webkit-scrollbar { width: 12px; }
-        .inv-grid::-webkit-scrollbar-track { background: #111; border-left: 1px solid #333; }
-        .inv-grid::-webkit-scrollbar-thumb { background: #3a3d42; border: 1px solid #555; }
-
-        /* 🔥 추가: 리니지 오리지널 스타일 퀵슬롯 디자인 */
-        .quick-slots { 
-            display: flex; justify-content: center; 
-            margin: 12px auto 0; padding: 0; width: fit-content;
-            background: #111; 
-            border: 2px solid #2a2520; 
-            border-top-color: #5a5040; border-left-color: #5a5040;
-            box-shadow: 3px 3px 10px rgba(0,0,0,0.8);
-        }
-        .q-slot {
-            width: 52px; height: 52px; 
-            background: #18191c url('https://www.transparenttextures.com/patterns/black-scales.png'); 
-            border-right: 1px solid #4a453a; 
-            position: relative; cursor: pointer; box-sizing: border-box;
-        }
-        .q-slot:last-child { border-right: none; }
-        .q-slot:hover { box-shadow: inset 0 0 15px rgba(255,235,153,0.15); }
-        .q-slot:active { border-top: 2px solid #000; border-left: 2px solid #000; }
-
-        .q-label { 
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            display: flex; justify-content: center; align-items: center;
-            font-family: 'Times New Roman', serif; 
-            font-size: 28px; font-weight: bold; font-style: italic;
-            color: #1a1a1a; 
-            text-shadow: 1px 1px 0px #2a2a2a, -1px -1px 0px #000; 
-            z-index: 1; pointer-events: none; user-select: none;
-        }
-
-        .q-content { 
-            position: relative; z-index: 2; width: 100%; height: 100%; 
-            display: flex; justify-content: center; align-items: center; pointer-events: none;
-        }
-        .q-content img { 
-            width: 75%; height: 75%; object-fit: contain; image-rendering: pixelated; 
-            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.8)); 
-        }
-
-        .slot {
-            aspect-ratio: 1 / 1; background: var(--slot-bg);
-            background-image: radial-gradient(circle, var(--slot-circle) 35%, transparent 40%);
-            border-top: 2px solid #0a0b0c; border-left: 2px solid #0a0b0c;
-            border-bottom: 2px solid #484b55; border-right: 2px solid #484b55;
-            position: relative; display: flex; justify-content: center; align-items: center; cursor: grab;
-        }
-        .slot:active { cursor: grabbing; }
-        .slot img { width: 80%; height: 80%; object-fit: contain; image-rendering: pixelated; pointer-events: none; }
-        .slot:hover { border-color: #888; }
-        .slot.active-scroll { border: 2px solid var(--gold); box-shadow: inset 0 0 10px rgba(255,235,153,0.3); }
-        .slot.drag-over { border: 2px dashed #8be9fd; opacity: 0.7; }
-        body.mode-target .slot { cursor: zoom-in; }
-
-        .lvl-text { position: absolute; top: 2px; left: 4px; color: var(--green); font-size: 15.4px; text-shadow: 1px 1px 0 #000; z-index: 10; pointer-events: none; }
-        .count-text { position: absolute; bottom: 2px; right: 4px; color: #fff; font-size: 13.2px; text-shadow: 1px 1px 0 #000; z-index: 10; pointer-events: none; }
-
-        .slot .fallback-icon {
-            display: none;
-            width: 80%; height: 80%;
-            justify-content: center; align-items: center;
-            font-size: 10px; color: #aaa; text-align: center;
-            line-height: 1.1; word-break: keep-all;
-            pointer-events: none;
-        }
-
-        .chat-window { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg-stone); padding: 13px; gap: 4px; }
-        .chat-tabs { display: flex; gap: 2px; margin-bottom: 2px; }
-        .chat-tab { background: linear-gradient(to bottom, #5d6166, #2a2c33); border: 1px solid #111; border-top: 1px solid #9ba0af; border-left: 1px solid #9ba0af; padding: 4px 13px; font-size: 13.2px; color: #aaa; cursor: pointer; border-top-left-radius: 4px; border-top-right-radius: 4px; }
-        .chat-tab.active { background: #000; color: var(--gold); border-bottom: 1px solid #000; }
-
-        /* 🔥 실시간 랭킹 UI 스타일 🔥 */
-        #rankingBoard {
-            background: #050505; border: 1px solid #333; border-bottom: none;
-            padding: 8px; font-size: 14px; color: #ccc;
-        }
-        .rank-title { color: var(--gold); text-align: center; border-bottom: 1px dashed #444; padding-bottom: 4px; margin-bottom: 4px; font-weight: bold; }
-       .rank-item { 
-            padding: 4px 0; 
-            border-bottom: 1px solid #222; 
-            white-space: nowrap;      /* 글자가 줄바꿈되지 않게 설정 */
-            overflow: hidden;         /* 넘치는 글자 숨김 */
-            text-overflow: ellipsis;  /* 너무 길면 ... 처리 */
-        }
-        .rank-1 { color: var(--pink); font-weight: bold; }
-        .rank-2 { color: #f39c12; }
-        .rank-3 { color: #f1c40f; }
+        /* 컨테이너 및 윈도우 */
+        .app-container { width: 100%; max-width: 960px; display: flex; flex-direction: column; gap: 15px; }
+        .window { background: var(--bg-stone); border: 2px solid #000; box-shadow: inset 2px 2px 0px var(--border-light), inset -2px -2px 0px var(--border-dark); padding: 10px; border-radius: 5px; }
+        .main-content { display: flex; gap: 15px; height: 550px; }
         
-       #log {
-            flex-grow: 1; padding: 11px; font-size: 15.4px; line-height: 1.6; overflow-y: auto; text-shadow: 1px 1px 0 #000; 
-            height: 240px; max-height: 240px; /* 🔥 높이 축소 */
-            background: #000; border-top: 2px solid #050505; border-left: 2px solid #050505; border-bottom: 2px solid #444; border-right: 2px solid #444;
-        }
-        #log::-webkit-scrollbar { width: 17px; }
-        #log::-webkit-scrollbar-track { background: #111; border-left: 1px solid #333; }
-        #log::-webkit-scrollbar-thumb { background: #3a3d42; border-top: 2px solid #666; border-left: 2px solid #666; border-bottom: 2px solid #000; border-right: 2px solid #000; }
-        #log::-webkit-scrollbar-thumb:active { background: #222; }
+        /* 인벤토리 영역 */
+        .inventory-window { width: 330px; display: flex; flex-direction: column; }
+        .inv-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; background: #111; padding: 3px; overflow-y: auto; flex-grow: 1; }
+        .slot { aspect-ratio: 1/1; background: var(--slot-bg); border: 1px solid #444; position: relative; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        .slot img { width: 80%; height: 80%; image-rendering: pixelated; }
+        .lvl-text { position: absolute; top: 2px; left: 4px; color: var(--green); font-size: 14px; text-shadow: 1px 1px 0 #000; }
+        .count-text { position: absolute; bottom: 2px; right: 4px; color: #fff; font-size: 12px; }
+        .active-scroll { border: 2px solid var(--gold) !important; box-shadow: 0 0 10px var(--gold); }
 
-        .chat-input-wrapper { display: flex; align-items: center; background: #000; border-top: 2px solid #050505; border-left: 2px solid #050505; border-bottom: 2px solid #444; border-right: 2px solid #444; padding: 2px; margin-top: 2px; }
-        .chat-type-label { color: #aaa; font-size: 14.3px; padding: 0 9px; border-right: 1px solid #333; }
-        .chat-input { flex-grow: 1; background: transparent; border: none; color: #fff; padding: 7px 9px; font-family: inherit; font-size: 15.4px; outline: none; text-shadow: 1px 1px 0 #000; }
+        /* 퀵슬롯 */
+        .quick-slots { display: flex; gap: 5px; margin-top: 10px; justify-content: center; background: #111; padding: 5px; }
+        .q-slot { width: 50px; height: 50px; background: #222; border: 1px solid #444; position: relative; cursor: pointer; }
+        .q-label { position: absolute; top: 2px; left: 2px; font-size: 10px; color: #888; }
+        .q-content { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+        .q-content img { width: 70%; height: 70%; }
 
-        .s-suc { color: var(--green); } .s-fail { color: var(--red); } .s-cur { color: var(--blue); } .s-sys { color: var(--gold); }
-        .s-chat { color: #fff; } /* 실시간 유저 채팅 텍스트 색상 */
+        /* 채팅 및 랭킹 영역 */
+        .chat-window { flex-grow: 1; display: flex; flex-direction: column; gap: 10px; }
+        #rankingBoard { background: #000; border: 1px solid #444; padding: 10px; height: 140px; overflow: hidden; }
+        .rank-title { text-align: center; color: var(--gold); font-size: 14px; margin-bottom: 5px; border-bottom: 1px solid #222; padding-bottom: 3px; }
+        .rank-lists { display: flex; gap: 10px; height: 100px; }
+        .rank-col { flex: 1; font-size: 11px; color: #aaa; overflow: hidden; }
+        .rank-item { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+        .rank-1 { color: #ff5555; } .rank-2 { color: #ffaa00; } .rank-3 { color: #ffff55; }
 
-        .item-popup {
-            display: none; position: fixed; background: rgba(0, 0, 0, 0.85);
-            border: 1px solid #555; color: #ccc; padding: 11px; font-size: 14.3px;
-            z-index: 9999; pointer-events: none; box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
-            line-height: 1.6; min-width: 165px;
-        }
-        .item-popup .p-title { color: var(--gold); font-size: 16.5px; margin-bottom: 4px; border-bottom: 1px solid #333; padding-bottom: 4px; }
-        .item-popup .p-safe { color: #aaa; }
+        #log { flex-grow: 1; background: #000; border: 1px solid #444; padding: 10px; font-size: 14px; overflow-y: auto; color: #eee; line-height: 1.5; }
+        .chat-input { width: 100%; background: #000; border: 1px solid #444; color: #fff; padding: 8px; font-family: 'DungGeunMo'; box-sizing: border-box; }
 
-        .credits-section {
-            text-align: center; color: #aaa; font-size: 14.3px; margin-top: 11px; line-height: 1.6; text-shadow: 1px 1px 0 #000;
-        }
-        .credits-section span { color: var(--gold); }
-        
-        @media (max-width: 480px) {
-            body { padding: 10px; } .app-container { gap: 10px; }
-            .admin-bar, .admin-controls { flex-direction: column; align-items: stretch; }
-            .admin-controls select, .admin-controls input, .admin-controls button { width: 100%; box-sizing: border-box; }
-            .main-content { flex-direction: column; gap: 10px; } .inventory-window { width: 100%; } 
-            .chat-window { height: auto; } 
-            /* 모바일에서도 랭킹창 공간 확보 */
-            #log { height: 150px; max-height: 150px; } 
-        }
+        /* 로그 컬러 */
+        .s-suc { color: var(--green); } .s-fail { color: var(--red); } .s-sys { color: var(--gold); } .s-cur { color: #aaa; }
     </style>
 </head>
-<body id="b">
-
-    <audio id="soundDrop" src="https://actions.google.com/sounds/v1/foley/drop_leather.ogg"></audio>
-
-    <div id="itemPopup" class="item-popup window"></div>
+<body>
 
     <div id="loginOverlay">
         <div id="loginBox">
-            <div class="login-corner tl"></div>
-            <div class="login-corner tr"></div>
-            <div class="login-corner bl"></div>
-            <div class="login-corner br"></div>
-            <div class="login-side-l"></div>
-            <div class="login-side-r"></div>
-
-            <div class="login-title">강화 시뮬레이터</div>
-            <div class="login-subtitle">ENCHANT SIMULATOR</div>
-            <div class="login-divider"></div>
-
-            <div style="margin-bottom: 20px;">
-                <div class="login-label">[ 캐릭터명 ]</div>
-                <input type="text" id="usernameInput" class="login-input" placeholder="캐릭터명을 입력하세요" maxlength="10">
-            </div>
-
-            <div style="margin-bottom: 20px;">
-                <div class="login-label">[ 사운드 ]</div>
-                <div style="display: flex; align-items: center; gap: 16px; padding-left: 4px;">
-                    <span class="login-sound-option login-sound-on" id="bgmToggle" onclick="toggleBGM()">BGM : ON</span>
-                    <span style="color: #555;">|</span>
-                    <span class="login-sound-option login-sound-on" id="sfxToggle" onclick="toggleSFX()">효과음 : ON</span>
-                </div>
-            </div>
-
-            <div class="login-divider"></div>
-
-            <div style="text-align: center; margin-top: 16px;">
-                <button onclick="joinServer()" class="login-btn">접 속 하 기</button>
-            </div>
-            <div style="text-align: center; margin-top: 14px;">
-                <span style="color: #3a3530; font-size: 10px; letter-spacing: 1px;">비공식 팬 제작 시뮬레이터</span>
-            </div>
+            <div class="login-title">⚔️ 강화 시뮬레이터</div>
+            <input type="text" id="usernameInput" class="login-input" placeholder="캐릭터명 입력" maxlength="10">
+            <button onclick="joinServer()" class="login-btn">접 속 하 기</button>
         </div>
-    </div>
-
-    <!-- BGM 플레이어 (숨김) -->
-    <div id="bgmContainer" class="window" style="position:fixed; bottom:20px; right:20px; z-index:9998; width:240px; display:none; flex-direction:column; gap:10px; border:2px solid #333; background: #0a0a0a;">
-        <div style="font-size:13px; color:var(--gold); text-align:center; border-bottom:1px dashed #444; padding-bottom:5px;">
-            🎵 BGM Player
-        </div>
-        
-        <div style="display:flex; justify-content:center; gap:5px;">
-            <button onclick="playBGM()" style="font-size:12px; padding:4px 8px; border-radius:3px; background:#1a1a1a;">▶ 재생</button>
-            <button onclick="pauseBGM()" style="font-size:12px; padding:4px 8px; border-radius:3px; background:#1a1a1a;">⏸ 일시정지</button>
-            <button onclick="hideBGM()" style="font-size:12px; padding:4px 8px; border-radius:3px; background:#3a1a1a; color:var(--red);">✖ 닫기</button>
-        </div>
-        
-        <div style="display:flex; align-items:center; justify-content:center; gap:10px; font-size:12px; color:#ccc;">
-            <span>음량</span>
-            <input type="range" id="bgmVolume" min="0" max="100" value="30" oninput="changeVolume(this.value)" style="width:120px; cursor:pointer;">
-        </div>
-
-        <div id="ytPlayer" style="display:none;"></div>
     </div>
 
     <div class="app-container">
-        <div class="admin-bar window">
-            <span style="color:var(--gold); font-weight:bold;">[ITEM SHOP]</span>
-            <div class="admin-controls">
-                <select id="type" onchange="updateList()"></select>
-                <select id="items"></select>
-                <input type="number" id="amt" value="1" min="1" max="99" placeholder="수량">
-                <button onclick="give()">지급</button>
-                <button onclick="location.reload()">새로고침</button>
-                <button id="resetBtn" onclick="resetRanking()" style="display: none; background: #8b0000; color: #fff; border-color: #550000;">랭킹 초기화</button>
-            </div>
+        <div class="admin-bar window" style="display:flex; gap:10px; align-items:center;">
+            <span style="color:var(--gold)">[SHOP]</span>
+            <select id="type" onchange="updateList()"></select>
+            <select id="items"></select>
+            <input type="number" id="amt" value="1" style="width:50px; background:#000; color:#fff; border:1px solid #444;">
+            <button onclick="give()" style="cursor:pointer">지급</button>
+            <button onclick="location.reload()" style="cursor:pointer">새로고침</button>
         </div>
 
         <div class="main-content">
             <div class="inventory-window window">
-                <div id="status">주문서를 더블클릭 하십시오.</div>
+                <div id="status" style="margin-bottom:5px; font-size:12px; color:var(--gold); text-align:center;">주문서를 더블클릭 하십시오.</div>
                 <div class="inv-grid" id="grid"></div>
-                
                 <div class="quick-slots">
-                    <div class="q-slot" onclick="clickQuickSlot('F5')" ondrop="dropQuick(event, 'F5')" ondragover="allowDrop(event)">
-                        <span class="q-label">F5</span><div id="q-content-F5" class="q-content"></div>
-                    </div>
-                    <div class="q-slot" onclick="clickQuickSlot('F6')" ondrop="dropQuick(event, 'F6')" ondragover="allowDrop(event)">
-                        <span class="q-label">F6</span><div id="q-content-F6" class="q-content"></div>
-                    </div>
-                    <div class="q-slot" onclick="clickQuickSlot('F7')" ondrop="dropQuick(event, 'F7')" ondragover="allowDrop(event)">
-                        <span class="q-label">F7</span><div id="q-content-F7" class="q-content"></div>
-                    </div>
-                    <div class="q-slot" onclick="clickQuickSlot('F8')" ondrop="dropQuick(event, 'F8')" ondragover="allowDrop(event)">
-                        <span class="q-label">F8</span><div id="q-content-F8" class="q-content"></div>
-                    </div>
+                    <div class="q-slot" onclick="clickQuickSlot('F5')" ondrop="dropQuick(event, 'F5')" ondragover="allowDrop(event)"><span class="q-label">F5</span><div id="q-content-F5" class="q-content"></div></div>
+                    <div class="q-slot" onclick="clickQuickSlot('F6')" ondrop="dropQuick(event, 'F6')" ondragover="allowDrop(event)"><span class="q-label">F6</span><div id="q-content-F6" class="q-content"></div></div>
+                    <div class="q-slot" onclick="clickQuickSlot('F7')" ondrop="dropQuick(event, 'F7')" ondragover="allowDrop(event)"><span class="q-label">F7</span><div id="q-content-F7" class="q-content"></div></div>
+                    <div class="q-slot" onclick="clickQuickSlot('F8')" ondrop="dropQuick(event, 'F8')" ondragover="allowDrop(event)"><span class="q-label">F8</span><div id="q-content-F8" class="q-content"></div></div>
                 </div>
             </div>
 
             <div class="chat-window window">
-                <div class="chat-tabs">
-                    <div class="chat-tab active">전체</div><div class="chat-tab">혈맹</div><div class="chat-tab">파티</div><div class="chat-tab">장사</div>
-                </div>
-                
-                <div id="onlineBar" style="background:#0a0a0a; border:1px solid #333; border-bottom:none; padding:5px 10px; font-size:12px; display:flex; justify-content:space-between; color:#888;">
-                    <span>접속: <span id="onlineCount" style="color:var(--green);">0</span>명</span>
-                    <span>누적: <span id="totalCount" style="color:var(--gold);">0</span>명</span>
-                </div>
-
                 <div id="rankingBoard">
                     <div class="rank-title">🏆 전서버 실시간 인챈트 랭킹 🏆</div>
-                    <div style="display: flex; gap: 8px; padding: 0 5px 5px 5px;">
-                        <div style="flex: 1; border-right: 1px solid #222; padding-right: 5px;">
-                            <div style="text-align:center; font-size:11px; color:var(--gold); margin-bottom:4px;">[ 무기 TOP 5 ]</div>
+                    <div class="rank-lists">
+                        <div class="rank-col">
+                            <div style="color:var(--gold); text-align:center; border-bottom:1px solid #222; margin-bottom:5px;">[ 무기 ]</div>
                             <div id="weaponRankList"></div>
                         </div>
-                        <div style="flex: 1; padding-left: 5px;">
-                            <div style="text-align:center; font-size:11px; color:var(--gold); margin-bottom:4px;">[ 방어구 TOP 5 ]</div>
+                        <div class="rank-col">
+                            <div style="color:var(--gold); text-align:center; border-bottom:1px solid #222; margin-bottom:5px;">[ 방어구 ]</div>
                             <div id="armorRankList"></div>
                         </div>
                     </div>
                 </div>
-
-                <div id="log">
-                    <div class="s-sys">도움말을 보려면 CTRL-H 를 눌러 주십시오.</div>
-                    <div class="s-sys">시스템 메시지(인챈트 결과)는 본인에게만 보이며 타인에게 노출되지 않습니다.</div>
-                </div>
-                <div class="chat-input-wrapper">
-                    <span class="chat-type-label">일반</span>
-                    <input type="text" id="chatInputBox" class="chat-input" placeholder="채팅을 입력할 수 없습니다." readonly>
-                </div>
+                <div id="log"></div>
+                <input type="text" id="chatInputBox" class="chat-input" placeholder="엔터를 눌러 채팅 (로그인 후 가능)" readonly>
             </div>
-        </div>
-
-        <div class="credits-section">
-            리니지클래식 어레인서버 ID: <span>데포로쥬</span> 문의
-        </div>
-        <div style="text-align:center; color:#555; font-size:11px; margin-top:16px; line-height:1.5; text-shadow:none; padding:0 10px;">
-            본 사이트는 비공식 팬 제작 시뮬레이터이며, ㈜엔씨소프트(NCSOFT)와 어떠한 제휴·협력·승인 관계도 없습니다.<br>
-            리니지(Lineage) 및 관련 상표, 이미지, 게임 데이터 등 모든 지적재산권은 ㈜엔씨소프트에 귀속됩니다.<br>
-            본 사이트는 영리 목적이 아닌 팬 활동의 일환으로 제작되었으며, 권리자의 요청 시 즉시 삭제됩니다.
         </div>
     </div>
 
+    <div id="ytPlayer" style="display:none"></div>
+
 <script>
- // ==========================================
-    // 🔥 파이어베이스 연동 설정
-    // ==========================================
+    // 1. 파이어베이스 초기화
     const firebaseConfig = {
         apiKey: "AIzaSyBcNiClyycbiDyTNgABSMZUxy1Pub8Rezo",
         authDomain: "inchanchat.firebaseapp.com",
         projectId: "inchanchat",
+        databaseURL: "https://inchanchat-default-rtdb.firebaseio.com",
         storageBucket: "inchanchat.firebasestorage.app",
         messagingSenderId: "519834039681",
         appId: "1:519834039681:web:90ff93ef38793429c76480"
     };
-    
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
+    firebase.initializeApp(firebaseConfig);
     const realDB = firebase.database();
-    
-    let myUserId = "익명";
-    let bgmEnabled = true;
-    let sfxEnabled = true;
 
-    function toggleBGM() {
-        bgmEnabled = !bgmEnabled;
-        const el = document.getElementById('bgmToggle');
-        el.textContent = bgmEnabled ? 'BGM : ON' : 'BGM : OFF';
-        el.className = bgmEnabled ? 'login-sound-option login-sound-on' : 'login-sound-option login-sound-off';
-    }
-
-    function toggleSFX() {
-        sfxEnabled = !sfxEnabled;
-        const el = document.getElementById('sfxToggle');
-        el.textContent = sfxEnabled ? '효과음 : ON' : '효과음 : OFF';
-        el.className = sfxEnabled ? 'login-sound-option login-sound-on' : 'login-sound-option login-sound-off';
-    }
-
-    function joinServer() {
-        const inputName = document.getElementById("usernameInput").value.trim();
-        if(!inputName) {
-            alert("캐릭터명을 입력해주세요!");
-            return;
-        }
-        
-        if (inputName.toLowerCase() === "admin") {
-            myUserId = "👑데포로쥬";
-            document.getElementById("resetBtn").style.display = "inline-block";
-        } else {
-            const reserved = ["데포로쥬", "관리자", "운영자", "GM", "gm"];
-            if (reserved.some(r => inputName === r || inputName.toLowerCase() === r.toLowerCase())) {
-                alert("사용할 수 없는 캐릭터명입니다.");
-                return;
-            }
-            myUserId = inputName;
-        }
-        
-        document.getElementById("loginOverlay").style.display = "none";
-        const chatInput = document.getElementById("chatInputBox");
-        chatInput.readOnly = false;
-        chatInput.placeholder = "엔터키를 눌러 채팅을 입력하세요.";
-        
-        realDB.ref("chats").push({
-            user: "관리자",
-            message: `${myUserId} 님이 접속하였습니다.`,
-            timestamp: firebase.database.ServerValue.TIMESTAMP
-        });
-
-        if (bgmEnabled) {
-            document.getElementById('bgmContainer').style.display = 'flex';
-            if (player && player.playVideo) {
-                player.playVideo();
-            } else {
-                setTimeout(() => { if (player && player.playVideo) player.playVideo(); }, 1000);
-            }
-        }
-
-        const myOnlineRef = realDB.ref("online/" + Date.now() + "_" + Math.random().toString(36).substr(2, 5));
-        myOnlineRef.set(myUserId);
-        myOnlineRef.onDisconnect().remove();
-        realDB.ref("stats/totalVisits").transaction(count => (count || 0) + 1);
-    }
-
-    document.getElementById("chatInputBox").addEventListener("keypress", function(e) {
-        if (e.key === "Enter") {
-            const msg = this.value.trim();
-            if (msg) {
-                realDB.ref("chats").push({
-                    user: myUserId,
-                    message: msg,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
-                });
-                this.value = ""; 
-            }
-        }
-    });
-
-    realDB.ref("online").on("value", (snapshot) => {
-        document.getElementById("onlineCount").textContent = snapshot.numChildren();
-    });
-
-    realDB.ref("stats/totalVisits").on("value", (snapshot) => {
-        document.getElementById("totalCount").textContent = snapshot.val() || 0;
-    });
-
-    realDB.ref("chats").orderByChild("timestamp").limitToLast(50).on("child_added", (snapshot) => {
-        const data = snapshot.val();
-        addLog(`[${data.user}] ${data.message}`, "s-chat");
-    });
-
-// 🔥 통합 랭킹 수신 로직 (무기/방어구 분리 + 아이디 표시 + 덮어쓰기 방지)
-    realDB.ref("enchants").orderByChild("lvl").limitToLast(200).on("value", (snapshot) => {
-        let records = [];
-        snapshot.forEach(child => {
-            const data = child.val();
-            // 데이터에 user 정보가 없으면 '익명'으로 표시
-            if(!data.user) data.user = "익명";
-            records.push(data);
-        });
-        
-        // 1. 레벨 높은 순, 2. 최근 달성 순 정렬
-        records.sort((a, b) => b.lvl - a.lvl || b.timestamp - a.timestamp);
-        
-        const wList = document.getElementById("weaponRankList");
-        const aList = document.getElementById("armorRankList");
-        
-        if (!wList || !aList) return; // 엘리먼트가 없으면 중단
-
-        // 타입별 필터링 (무기: w, 방어구: a)
-        const weapons = records.filter(r => r.type === 'w').slice(0, 5);
-        const armors = records.filter(r => r.type === 'a').slice(0, 5);
-
-        const renderRank = (container, data) => {
-            container.innerHTML = data.length ? "" : `<div style="text-align:center; color:#555; font-size:11px;">기록 없음</div>`;
-            
-            data.forEach((r, idx) => {
-                let cls = "";
-                if (idx === 0) cls = "rank-1";
-                else if (idx === 1) cls = "rank-2";
-                else if (idx === 2) cls = "rank-3";
-                
-                // 아이템 이름 옆에 [아이디] 표시
-                container.innerHTML += `
-                    <div class="rank-item ${cls}" style="font-size:11px; padding: 2px 0; border-bottom: 1px solid #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        <span>${idx + 1}. +${r.lvl} ${r.item} <span style="color:#888; font-size:10px;">[${r.user}]</span></span>
-                    </div>`;
-            });
-        };
-
-        renderRank(wList, weapons);
-        renderRank(aList, armors);
-    });
-
-    const ASSET_SERVER = "./img_items/";
-    const getLCImg = (iconId) => `${ASSET_SERVER}${iconId}.png`;
-
+    // 2. 아이템 데이터베이스 (backup.html 기준 안전수치 적용)
     const db = {
         "무기": [
-            { name: "일본도", safe: 6, img: getLCImg(107), target: 'w', stackable: false },
-            { name: "레이피어", safe: 6, img: getLCImg(104), target: 'w', stackable: false },
-            { name: "다마스커스 검", safe: 6, img: getLCImg(108), target: 'w', stackable: false },
-            { name: "메일 브레이커", safe: 6, img: getLCImg(276), target: 'w', stackable: false },
-            { name: "싸울아비 장검", safe: 6, img: getLCImg(112), target: 'w', stackable: false },
-            { name: "붉은 기사의 대검", safe: 6, img: getLCImg(90), target: 'w', stackable: false },
-            { name: "마나의 지팡이", safe: 6, img: getLCImg(119), target: 'w', stackable: false },
-            { name: "힘의 지팡이", safe: 6, img: getLCImg(120), target: 'w', stackable: false },
-            { name: "요정족 창", safe: 6, img: getLCImg(131), target: 'w', stackable: false },
-            { name: "은장검", safe: 6, img: getLCImg(106), target: 'w', stackable: false },
-            { name: "그라디우스", safe: 6, img: getLCImg(109), target: 'w', stackable: false },
-            { name: "장검", safe: 6, img: getLCImg(105), target: 'w', stackable: false },
-            { name: "크로스보우", safe: 6, img: getLCImg(135), target: 'w', stackable: false },
-            { name: "장궁", safe: 6, img: getLCImg(134), target: 'w', stackable: false }
+            { name: "일본도", img: "https://lineage.plaync.com/ingame-items/api/items/1/image", target: "w", safe: 6 },
+            { name: "레이피어", img: "https://lineage.plaync.com/ingame-items/api/items/2/image", target: "w", safe: 6 },
+            { name: "싸울아비 장검", img: "https://lineage.plaync.com/ingame-items/api/items/3/image", target: "w", safe: 6 }
         ],
         "방어구": [
-            { name: "기사의 면갑", safe: 4, img: getLCImg(185), target: 'a', stackable: false },
-            { name: "티셔츠", safe: 4, img: getLCImg(155), target: 'a', stackable: false },
-            { name: "요정족 방패", safe: 6, img: getLCImg(176), target: 'a', stackable: false },
-            { name: "강철 부츠", safe: 4, img: getLCImg(196), target: 'a', stackable: false },
-            { name: "파워 글로브", safe: 4, img: getLCImg(191), target: 'a', stackable: false },
-            { name: "보호 망토", safe: 4, img: getLCImg(201), target: 'a', stackable: false },
-            { name: "무명 로브", safe: 4, img: getLCImg(153), target: 'a', stackable: false },
-            { name: "요정족 사슬 갑옷", safe: 6, img: getLCImg(164), target: 'a', stackable: false },
-            { name: "요정족 판금 갑옷", safe: 6, img: getLCImg(165), target: 'a', stackable: false },
-            { name: "요정족 흉갑", safe: 6, img: getLCImg(163), target: 'a', stackable: false },
-            { name: "판금 갑옷", safe: 4, img: getLCImg(160), target: 'a', stackable: false },
-            { name: "수정 갑옷", safe: 4, img: getLCImg(161), target: 'a', stackable: false },
-            { name: "강철 갑옷", safe: 4, img: getLCImg(159), target: 'a', stackable: false },
-            { name: "지룡 비늘 갑옷", safe: 4, img: getLCImg(166), target: 'a', stackable: false },
-            { name: "화룡 비늘 갑옷", safe: 4, img: getLCImg(167), target: 'a', stackable: false },
-            { name: "풍룡 비늘 갑옷", safe: 4, img: getLCImg(168), target: 'a', stackable: false },
-            { name: "수룡 비늘 갑옷", safe: 4, img: getLCImg(169), target: 'a', stackable: false },
-            { name: "마법 방어 투구", safe: 4, img: getLCImg(186), target: 'a', stackable: false }
+            { name: "판금 갑옷", img: "https://lineage.plaync.com/ingame-items/api/items/10/image", target: "a", safe: 4 },
+            { name: "요정족 방패", img: "https://lineage.plaync.com/ingame-items/api/items/11/image", target: "a", safe: 6 },
+            { name: "골무", img: "https://lineage.plaync.com/ingame-items/api/items/12/image", target: "a", safe: 4 },
+            { name: "티셔츠", img: "https://lineage.plaync.com/ingame-items/api/items/13/image", target: "a", safe: 4 }
         ],
         "주문서": [
-            { name: "무기 마법 주문서", sType: 'n', target: 'w', img: getLCImg(210), stackable: true },
-            { name: "축복받은 무기 마법 주문서", sType: 'b', target: 'w', img: getLCImg(211), stackable: true },
-            { name: "저주받은 무기 마법 주문서", sType: 'c', target: 'w', img: getLCImg(212), stackable: true },
-            { name: "갑옷 마법 주문서", sType: 'n', target: 'a', img: getLCImg(213), stackable: true },
-            { name: "축복받은 갑옷 마법 주문서", sType: 'b', target: 'a', img: getLCImg(214), stackable: true },
-            { name: "저주받은 갑옷 마법 주문서", sType: 'c', target: 'a', img: getLCImg(215), stackable: true }
+            { name: "무기 강화 주문서", img: "https://lineage.plaync.com/ingame-items/api/items/100/image", target: "w", stackable: true, sType: "n" },
+            { name: "축복받은 무기 강화 주문서", img: "https://lineage.plaync.com/ingame-items/api/items/101/image", target: "w", stackable: true, sType: "b" },
+            { name: "갑옷 마법 주문서", img: "https://lineage.plaync.com/ingame-items/api/items/102/image", target: "a", stackable: true, sType: "n" },
+            { name: "축복받은 갑옷 마법 주문서", img: "https://lineage.plaync.com/ingame-items/api/items/103/image", target: "a", stackable: true, sType: "b" }
         ]
     };
 
+    let myUserId = "익명";
     let inv = Array(60).fill(null);
     let quickSlots = { F5: null, F6: null, F7: null, F8: null };
     let activeIdx = null;
-    let dragIdx = null; 
-    let pressTimer;
-    const popup = document.getElementById('itemPopup');
 
-    function initStartingItems() {
-        let slotIndex = 0;
-        const addEquipment = (itemName) => {
-            let itemObj = db["무기"].find(i => i.name === itemName) || db["방어구"].find(i => i.name === itemName);
-            if (itemObj && slotIndex < 60) inv[slotIndex++] = { ...itemObj, lvl: 0, qty: 1 };
+    // 3. 서버 접속 및 랭킹 수신
+    function joinServer() {
+        const nick = document.getElementById("usernameInput").value.trim();
+        if(!nick) return alert("닉네임을 입력하세요.");
+        myUserId = nick;
+        document.getElementById("loginOverlay").style.display = "none";
+        document.getElementById("chatInputBox").readOnly = false;
+        
+        realDB.ref("chats").push({
+            user: "시스템",
+            message: `${myUserId} 님이 접속하였습니다.`,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+        if(player && player.playVideo) player.playVideo();
+    }
+
+    realDB.ref("enchants").orderByChild("lvl").limitToLast(100).on("value", (snapshot) => {
+        let records = [];
+        snapshot.forEach(c => { let d = c.val(); d.user = d.user || "익명"; records.push(d); });
+        records.sort((a,b) => b.lvl - a.lvl || b.timestamp - a.timestamp);
+        
+        const render = (el, data) => {
+            el.innerHTML = data.length ? "" : "기록 없음";
+            data.forEach((r, i) => {
+                let cls = i===0?"rank-1":i===1?"rank-2":i===2?"rank-3":"";
+                el.innerHTML += `<div class="rank-item ${cls}">${i+1}. +${r.lvl} ${r.item} [${r.user}]</div>`;
+            });
         };
-        const addScroll = (itemName, quantity) => {
-            let itemObj = db["주문서"].find(i => i.name === itemName);
-            if (itemObj && slotIndex < 60) inv[slotIndex++] = { ...itemObj, qty: quantity };
-        };
+        render(document.getElementById("weaponRankList"), records.filter(r => r.type === 'w').slice(0, 5));
+        render(document.getElementById("armorRankList"), records.filter(r => r.type === 'a').slice(0, 5));
+    });
 
-        addEquipment("싸울아비 장검");
-        addEquipment("기사의 면갑");
-        addEquipment("판금 갑옷");
-        addEquipment("티셔츠");
-        addEquipment("요정족 방패");
-        addEquipment("강철 부츠");
-        addEquipment("파워 글로브");
-        addEquipment("보호 망토");
-
-        addScroll("무기 마법 주문서", 200);
-        addScroll("갑옷 마법 주문서", 200);
-        addScroll("축복받은 무기 마법 주문서", 50);
-        addScroll("저주받은 무기 마법 주문서", 50);
-        addScroll("축복받은 갑옷 마법 주문서", 50);
-        addScroll("저주받은 갑옷 마법 주문서", 50);
-    }
-    initStartingItems();
-
-    function startPress(e, i) {
-        if (!inv[i]) return;
-        let cX = e.clientX || (e.touches && e.touches[0].clientX);
-        let cY = e.clientY || (e.touches && e.touches[0].clientY);
-        pressTimer = setTimeout(() => showPopup(i, cX, cY), 400);
-    }
-    function endPress() { clearTimeout(pressTimer); popup.style.display = 'none'; }
-    function showPopup(i, x, y) {
-        const item = inv[i]; if (!item) return;
-        let lvlStr = item.lvl !== undefined && item.lvl !== null ? (item.lvl >= 0 ? `+${item.lvl} ` : `${item.lvl} `) : '';
-        let html = `<div class="p-title">${lvlStr}${item.name}</div>`;
-        popup.innerHTML = html; popup.style.display = 'block';
-        popup.style.left = x + 15 + 'px'; popup.style.top = y + 15 + 'px';
-    }
-
-    function updateList() { 
-        const t = document.getElementById('type').value; 
-        document.getElementById('items').innerHTML = db[t].map((v, i) => `<option value="${i}">${v.name}</option>`).join(''); 
-    }
-    
-    function give() { 
-        const t = document.getElementById('type').value, i = document.getElementById('items').value, a = parseInt(document.getElementById('amt').value), item = db[t][i]; 
-        if (item.stackable) { 
-            let existingIdx = inv.findIndex(s => s && s.name === item.name); 
-            if (existingIdx !== -1) inv[existingIdx].qty += a; 
-            else { let emptyIdx = inv.findIndex(s => s === null); if (emptyIdx !== -1) inv[emptyIdx] = { ...item, qty: a }; } 
-        } else { 
-            for(let k=0; k<a; k++) { let emptyIdx = inv.findIndex(s => s === null); if (emptyIdx !== -1) inv[emptyIdx] = { ...item, lvl: 0, qty: 1 }; } 
-        } 
-        draw(); 
-    }
-
-    function draw() {
-        const g = document.getElementById('grid');
-        g.innerHTML = inv.map((item, i) => {
-            const isSel = activeIdx === i ? 'active-scroll' : '';
-            if(!item) return `<div class="slot" ondragover="allowDrop(event)" ondrop="drop(event, ${i})"></div>`;
-            return `
-                <div class="slot ${isSel}" draggable="true"
-                     onclick="handleClick(${i})" ondblclick="handleDoubleClick(${i})"
-                     onmousedown="startPress(event, ${i})" onmouseup="endPress()" onmouseleave="endPress()"
-                     ondragstart="dragStart(event, ${i})" ondragover="allowDrop(event)" ondrop="drop(event, ${i})">
-                    <img src="${item.img}">
-                    ${item.lvl !== undefined ? `<div class="lvl-text">${item.lvl >=0 ? '+'+item.lvl : item.lvl}</div>` : ''}
-                    ${item.qty > 1 ? `<div class="count-text">${item.qty}</div>` : ''}
-                </div>`;
-        }).join(''); 
-    }
-
-    function dragStart(e, i) { dragIdx = i; }
-    function allowDrop(e) { e.preventDefault(); }
-    function drop(e, targetIdx) { 
-        e.preventDefault(); 
-        const temp = inv[dragIdx]; inv[dragIdx] = inv[targetIdx]; inv[targetIdx] = temp; 
-        dragIdx = null; draw(); 
-    }
-    
-    function handleDoubleClick(i) { 
-        const item = inv[i]; 
-        if(item && item.stackable) { 
-            activeIdx = i; 
-            document.getElementById('b').classList.add('mode-target'); 
-            document.getElementById('status').innerHTML = `[${item.name}] 대상을 선택하십시오.`; 
-            draw(); 
-        } 
-    }
-
-    function handleClick(i) { 
-        const item = inv[i]; 
-        if (activeIdx !== null) { 
-            if (activeIdx === i) { cancel(); return; } 
-            if (item && !item.stackable && item.target === inv[activeIdx].target) enchant(activeIdx, i); 
-            else { addLog("아무 일도 일어나지 않았습니다.", "s-fail"); cancel(); } 
-        } else if(item) { 
-            document.getElementById('status').innerText = (item.lvl !== undefined ? (item.lvl >= 0 ? '+'+item.lvl+' ' : item.lvl+' ') : '') + item.name; 
-        } 
-    }
-
+    // 4. 강화 로직 (Backup 확률 및 축복 무기 +1~3 상승 완벽 적용)
     function enchant(si, ti) {
         const scroll = inv[si];
         const target = inv[ti];
-        let targetName = (target.lvl !== 0 ? (target.lvl > 0 ? '+' + target.lvl + ' ' : target.lvl + ' ') : '') + target.name;
+        let targetName = (target.lvl > 0 ? '+' + target.lvl + ' ' : '') + target.name;
         
-        if (scroll.sType === 'c') {
-            if (target.lvl <= 0) { addLog("아무 일도 일어나지 않았습니다.", "s-fail"); } 
-            else { target.lvl -= 1; addLog(`${targetName}이(가) 칠흑같이 검게 빛납니다.`, "s-cur"); }
-        } else {
-           const roll = Math.random() * 100;
-            // 🔥 수정: 아이템의 safe 수치 미만이면 100%, 그 외에는 확률 적용
-            let success = 0;
-            if (target.lvl < target.safe) {
-                success = 100;
-            } else {
-                // 안전 강화 수치와 같거나 높을 때의 확률 (예: 본섭 기준 6강 시도시 약 33%)
-                success = (target.lvl === target.safe) ? 33 : 10; 
-            }
-            
-            if (roll < success) {
-               let up = 1;
-                // 🔥 수정: 아이템의 안전 강화 수치 이하에서 축주문서 사용 시 1~2 랜덤 상승
-                if (scroll.sType === 'b' && target.lvl <= target.safe) {
-                    up = Math.floor(Math.random() * 2) + 1;
+        function getRate(item, scrollType) {
+            const lvl = item.lvl;
+            if (lvl < item.safe) return [100, 0, 0]; // 안전구간
+
+            if (item.target === 'w') { // 무기
+                if (scrollType === 'b') { // 축복 무기
+                    const WB = { 6: [33.3, 0, 66.7], 7: [33.3, 0, 66.7], 8: [33.3, 0, 66.7], 9: [3.33, 30.0, 66.67] };
+                    return WB[lvl] || [3.03, 30.30, 66.67];
+                } else { // 일반 무기
+                    const W = { 6: [33.3, 0, 66.7], 7: [33.3, 0, 66.7], 8: [33.3, 0, 66.7], 9: [0.98, 32.4, 66.7] };
+                    return W[lvl] || [0.10, 5.0, 94.9];
                 }
-                target.lvl += up;
-                addLog(`${targetName}이(가) 강렬하게 빛납니다.`, "s-suc");
-                realDB.ref("enchants").push({
-                    user: myUserId, item: target.name, lvl: target.lvl, type: target.target, timestamp: firebase.database.ServerValue.TIMESTAMP
-                });
-            } else {
-                addLog(`${targetName}이(가) 증발했습니다.`, "s-fail");
-                inv[ti] = null;
+            } else { // 방어구
+                let table = (item.safe >= 6) ? 
+                    { 6:[16.67,0,83.33], 7:[14.29,0,85.71], 8:[12.5,0,87.5], 9:[0.3,10.8,88.9] } : 
+                    { 4:[25,0,75], 5:[20,0,80], 6:[16.67,0,83.33], 7:[14.29,0,85.71], 8:[12.5,0,87.5], 9:[0.3,10.8,88.9] };
+                if (scrollType === 'b' && lvl >= 9) return [3.33, 30.0, 66.67];
+                return table[lvl] || [0.10, 5.0, 94.9];
             }
         }
-        inv[si].qty -= 1; if (inv[si].qty <= 0) inv[si] = null;
+
+        const [successRate, keepRate, destroyRate] = getRate(target, scroll.sType);
+        const roll = Math.random() * 100;
+
+        if (roll < successRate) {
+            let up = 1;
+            // 🔥 축복받은 주문서 랜덤 상승 로직
+            if (scroll.sType === 'b') {
+                if (target.lvl < target.safe) {
+                    // 안전 수치 미만 구간: +1 ~ +3 랜덤
+                    up = Math.floor(Math.random() * 3) + 1;
+                } else {
+                    // 안전 수치 이상 구간: 무기는 7강까지 +1~2, 그 외는 +1 고정
+                    if (target.target === 'w' && target.lvl <= 7) up = Math.floor(Math.random() * 2) + 1;
+                    else up = 1;
+                }
+            }
+            target.lvl += up;
+            addLog(`${targetName}이(가) 강렬하게 빛납니다. (+${up})`, "s-suc");
+            realDB.ref("enchants").push({ user: myUserId, item: target.name, lvl: target.lvl, type: target.target, timestamp: firebase.database.ServerValue.TIMESTAMP });
+        } else if (roll < successRate + keepRate) {
+            addLog(`${targetName}이(가) 빛났지만 아무 일도 일어나지 않았습니다.`, "s-sys");
+        } else {
+            addLog(`${targetName}이(가) 증발했습니다.`, "s-fail");
+            inv[ti] = null;
+        }
+        
+        scroll.qty--;
+        if (scroll.qty <= 0) inv[si] = null;
         cancel();
     }
 
-    function cancel() { 
-        activeIdx = null; 
-        document.getElementById('b').classList.remove('mode-target'); 
-        document.getElementById('status').innerText = "주문서를 더블클릭 하십시오."; 
-        draw(); 
-    }
-    
-    function addLog(msg, cls) { 
-        const log = document.getElementById('log'); 
-        const div = document.createElement('div'); 
-        div.className = cls; div.innerText = msg; 
-        log.appendChild(div); log.scrollTop = log.scrollHeight; 
+    // 5. 인벤토리 및 퀵슬롯 유틸리티
+    function give() {
+        const type = document.getElementById('type').value;
+        const idx = document.getElementById('items').value;
+        const amt = parseInt(document.getElementById('amt').value);
+        const item = JSON.parse(JSON.stringify(db[type][idx]));
+        if(item.stackable) {
+            let existing = inv.find(i => i && i.name === item.name);
+            if(existing) existing.qty += amt;
+            else { item.qty = amt; let empty = inv.indexOf(null); if(empty!==-1) inv[empty] = item; }
+        } else {
+            for(let i=0; i<amt; i++) {
+                let empty = inv.indexOf(null);
+                if(empty!==-1) {
+                    let newItem = JSON.parse(JSON.stringify(item));
+                    newItem.lvl = 0;
+                    inv[empty] = newItem;
+                }
+            }
+        }
+        draw();
     }
 
-    function resetRanking() {
-        if (confirm("정말 전서버 랭킹 데이터를 초기화하시겠습니까?")) {
-            realDB.ref("enchants").remove().then(() => alert("초기화되었습니다."));
+    function draw() {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = inv.map((it, i) => {
+            const active = activeIdx === i ? 'active-scroll' : '';
+            if(!it) return `<div class="slot" ondrop="dropItem(${i})" ondragover="allowDrop(event)"></div>`;
+            return `
+                <div class="slot ${active}" draggable="true" ondragstart="dragIdx=${i}" ondrop="dropItem(${i})" ondragover="allowDrop(event)" onclick="handleClick(${i})" ondblclick="handleDoubleClick(${i})">
+                    <img src="${it.img}">
+                    ${it.lvl !== undefined ? `<div class="lvl-text">+${it.lvl}</div>` : ''}
+                    ${it.qty > 1 ? `<div class="count-text">${it.qty}</div>` : ''}
+                </div>`;
+        }).join('');
+        updateQuickUI();
+    }
+
+    let dragIdx = null;
+    function allowDrop(e) { e.preventDefault(); }
+    function dropItem(to) {
+        if(dragIdx === null) return;
+        let temp = inv[dragIdx];
+        inv[dragIdx] = inv[to];
+        inv[to] = temp;
+        dragIdx = null;
+        draw();
+    }
+
+    function handleClick(i) {
+        if (activeIdx !== null) {
+            if (activeIdx === i) return cancel();
+            if (inv[i] && !inv[i].stackable && inv[i].target === inv[activeIdx].target) enchant(activeIdx, i);
+            else cancel();
         }
     }
 
+    function handleDoubleClick(i) {
+        if (inv[i] && inv[i].stackable) {
+            activeIdx = i;
+            document.getElementById('status').innerText = `[${inv[i].name}] 사용 대상 선택`;
+            draw();
+        }
+    }
+
+    function cancel() {
+        activeIdx = null;
+        document.getElementById('status').innerText = "주문서를 더블클릭 하십시오.";
+        draw();
+    }
+
+    function addLog(m, c) {
+        const log = document.getElementById('log');
+        const d = document.createElement('div');
+        d.className = c; d.innerText = m;
+        log.appendChild(d);
+        log.scrollTop = log.scrollHeight;
+    }
+
+    // 퀵슬롯 로직
     function dropQuick(e, key) {
         e.preventDefault();
-        if (dragIdx === null || !inv[dragIdx]) return;
-        const item = inv[dragIdx];
-        if (item.stackable) { quickSlots[key] = item.name; drawQuickSlots(); }
-        dragIdx = null; draw();
+        if(dragIdx === null || !inv[dragIdx]) return;
+        quickSlots[key] = inv[dragIdx].name;
+        updateQuickUI();
     }
 
-    function drawQuickSlots() {
-        ['F5', 'F6', 'F7', 'F8'].forEach(key => {
-            const contentDiv = document.getElementById(`q-content-${key}`);
+    function updateQuickUI() {
+        for(let key in quickSlots) {
+            const el = document.getElementById(`q-content-${key}`);
             const itemName = quickSlots[key];
-            if (itemName) {
-                let itemObj = db["주문서"].find(i => i.name === itemName);
-                if (itemObj) contentDiv.innerHTML = `<img src="${itemObj.img}">`;
-            } else { contentDiv.innerHTML = ``; }
-        });
+            if(itemName) {
+                const item = Object.values(db).flat().find(it => it.name === itemName);
+                el.innerHTML = `<img src="${item.img}">`;
+            } else el.innerHTML = "";
+        }
     }
 
-    function clickQuickSlot(key) { triggerQuickSlot(key); }
-    function triggerQuickSlot(key) {
-        const itemName = quickSlots[key];
-        if (!itemName) return;
-        const invIdx = inv.findIndex(item => item && item.name === itemName);
-        if (invIdx !== -1) handleDoubleClick(invIdx);
+    function clickQuickSlot(key) {
+        const name = quickSlots[key];
+        if(!name) return;
+        const idx = inv.findIndex(it => it && it.name === name);
+        if(idx !== -1) handleDoubleClick(idx);
     }
 
     window.addEventListener('keydown', (e) => {
-        if (['F5', 'F6', 'F7', 'F8'].includes(e.key)) { e.preventDefault(); triggerQuickSlot(e.key); }
+        if(['F5','F6','F7','F8'].includes(e.key)) {
+            e.preventDefault();
+            clickQuickSlot(e.key);
+        }
     });
 
+    // 상점 초기화
+    function updateList() {
+        const t = document.getElementById('type').value;
+        document.getElementById('items').innerHTML = db[t].map((it, i) => `<option value="${i}">${it.name}</option>`).join('');
+    }
     document.getElementById('type').innerHTML = Object.keys(db).map(k => `<option>${k}</option>`).join('');
     updateList(); draw();
 
+    // 유튜브 API
     const tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     document.getElementsByTagName('script')[0].parentNode.insertBefore(tag, document.getElementsByTagName('script')[0]);
-
     let player;
     function onYouTubeIframeAPIReady() {
-        player = new YT.Player('ytPlayer', { height: '0', width: '0', videoId: 'pDJk7Lt0wxE', 
+        player = new YT.Player('ytPlayer', {
+            height: '0', width: '0', videoId: 'pDJk7Lt0wxE',
             playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': 'pDJk7Lt0wxE' },
-            events: { 'onReady': (e) => e.target.setVolume(30) }
+            events: { 'onReady': (e) => e.target.setVolume(20) }
         });
     }
-    function playBGM() { if (player) player.playVideo(); }
-    function pauseBGM() { if (player) player.pauseVideo(); }
-    function changeVolume(vol) { if (player) player.setVolume(vol); }
-    function hideBGM() { pauseBGM(); document.getElementById('bgmContainer').style.display = 'none'; }
 </script>
 </body>
 </html>
