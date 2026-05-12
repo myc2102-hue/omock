@@ -170,9 +170,9 @@
     </div>
 
 <script>
-    // lcinfo.io 아이템 아이콘 이미지 서버
-    const ASSET_SERVER = "https://www.lcinfo.io/images/item_icons/";
-    const getLCImg = (iconId) => `${ASSET_SERVER}${iconId}.png`;
+  // 로컬 이미지 폴더 연동
+const ASSET_SERVER = "./img_items/";
+const getLCImg = (iconId) => `${ASSET_SERVER}${iconId}.png`;
 
     // ==========================================
     // 대규모 데이터베이스 확장
@@ -186,7 +186,6 @@
             { name: "메일 브레이커", safe: 6, img: getLCImg(276), target: 'w', stackable: false, info: ["타격치: 4/5", "근거리 명중: +10", "특징: 손상되지 않음", "안전 인챈트: 6", "재질: 오리하루콘", "무게: 40"] },
             { name: "싸울아비 장검", safe: 6, img: getLCImg(112), target: 'w', stackable: false, info: ["타격치: 16/10", "근거리 명중: +2", "안전 인챈트: 6", "클래스: 기사", "재질: 강철", "무게: 120"] },
             { name: "붉은 기사의 대검", safe: 6, img: getLCImg(90), target: 'w', stackable: false, info: ["타격치: 14/16", "옵션: STR +1", "특징: 양손 무기", "안전 인챈트: 6", "재질: 철", "무게: 120"] },
-            { name: "오리하르콘 단검", safe: 6, img: getLCImg(33), target: 'w', stackable: false, info: ["타격치: 7/7", "추가 타격: 언데드", "특징: 손상되지 않음", "안전 인챈트: 6", "재질: 오리하루콘", "무게: 45"] },
             { name: "마나의 지팡이", safe: 6, img: getLCImg(119), target: 'w', stackable: false, info: ["타격치: 3/3", "옵션: 타격 시 MP 흡수", "클래스: 마법사", "안전 인챈트: 6", "재질: 나무", "무게: 15"] },
             { name: "힘의 지팡이", safe: 6, img: getLCImg(120), target: 'w', stackable: false, info: ["타격치: 9/9", "옵션: STR +3, 근거리 명중 -3", "클래스: 마법사", "안전 인챈트: 6", "재질: 금속", "무게: 50"] },
             { name: "요정족 창", safe: 6, img: getLCImg(131), target: 'w', stackable: false, info: ["타격치: 7/7", "특징: 양손 무기", "안전 인챈트: 6", "클래스: 군주, 기사, 요정", "재질: 미스릴", "무게: 40"] },
