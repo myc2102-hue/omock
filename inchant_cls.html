@@ -245,11 +245,23 @@
     </div>
 
     <!-- BGM 플레이어 (숨김) -->
-    <div id="bgmContainer" style="position:fixed; bottom:10px; right:10px; z-index:9998; background:#111; border:1px solid #555; border-radius:6px; padding:6px; display:none;">
-        <iframe id="bgmPlayer" width="250" height="50" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-        <div style="text-align:center; margin-top:4px;">
-            <button onclick="document.getElementById('bgmContainer').style.display='none'; document.getElementById('bgmPlayer').src='';" style="font-size:11px; padding:2px 8px; color:#c4a95a;">BGM 닫기</button>
+    <div id="bgmContainer" class="window" style="position:fixed; bottom:20px; right:20px; z-index:9998; width:240px; display:none; flex-direction:column; gap:10px; border:2px solid #333; background: #0a0a0a;">
+        <div style="font-size:13px; color:var(--gold); text-align:center; border-bottom:1px dashed #444; padding-bottom:5px;">
+            🎵 BGM Player
         </div>
+        
+        <div style="display:flex; justify-content:center; gap:5px;">
+            <button onclick="playBGM()" style="font-size:12px; padding:4px 8px; border-radius:3px; background:#1a1a1a;">▶ 재생</button>
+            <button onclick="pauseBGM()" style="font-size:12px; padding:4px 8px; border-radius:3px; background:#1a1a1a;">⏸ 일시정지</button>
+            <button onclick="hideBGM()" style="font-size:12px; padding:4px 8px; border-radius:3px; background:#3a1a1a; color:var(--red);">✖ 닫기</button>
+        </div>
+        
+        <div style="display:flex; align-items:center; justify-content:center; gap:10px; font-size:12px; color:#ccc;">
+            <span>음량</span>
+            <input type="range" id="bgmVolume" min="0" max="100" value="30" oninput="changeVolume(this.value)" style="width:120px; cursor:pointer;">
+        </div>
+
+        <div id="ytPlayer" style="display:none;"></div>
     </div>
 
     <div class="app-container">
@@ -382,8 +394,14 @@ const firebaseConfig = {
 
         // BGM 재생 (ON일 때만)
         if (bgmEnabled) {
-            document.getElementById('bgmPlayer').src = "https://www.youtube.com/embed/pDJk7Lt0wxE?autoplay=1&loop=1&playlist=pDJk7Lt0wxE";
-            document.getElementById('bgmContainer').style.display = 'block';
+            document.getElementById('bgmContainer').style.display = 'flex';
+            // 유튜브 API가 준비되었는지 확인 후 재생
+            if (player && player.playVideo) {
+                player.playVideo();
+            } else {
+                // 약간 늦게 로딩될 경우를 대비한 딜레이 재생
+                setTimeout(() => { if (player && player.playVideo) player.playVideo(); }, 1000);
+            }
         }
 
         // === 실시간 접속자 추적 ===
@@ -896,6 +914,52 @@ if (roll < successRate) {
         }
     }
     updateList(); draw();
+    // ==========================================
+    // 🎵 유튜브 BGM 플레이어 스크립트 🎵
+    // ==========================================
+    // 유튜브 API 동적 로드
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    let player;
+    // API 로드가 완료되면 자동으로 실행되는 함수
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('ytPlayer', {
+            height: '0', 
+            width: '0',
+            videoId: 'pDJk7Lt0wxE', // 현재 사용중인 유튜브 영상 ID
+            playerVars: {
+                'autoplay': 0, 
+                'controls': 0, 
+                'loop': 1,
+                'playlist': 'pDJk7Lt0wxE' // 루프를 위해 동일 ID 입력
+            },
+            events: {
+                'onReady': onPlayerReady
+            }
+        });
+    }
+
+    function onPlayerReady(event) {
+        player.setVolume(30); // 기본 볼륨 30
+    }
+
+    // 플레이어 조작 함수들
+    function playBGM() {
+        if (player && player.playVideo) player.playVideo();
+    }
+    function pauseBGM() {
+        if (player && player.pauseVideo) player.pauseVideo();
+    }
+    function changeVolume(vol) {
+        if (player && player.setVolume) player.setVolume(vol);
+    }
+    function hideBGM() {
+        pauseBGM(); // 창을 닫으면 노래 일시정지
+        document.getElementById('bgmContainer').style.display = 'none';
+    }
 </script>
 </body>
 </html>
