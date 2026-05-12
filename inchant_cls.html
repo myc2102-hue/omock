@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lineage Classic - Final Real Image Edition</title>
+    <title>Lineage Classic - Massive DB Expansion</title>
     <style>
         /* 기존 CSS 100% 동일 유지 */
         @font-face {
@@ -100,16 +100,8 @@
         .item-popup .p-title { color: var(--gold); font-size: 15px; margin-bottom: 4px; border-bottom: 1px solid #333; padding-bottom: 4px; }
         .item-popup .p-safe { color: #aaa; }
 
-        /* ==========================================
-           새로 추가된 하단 크레딧 영역 스타일
-           ========================================== */
         .credits-section {
-            text-align: center;
-            color: #aaa;
-            font-size: 13px;
-            margin-top: 10px;
-            line-height: 1.6;
-            text-shadow: 1px 1px 0 #000;
+            text-align: center; color: #aaa; font-size: 13px; margin-top: 10px; line-height: 1.6; text-shadow: 1px 1px 0 #000;
         }
         .credits-section span { color: var(--gold); }
         
@@ -172,49 +164,56 @@
     const ASSET_SERVER = "https://raw.githubusercontent.com/run-to-the-future/lineage-assets/main/icon/";
     const getLCImg = (id) => `${ASSET_SERVER}${id}.png`;
 
-    // 요청하신 신규 기본 지급 아이템들을 db 배열에 추가했습니다.
+    // ==========================================
+    // 대규모 데이터베이스 확장 (인벤 DB 수동 연동 완료)
+    // ==========================================
     const db = {
         "무기": [
-            { name: "일본도", safe: 6, img: getLCImg(1), target: 'w', stackable: false, info: ["타격치: 10/12", "안전 인챈트: 6", "클래스: 기사, 요정, 군주"] },
-            { name: "레이피어", safe: 6, img: getLCImg(3), target: 'w', stackable: false, info: ["타격치: 11/6", "추가 타격: 언데드", "안전 인챈트: 6"] },
-            { name: "다마스커스 검", safe: 6, img: getLCImg(6), target: 'w', stackable: false, info: ["타격치: 10/11", "특징: 손상되지 않음", "안전 인챈트: 6"] },
-            { name: "메일 브레이커", safe: 6, img: getLCImg(15), target: 'w', stackable: false, info: ["타격치: 4/5", "명중률: +10", "특징: 손상되지 않음", "안전 인챈트: 6"] },
-            { name: "싸울아비 장검", safe: 6, img: getLCImg(4), target: 'w', stackable: false, info: ["타격치: 16/10", "안전 인챈트: 6", "클래스: 기사"] },
-            { name: "붉은 기사의 대검", safe: 6, img: getLCImg(62), target: 'w', stackable: false, info: ["타격치: 14/16", "옵션: STR +1", "특징: 양손 무기", "안전 인챈트: 6"] },
-            { name: "오리하르콘 단검", safe: 6, img: getLCImg(7), target: 'w', stackable: false, info: ["타격치: 7/7", "추가 타격: 언데드", "손상되지 않음", "안전 인챈트: 6"] },
-            { name: "마나의 지팡이", safe: 6, img: getLCImg(110), target: 'w', stackable: false, info: ["타격치: 3/3", "옵션: MP 흡수", "클래스: 마법사", "안전 인챈트: 6"] },
-            { name: "힘의 지팡이", safe: 6, img: getLCImg(111), target: 'w', stackable: false, info: ["타격치: 9/9", "옵션: STR +3", "클래스: 마법사", "안전 인챈트: 6"] },
-            { name: "요정족 창", safe: 6, img: getLCImg(80), target: 'w', stackable: false, info: ["타격치: 7/7", "특징: 양손 무기", "안전 인챈트: 6"] },
-            { name: "은장검", safe: 6, img: getLCImg(12), target: 'w', stackable: false, info: ["타격치: 8/12", "추가 타격: 언데드", "안전 인챈트: 6"] }
+            { name: "일본도", safe: 6, img: getLCImg(1), target: 'w', stackable: false, info: ["타격치: 10/12", "근거리 명중: +1", "안전 인챈트: 6", "클래스: 군주, 기사, 요정", "재질: 철", "무게: 40"] },
+            { name: "레이피어", safe: 6, img: getLCImg(3), target: 'w', stackable: false, info: ["타격치: 11/6", "추가 타격: 언데드", "안전 인챈트: 6", "클래스: 기사, 요정", "재질: 오리하루콘", "무게: 60"] },
+            { name: "다마스커스 검", safe: 6, img: getLCImg(6), target: 'w', stackable: false, info: ["타격치: 10/11", "특징: 무기가 손상되지 않음", "안전 인챈트: 6", "클래스: 군주, 기사, 요정", "재질: 철", "무게: 45"] },
+            { name: "메일 브레이커", safe: 6, img: getLCImg(15), target: 'w', stackable: false, info: ["타격치: 4/5", "근거리 명중: +10", "특징: 손상되지 않음", "안전 인챈트: 6", "재질: 오리하루콘", "무게: 40"] },
+            { name: "싸울아비 장검", safe: 6, img: getLCImg(4), target: 'w', stackable: false, info: ["타격치: 16/10", "근거리 명중: +2", "안전 인챈트: 6", "클래스: 기사", "재질: 금속", "무게: 120"] },
+            { name: "붉은 기사의 대검", safe: 6, img: getLCImg(62), target: 'w', stackable: false, info: ["타격치: 14/16", "옵션: STR +1", "특징: 양손 무기", "안전 인챈트: 6", "재질: 철", "무게: 120"] },
+            { name: "오리하르콘 단검", safe: 6, img: getLCImg(7), target: 'w', stackable: false, info: ["타격치: 7/7", "추가 타격: 언데드", "특징: 손상되지 않음", "안전 인챈트: 6", "재질: 오리하루콘", "무게: 45"] },
+            { name: "마나의 지팡이", safe: 6, img: getLCImg(110), target: 'w', stackable: false, info: ["타격치: 3/3", "옵션: 타격 시 MP 흡수", "클래스: 마법사", "안전 인챈트: 6", "재질: 나무", "무게: 15"] },
+            { name: "힘의 지팡이", safe: 6, img: getLCImg(111), target: 'w', stackable: false, info: ["타격치: 9/9", "옵션: STR +3, 근거리 명중 -3", "클래스: 마법사", "안전 인챈트: 6", "재질: 금속", "무게: 50"] },
+            { name: "요정족 창", safe: 6, img: getLCImg(80), target: 'w', stackable: false, info: ["타격치: 7/7", "특징: 양손 무기", "안전 인챈트: 6", "클래스: 군주, 기사, 요정", "재질: 미스릴", "무게: 40"] },
+            { name: "은장검", safe: 6, img: getLCImg(12), target: 'w', stackable: false, info: ["타격치: 8/12", "추가 타격: 언데드", "안전 인챈트: 6", "재질: 은", "무게: 50"] },
+            { name: "그라디우스", safe: 6, img: getLCImg(5), target: 'w', stackable: false, info: ["타격치: 9/11", "안전 인챈트: 6", "재질: 철", "무게: 40"] },
+            { name: "장검", safe: 6, img: getLCImg(2), target: 'w', stackable: false, info: ["타격치: 8/12", "안전 인챈트: 6", "재질: 철", "무게: 40"] },
+            { name: "크로스보우", safe: 6, img: getLCImg(145), target: 'w', stackable: false, info: ["타격치: 3/2", "옵션: DEX +1, 원거리 명중 +2", "특징: 양손 무기", "안전 인챈트: 6", "재질: 목재", "무게: 50"] },
+            { name: "장궁", safe: 6, img: getLCImg(138), target: 'w', stackable: false, info: ["타격치: 3/3", "특징: 양손 무기", "안전 인챈트: 6", "재질: 목재", "무게: 30"] }
         ],
         "방어구": [
-            { name: "기사의 면갑", safe: 4, img: getLCImg(65), target: 'a', stackable: false, info: ["방어력: -3", "안전 인챈트: 4", "클래스: 기사"] },
-            { name: "티셔츠", safe: 4, img: getLCImg(30), target: 'a', stackable: false, info: ["방어력: 0", "안전 인챈트: 4", "클래스: 전체"] },
-            { name: "요정족 방패", safe: 6, img: getLCImg(49), target: 'a', stackable: false, info: ["방어력: -2", "안전 인챈트: 6", "클래스: 요정"] },
-            { name: "강철 부츠", safe: 4, img: getLCImg(17), target: 'a', stackable: false, info: ["방어력: -3", "안전 인챈트: 4", "클래스: 전체"] },
-            { name: "파워 글로브", safe: 4, img: getLCImg(54), target: 'a', stackable: false, info: ["방어력: 0", "옵션: STR +2", "안전 인챈트: 4", "클래스: 전체"] },
-            { name: "보호 망토", safe: 4, img: getLCImg(114), target: 'a', stackable: false, info: ["방어력: -3", "안전 인챈트: 4", "클래스: 전체"] },
-            { name: "무명 로브", safe: 4, img: getLCImg(20), target: 'a', stackable: false, info: ["방어력: -2", "안전 인챈트: 4", "클래스: 마법사"] },
-            { name: "요정족 사슬 갑옷", safe: 6, img: getLCImg(42), target: 'a', stackable: false, info: ["방어력: -5", "안전 인챈트: 6", "클래스: 요정"] },
-            { name: "요정족 판금 갑옷", safe: 6, img: getLCImg(43), target: 'a', stackable: false, info: ["방어력: -6", "안전 인챈트: 6", "클래스: 요정"] },
-            { name: "요정족 흉갑", safe: 6, img: getLCImg(44), target: 'a', stackable: false, info: ["방어력: -4", "안전 인챈트: 6", "클래스: 요정"] },
-            { name: "판금 갑옷", safe: 4, img: getLCImg(35), target: 'a', stackable: false, info: ["방어력: -8", "안전 인챈트: 4", "클래스: 기사"] },
-            { name: "수정 갑옷", safe: 4, img: getLCImg(34), target: 'a', stackable: false, info: ["방어력: -8", "안전 인챈트: 4", "클래스: 기사"] },
-            { name: "강철 갑옷", safe: 4, img: getLCImg(33), target: 'a', stackable: false, info: ["방어력: -7", "안전 인챈트: 4", "클래스: 기사"] },
-            { name: "신관의 로브", safe: 4, img: getLCImg(25), target: 'a', stackable: false, info: ["방어력: -6", "옵션: MP 회복 +5, MR +4", "안전 인챈트: 4"] },
-            { name: "무관의 갑옷", safe: 4, img: getLCImg(36), target: 'a', stackable: false, info: ["방어력: -7", "옵션: HP 회복 +5, MR +4", "안전 인챈트: 4"] },
-            { name: "지룡 비늘 갑옷", safe: 4, img: getLCImg(37), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 땅저항 +50", "안전 인챈트: 4"] },
-            { name: "화룡 비늘 갑옷", safe: 4, img: getLCImg(38), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 불저항 +50", "안전 인챈트: 4"] },
-            { name: "풍룡 비늘 갑옷", safe: 4, img: getLCImg(39), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 바람저항 +50", "안전 인챈트: 4"] },
-            { name: "수룡 비늘 갑옷", safe: 4, img: getLCImg(40), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 물저항 +50", "안전 인챈트: 4"] }
+            { name: "기사의 면갑", safe: 4, img: getLCImg(65), target: 'a', stackable: false, info: ["방어력: -3", "안전 인챈트: 4", "클래스: 기사", "재질: 철", "무게: 30"] },
+            { name: "티셔츠", safe: 4, img: getLCImg(30), target: 'a', stackable: false, info: ["방어력: 0", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 천", "무게: 5"] },
+            { name: "요정족 방패", safe: 6, img: getLCImg(49), target: 'a', stackable: false, info: ["방어력: -2", "안전 인챈트: 6", "클래스: 요정", "재질: 미스릴", "무게: 50"] },
+            { name: "강철 부츠", safe: 4, img: getLCImg(17), target: 'a', stackable: false, info: ["방어력: -3", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 철", "무게: 50"] },
+            { name: "파워 글로브", safe: 4, img: getLCImg(54), target: 'a', stackable: false, info: ["방어력: 0", "옵션: STR +2", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 철", "무게: 20"] },
+            { name: "보호 망토", safe: 4, img: getLCImg(114), target: 'a', stackable: false, info: ["방어력: -3", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 천", "무게: 10"] },
+            { name: "무명 로브", safe: 4, img: getLCImg(20), target: 'a', stackable: false, info: ["방어력: -2", "안전 인챈트: 4", "클래스: 마법사", "재질: 천", "무게: 20"] },
+            { name: "요정족 사슬 갑옷", safe: 6, img: getLCImg(42), target: 'a', stackable: false, info: ["방어력: -5", "안전 인챈트: 6", "클래스: 요정", "재질: 미스릴", "무게: 100"] },
+            { name: "요정족 판금 갑옷", safe: 6, img: getLCImg(43), target: 'a', stackable: false, info: ["방어력: -6", "안전 인챈트: 6", "클래스: 요정", "재질: 미스릴", "무게: 150"] },
+            { name: "요정족 흉갑", safe: 6, img: getLCImg(44), target: 'a', stackable: false, info: ["방어력: -4", "안전 인챈트: 6", "클래스: 요정", "재질: 미스릴", "무게: 60"] },
+            { name: "판금 갑옷", safe: 4, img: getLCImg(35), target: 'a', stackable: false, info: ["방어력: -8", "안전 인챈트: 4", "클래스: 기사", "재질: 철", "무게: 250"] },
+            { name: "수정 갑옷", safe: 4, img: getLCImg(34), target: 'a', stackable: false, info: ["방어력: -8", "안전 인챈트: 4", "클래스: 기사", "재질: 유리", "무게: 250"] },
+            { name: "강철 갑옷", safe: 4, img: getLCImg(33), target: 'a', stackable: false, info: ["방어력: -7", "안전 인챈트: 4", "클래스: 기사", "재질: 철", "무게: 300"] },
+            { name: "신관의 로브", safe: 4, img: getLCImg(25), target: 'a', stackable: false, info: ["방어력: -6", "옵션: MP 회복 +5, MR +4", "안전 인챈트: 4", "클래스: 마법사, 요정", "재질: 천", "무게: 30"] },
+            { name: "무관의 갑옷", safe: 4, img: getLCImg(36), target: 'a', stackable: false, info: ["방어력: -7", "옵션: HP 회복 +5, MR +4", "안전 인챈트: 4", "클래스: 기사, 군주", "재질: 철", "무게: 150"] },
+            { name: "지룡 비늘 갑옷", safe: 4, img: getLCImg(37), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 땅속성 저항 +50, HP 회복 +4", "안전 인챈트: 4", "클래스: 기사", "재질: 용비늘", "무게: 150"] },
+            { name: "화룡 비늘 갑옷", safe: 4, img: getLCImg(38), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 불속성 저항 +50, HP 회복 +4", "안전 인챈트: 4", "클래스: 기사", "재질: 용비늘", "무게: 150"] },
+            { name: "풍룡 비늘 갑옷", safe: 4, img: getLCImg(39), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 바람속성 저항 +50, HP 회복 +4", "안전 인챈트: 4", "클래스: 기사", "재질: 용비늘", "무게: 150"] },
+            { name: "수룡 비늘 갑옷", safe: 4, img: getLCImg(40), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 물속성 저항 +50, HP 회복 +4", "안전 인챈트: 4", "클래스: 기사", "재질: 용비늘", "무게: 150"] },
+            { name: "마법 방어 투구", safe: 4, img: getLCImg(77), target: 'a', stackable: false, info: ["방어력: -2", "옵션: MR +4", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 철", "무게: 30"] }
         ],
         "주문서": [
-            { name: "무기 마법 주문서", sType: 'n', target: 'w', img: getLCImg(154), stackable: true, info: ["무기를 강화한다.", "안전 인챈트 수치를 넘기면 소멸"] },
-            { name: "축복받은 무기 마법 주문서", sType: 'b', target: 'w', img: getLCImg(155), stackable: true, info: ["무기를 강화한다.", "성공 시 1~3 수치가 무작위 상승"] },
-            { name: "저주받은 무기 마법 주문서", sType: 'c', target: 'w', img: getLCImg(156), stackable: true, info: ["강화 수치를 1 하락시킨다.", "100% 성공"] },
-            { name: "갑옷 마법 주문서", sType: 'n', target: 'a', img: getLCImg(157), stackable: true, info: ["방어구를 강화한다.", "안전 인챈트 수치를 넘기면 소멸"] },
-            { name: "축복받은 갑옷 마법 주문서", sType: 'b', target: 'a', img: getLCImg(158), stackable: true, info: ["방어구를 강화한다.", "성공 시 1~3 수치가 무작위 상승"] },
-            { name: "저주받은 갑옷 마법 주문서", sType: 'c', target: 'a', img: getLCImg(159), stackable: true, info: ["강화 수치를 1 하락시킨다.", "100% 성공"] }
+            { name: "무기 마법 주문서", sType: 'n', target: 'w', img: getLCImg(154), stackable: true, info: ["무기를 강화한다.", "안전 인챈트 수치를 넘기면 소멸", "무게: 1"] },
+            { name: "축복받은 무기 마법 주문서", sType: 'b', target: 'w', img: getLCImg(155), stackable: true, info: ["무기를 강화한다.", "성공 시 1~3 수치가 무작위 상승", "무게: 1"] },
+            { name: "저주받은 무기 마법 주문서", sType: 'c', target: 'w', img: getLCImg(156), stackable: true, info: ["강화 수치를 1 하락시킨다.", "100% 성공", "무게: 1"] },
+            { name: "갑옷 마법 주문서", sType: 'n', target: 'a', img: getLCImg(157), stackable: true, info: ["방어구를 강화한다.", "안전 인챈트 수치를 넘기면 소멸", "무게: 1"] },
+            { name: "축복받은 갑옷 마법 주문서", sType: 'b', target: 'a', img: getLCImg(158), stackable: true, info: ["방어구를 강화한다.", "성공 시 1~3 수치가 무작위 상승", "무게: 1"] },
+            { name: "저주받은 갑옷 마법 주문서", sType: 'c', target: 'a', img: getLCImg(159), stackable: true, info: ["강화 수치를 1 하락시킨다.", "100% 성공", "무게: 1"] }
         ]
     };
 
@@ -224,14 +223,9 @@
     let pressTimer;
     const popup = document.getElementById('itemPopup');
 
-    // ==========================================
-    // 요청하신 신규 초기 지급 로직
-    // 지정된 아이템 8개, 지정된 수량의 주문서만 셋팅됩니다.
-    // ==========================================
     function initStartingItems() {
         let slotIndex = 0;
         
-        // 장비 추가 헬퍼 함수
         const addEquipment = (itemName) => {
             let itemObj = db["무기"].find(i => i.name === itemName) || db["방어구"].find(i => i.name === itemName);
             if (itemObj && slotIndex < 30) {
@@ -239,7 +233,6 @@
             }
         };
 
-        // 주문서 추가 헬퍼 함수
         const addScroll = (itemName, quantity) => {
             let itemObj = db["주문서"].find(i => i.name === itemName);
             if (itemObj && slotIndex < 30) {
@@ -247,7 +240,7 @@
             }
         };
 
-        // 1. 지정된 장비 지급
+        // 요청하신 정확한 아이템 지급
         addEquipment("싸울아비 장검");
         addEquipment("기사의 면갑");
         addEquipment("판금 갑옷");
@@ -257,7 +250,7 @@
         addEquipment("파워 글로브");
         addEquipment("보호 망토");
 
-        // 2. 지정된 주문서 지급
+        // 요청하신 정확한 주문서 수량 지급
         addScroll("무기 마법 주문서", 200);
         addScroll("갑옷 마법 주문서", 200);
         addScroll("축복받은 무기 마법 주문서", 50);
@@ -266,10 +259,9 @@
         addScroll("저주받은 갑옷 마법 주문서", 50);
     }
 
-    // 접속 시 초기화 함수 실행
     initStartingItems();
 
-    // --- [이하 기존 로직 100% 동일] ---
+    // --- [이하 기존 자바스크립트 로직 100% 동일 유지] ---
     function startPress(e, i) {
         if (!inv[i]) return;
         let cX = e.clientX || (e.touches && e.touches[0].clientX);
