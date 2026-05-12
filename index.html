@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>강화 시뮬레이터 - Enchant Simulator</title>
-<link rel="icon" href="data:,">
+
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -275,6 +275,11 @@
                     <div class="chat-tab active">전체</div><div class="chat-tab">혈맹</div><div class="chat-tab">파티</div><div class="chat-tab">장사</div>
                 </div>
                 
+                <div id="onlineBar" style="background:#0a0a0a; border:1px solid #333; border-bottom:none; padding:5px 10px; font-size:12px; display:flex; justify-content:space-between; color:#888;">
+                    <span>접속: <span id="onlineCount" style="color:var(--green);">0</span>명</span>
+                    <span>누적: <span id="totalCount" style="color:var(--gold);">0</span>명</span>
+                </div>
+
                 <div id="rankingBoard">
                     <div class="rank-title">🏆 전서버 최고 인챈트 랭킹 TOP 5 🏆</div>
                     <div id="rankingList">
@@ -377,6 +382,14 @@ const firebaseConfig = {
             document.getElementById('bgmPlayer').src = "https://www.youtube.com/embed/pDJk7Lt0wxE?autoplay=1&loop=1&playlist=pDJk7Lt0wxE";
             document.getElementById('bgmContainer').style.display = 'block';
         }
+
+        // === 실시간 접속자 추적 ===
+        const myOnlineRef = realDB.ref("online/" + Date.now() + "_" + Math.random().toString(36).substr(2, 5));
+        myOnlineRef.set(myUserId);
+        myOnlineRef.onDisconnect().remove();
+
+        // === 누적 접속자 +1 ===
+        realDB.ref("stats/totalVisits").transaction(count => (count || 0) + 1);
     }
 
     // 채팅 전송 이벤트 (엔터키)
@@ -392,6 +405,18 @@ const firebaseConfig = {
                 this.value = ""; 
             }
         }
+    });
+
+    // 실시간 접속자 수 감시
+    realDB.ref("online").on("value", (snapshot) => {
+        const count = snapshot.numChildren();
+        document.getElementById("onlineCount").textContent = count;
+    });
+
+    // 누적 접속자 수 감시
+    realDB.ref("stats/totalVisits").on("value", (snapshot) => {
+        const total = snapshot.val() || 0;
+        document.getElementById("totalCount").textContent = total;
     });
 
     // 실시간 채팅 수신
@@ -837,15 +862,7 @@ const firebaseConfig = {
         
         log.scrollTop = log.scrollHeight; 
     }
-// 복사/퍼가기 방지
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.addEventListener('keydown', e => {
-        if (e.key === 'F12') e.preventDefault();
-        if (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S' || e.key === 'c' || e.key === 'C')) e.preventDefault();
-        if (e.ctrlKey && e.shiftKey && (e.key === 'i' || e.key === 'I' || e.key === 'j' || e.key === 'J')) e.preventDefault();
-    });
-    document.addEventListener('selectstart', e => { if (e.target.tagName !== 'INPUT') e.preventDefault(); });
-    document.addEventListener('dragstart', e => { if (e.target.tagName === 'IMG') e.preventDefault(); });
+
     document.getElementById('type').innerHTML = Object.keys(db).map(k => `<option>${k}</option>`).join('');
     updateList(); draw();
 </script>
