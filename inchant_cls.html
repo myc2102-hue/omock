@@ -214,16 +214,15 @@
     // ==========================================
     // 🔥 파이어베이스 연동 설정 (여기에 본인의 설정을 넣으세요!) 🔥
     // ==========================================
-    const firebaseConfig = {
-        apiKey: "여기에_API_KEY를_넣어주세요",
-        authDomain: "여기에_DOMAIN을_넣어주세요.firebaseapp.com",
-        databaseURL: "https://여기에_DATABASE_URL을_넣어주세요.firebaseio.com",
-        projectId: "여기에_PROJECT_ID를_넣어주세요",
-        storageBucket: "여기에_BUCKET을_넣어주세요.appspot.com",
-        messagingSenderId: "여기에_SENDER_ID를_넣어주세요",
-        appId: "여기에_APP_ID를_넣어주세요"
-    };
-    
+  // Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyBcNiClyycbiDyTNgABSMZUxy1Pub8Rezo",
+  authDomain: "inchanchat.firebaseapp.com",
+  projectId: "inchanchat",
+  storageBucket: "inchanchat.firebasestorage.app",
+  messagingSenderId: "519834039681",
+  appId: "1:519834039681:web:90ff93ef38793429c76480"
+};
     // 파이어베이스 초기화
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
