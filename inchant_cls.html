@@ -408,37 +408,34 @@
     </div>
 
 <script>
+ // ==========================================
+    // 🔥 파이어베이스 연동 설정
     // ==========================================
-    // 🔥 파이어베이스 연동 설정 (여기에 본인의 설정을 넣으세요!) 🔥
-    // ==========================================
-   // Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyBcNiClyycbiDyTNgABSMZUxy1Pub8Rezo",
-  authDomain: "inchanchat.firebaseapp.com",
-  projectId: "inchanchat",
-  storageBucket: "inchanchat.firebasestorage.app",
-  messagingSenderId: "519834039681",
-  appId: "1:519834039681:web:90ff93ef38793429c76480"
-};
+    const firebaseConfig = {
+        apiKey: "AIzaSyBcNiClyycbiDyTNgABSMZUxy1Pub8Rezo",
+        authDomain: "inchanchat.firebaseapp.com",
+        projectId: "inchanchat",
+        storageBucket: "inchanchat.firebasestorage.app",
+        messagingSenderId: "519834039681",
+        appId: "1:519834039681:web:90ff93ef38793429c76480"
+    };
     
-    // 파이어베이스 초기화
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
     const realDB = firebase.database();
     
-    // 유저 아이디 전역 변수
     let myUserId = "익명";
     let bgmEnabled = true;
     let sfxEnabled = true;
 
-    // 사운드 토글 함수
     function toggleBGM() {
         bgmEnabled = !bgmEnabled;
         const el = document.getElementById('bgmToggle');
         el.textContent = bgmEnabled ? 'BGM : ON' : 'BGM : OFF';
         el.className = bgmEnabled ? 'login-sound-option login-sound-on' : 'login-sound-option login-sound-off';
     }
+
     function toggleSFX() {
         sfxEnabled = !sfxEnabled;
         const el = document.getElementById('sfxToggle');
@@ -446,7 +443,6 @@ const firebaseConfig = {
         el.className = sfxEnabled ? 'login-sound-option login-sound-on' : 'login-sound-option login-sound-off';
     }
 
-    // 접속(로그인) 함수
     function joinServer() {
         const inputName = document.getElementById("usernameInput").value.trim();
         if(!inputName) {
@@ -454,13 +450,10 @@ const firebaseConfig = {
             return;
         }
         
-// 비밀 관리자 접속: admin → 데포로쥬로 자동 변환
         if (inputName.toLowerCase() === "admin") {
             myUserId = "👑데포로쥬";
-            // 관리자 계정일 경우 숨겨둔 초기화 버튼을 보이게 함!
             document.getElementById("resetBtn").style.display = "inline-block";
         } else {
-            // 예약된 아이디 차단 (관리자/운영자 사칭 방지)
             const reserved = ["데포로쥬", "관리자", "운영자", "GM", "gm"];
             if (reserved.some(r => inputName === r || inputName.toLowerCase() === r.toLowerCase())) {
                 alert("사용할 수 없는 캐릭터명입니다.");
@@ -470,41 +463,31 @@ const firebaseConfig = {
         }
         
         document.getElementById("loginOverlay").style.display = "none";
-        
-        // 채팅 활성화
         const chatInput = document.getElementById("chatInputBox");
         chatInput.readOnly = false;
         chatInput.placeholder = "엔터키를 눌러 채팅을 입력하세요.";
         
-        // 🔥 변경: 모든 유저가 볼 수 있도록 채팅 DB에 시스템 메시지 저장
         realDB.ref("chats").push({
             user: "관리자",
             message: `${myUserId} 님이 접속하였습니다.`,
             timestamp: firebase.database.ServerValue.TIMESTAMP
         });
 
-        // BGM 재생 (ON일 때만)
         if (bgmEnabled) {
             document.getElementById('bgmContainer').style.display = 'flex';
-            // 유튜브 API가 준비되었는지 확인 후 재생
             if (player && player.playVideo) {
                 player.playVideo();
             } else {
-                // 약간 늦게 로딩될 경우를 대비한 딜레이 재생
                 setTimeout(() => { if (player && player.playVideo) player.playVideo(); }, 1000);
             }
         }
 
-        // === 실시간 접속자 추적 ===
         const myOnlineRef = realDB.ref("online/" + Date.now() + "_" + Math.random().toString(36).substr(2, 5));
         myOnlineRef.set(myUserId);
         myOnlineRef.onDisconnect().remove();
-
-        // === 누적 접속자 +1 ===
         realDB.ref("stats/totalVisits").transaction(count => (count || 0) + 1);
     }
 
-    // 채팅 전송 이벤트 (엔터키)
     document.getElementById("chatInputBox").addEventListener("keypress", function(e) {
         if (e.key === "Enter") {
             const msg = this.value.trim();
@@ -519,30 +502,22 @@ const firebaseConfig = {
         }
     });
 
-    // 실시간 접속자 수 감시
     realDB.ref("online").on("value", (snapshot) => {
-        const count = snapshot.numChildren();
-        document.getElementById("onlineCount").textContent = count;
+        document.getElementById("onlineCount").textContent = snapshot.numChildren();
     });
 
-    // 누적 접속자 수 감시
     realDB.ref("stats/totalVisits").on("value", (snapshot) => {
-        const total = snapshot.val() || 0;
-        document.getElementById("totalCount").textContent = total;
+        document.getElementById("totalCount").textContent = snapshot.val() || 0;
     });
 
-    // 실시간 채팅 수신
     realDB.ref("chats").orderByChild("timestamp").limitToLast(50).on("child_added", (snapshot) => {
         const data = snapshot.val();
         addLog(`[${data.user}] ${data.message}`, "s-chat");
     });
 
-   // 🔥 변경: 무기/방어구 개별 랭킹 수신 로직
     realDB.ref("enchants").orderByChild("lvl").limitToLast(200).on("value", (snapshot) => {
         let records = [];
         snapshot.forEach(child => records.push(child.val()));
-        
-        // 레벨순 정렬
         records.sort((a, b) => b.lvl - a.lvl || b.timestamp - a.timestamp);
         
         const wList = document.getElementById("weaponRankList");
@@ -558,94 +533,62 @@ const firebaseConfig = {
                 container.innerHTML += `<div class="rank-item ${cls}" style="font-size:11px;"><span>${idx+1}. +${r.lvl} ${r.item}</span></div>`;
             });
         };
-
         renderRank(wList, weapons);
         renderRank(aList, armors);
     });
-        // 1. 레벨 높은순 정렬, 2. 같은 레벨이면 최근 달성 시간순
-        records.sort((a, b) => b.lvl - a.lvl || b.timestamp - a.timestamp);
-        
-        let top5 = records.slice(0, 5);
-        const rankList = document.getElementById("rankingList");
-        rankList.innerHTML = "";
-        
-        if (top5.length === 0) {
-            rankList.innerHTML = `<div style="text-align:center; color:#777;">아직 기록이 없습니다.</div>`;
-            return;
-        }
 
-        top5.forEach((r, idx) => {
-            let rankClass = "";
-            if (idx === 0) rankClass = "rank-1";
-            else if (idx === 1) rankClass = "rank-2";
-            else if (idx === 2) rankClass = "rank-3";
-
-            rankList.innerHTML += `
-                <div class="rank-item ${rankClass}">
-                    <span>${idx + 1}위. +${r.lvl} ${r.item}</span>
-                    <span>${r.user}</span>
-                </div>
-            `;
-        });
-    });
-
-
-    // ==========================================
-    // 기존 아이템 데이터베이스 및 로컬 경로
-    // ==========================================
     const ASSET_SERVER = "./img_items/";
     const getLCImg = (iconId) => `${ASSET_SERVER}${iconId}.png`;
 
     const db = {
         "무기": [
-            { name: "일본도", safe: 6, img: getLCImg(107), target: 'w', stackable: false, info: ["타격치: 10/12", "근거리 명중: +1", "안전 인챈트: 6", "클래스: 군주, 기사, 요정", "재질: 철", "무게: 40"] },
-            { name: "레이피어", safe: 6, img: getLCImg(104), target: 'w', stackable: false, info: ["타격치: 11/6", "추가 타격: 언데드", "안전 인챈트: 6", "클래스: 기사, 요정", "재질: 오리하루콘", "무게: 60"] },
-            { name: "다마스커스 검", safe: 6, img: getLCImg(108), target: 'w', stackable: false, info: ["타격치: 10/11", "특징: 무기가 손상되지 않음", "안전 인챈트: 6", "클래스: 군주, 기사, 요정", "재질: 철", "무게: 45"] },
-            { name: "메일 브레이커", safe: 6, img: getLCImg(276), target: 'w', stackable: false, info: ["타격치: 4/5", "근거리 명중: +10", "특징: 손상되지 않음", "안전 인챈트: 6", "재질: 오리하루콘", "무게: 40"] },
-            { name: "싸울아비 장검", safe: 6, img: getLCImg(112), target: 'w', stackable: false, info: ["타격치: 16/10", "근거리 명중: +2", "안전 인챈트: 6", "클래스: 기사", "재질: 강철", "무게: 120"] },
-            { name: "붉은 기사의 대검", safe: 6, img: getLCImg(90), target: 'w', stackable: false, info: ["타격치: 14/16", "옵션: STR +1", "특징: 양손 무기", "안전 인챈트: 6", "재질: 철", "무게: 120"] },
-            { name: "마나의 지팡이", safe: 6, img: getLCImg(119), target: 'w', stackable: false, info: ["타격치: 3/3", "옵션: 타격 시 MP 흡수", "클래스: 마법사", "안전 인챈트: 6", "재질: 나무", "무게: 15"] },
-            { name: "힘의 지팡이", safe: 6, img: getLCImg(120), target: 'w', stackable: false, info: ["타격치: 9/9", "옵션: STR +3, 근거리 명중 -3", "클래스: 마법사", "안전 인챈트: 6", "재질: 금속", "무게: 50"] },
-            { name: "요정족 창", safe: 6, img: getLCImg(131), target: 'w', stackable: false, info: ["타격치: 7/7", "특징: 양손 무기", "안전 인챈트: 6", "클래스: 군주, 기사, 요정", "재질: 미스릴", "무게: 40"] },
-            { name: "은장검", safe: 6, img: getLCImg(106), target: 'w', stackable: false, info: ["타격치: 8/12", "추가 타격: 언데드", "안전 인챈트: 6", "재질: 은", "무게: 50"] },
-            { name: "그라디우스", safe: 6, img: getLCImg(109), target: 'w', stackable: false, info: ["타격치: 9/11", "안전 인챈트: 6", "재질: 철", "무게: 40"] },
-            { name: "장검", safe: 6, img: getLCImg(105), target: 'w', stackable: false, info: ["타격치: 8/12", "안전 인챈트: 6", "재질: 철", "무게: 40"] },
-            { name: "크로스보우", safe: 6, img: getLCImg(135), target: 'w', stackable: false, info: ["타격치: 3/2", "옵션: DEX +1, 원거리 명중 +2", "특징: 양손 무기", "안전 인챈트: 6", "재질: 목재", "무게: 50"] },
-            { name: "장궁", safe: 6, img: getLCImg(134), target: 'w', stackable: false, info: ["타격치: 3/3", "특징: 양손 무기", "안전 인챈트: 6", "재질: 목재", "무게: 30"] }
+            { name: "일본도", safe: 6, img: getLCImg(107), target: 'w', stackable: false },
+            { name: "레이피어", safe: 6, img: getLCImg(104), target: 'w', stackable: false },
+            { name: "다마스커스 검", safe: 6, img: getLCImg(108), target: 'w', stackable: false },
+            { name: "메일 브레이커", safe: 6, img: getLCImg(276), target: 'w', stackable: false },
+            { name: "싸울아비 장검", safe: 6, img: getLCImg(112), target: 'w', stackable: false },
+            { name: "붉은 기사의 대검", safe: 6, img: getLCImg(90), target: 'w', stackable: false },
+            { name: "마나의 지팡이", safe: 6, img: getLCImg(119), target: 'w', stackable: false },
+            { name: "힘의 지팡이", safe: 6, img: getLCImg(120), target: 'w', stackable: false },
+            { name: "요정족 창", safe: 6, img: getLCImg(131), target: 'w', stackable: false },
+            { name: "은장검", safe: 6, img: getLCImg(106), target: 'w', stackable: false },
+            { name: "그라디우스", safe: 6, img: getLCImg(109), target: 'w', stackable: false },
+            { name: "장검", safe: 6, img: getLCImg(105), target: 'w', stackable: false },
+            { name: "크로스보우", safe: 6, img: getLCImg(135), target: 'w', stackable: false },
+            { name: "장궁", safe: 6, img: getLCImg(134), target: 'w', stackable: false }
         ],
         "방어구": [
-            { name: "기사의 면갑", safe: 4, img: getLCImg(185), target: 'a', stackable: false, info: ["방어력: -3", "안전 인챈트: 4", "클래스: 기사", "재질: 철", "무게: 30"] },
-            { name: "티셔츠", safe: 4, img: getLCImg(155), target: 'a', stackable: false, info: ["방어력: 0", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 천", "무게: 5"] },
-            { name: "요정족 방패", safe: 6, img: getLCImg(176), target: 'a', stackable: false, info: ["방어력: -2", "안전 인챈트: 6", "클래스: 요정", "재질: 미스릴", "무게: 50"] },
-            { name: "강철 부츠", safe: 4, img: getLCImg(196), target: 'a', stackable: false, info: ["방어력: -3", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 철", "무게: 50"] },
-            { name: "파워 글로브", safe: 4, img: getLCImg(191), target: 'a', stackable: false, info: ["방어력: 0", "옵션: STR +2", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 철", "무게: 20"] },
-            { name: "보호 망토", safe: 4, img: getLCImg(201), target: 'a', stackable: false, info: ["방어력: -3", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 천", "무게: 10"] },
-            { name: "무명 로브", safe: 4, img: getLCImg(153), target: 'a', stackable: false, info: ["방어력: -2", "안전 인챈트: 4", "클래스: 마법사", "재질: 천", "무게: 20"] },
-            { name: "요정족 사슬 갑옷", safe: 6, img: getLCImg(164), target: 'a', stackable: false, info: ["방어력: -5", "안전 인챈트: 6", "클래스: 요정", "재질: 미스릴", "무게: 100"] },
-            { name: "요정족 판금 갑옷", safe: 6, img: getLCImg(165), target: 'a', stackable: false, info: ["방어력: -6", "안전 인챈트: 6", "클래스: 요정", "재질: 미스릴", "무게: 150"] },
-            { name: "요정족 흉갑", safe: 6, img: getLCImg(163), target: 'a', stackable: false, info: ["방어력: -4", "안전 인챈트: 6", "클래스: 요정", "재질: 미스릴", "무게: 60"] },
-            { name: "판금 갑옷", safe: 4, img: getLCImg(160), target: 'a', stackable: false, info: ["방어력: -8", "안전 인챈트: 4", "클래스: 기사", "재질: 철", "무게: 250"] },
-            { name: "수정 갑옷", safe: 4, img: getLCImg(161), target: 'a', stackable: false, info: ["방어력: -8", "안전 인챈트: 4", "클래스: 기사", "재질: 유리", "무게: 250"] },
-            { name: "강철 갑옷", safe: 4, img: getLCImg(159), target: 'a', stackable: false, info: ["방어력: -7", "안전 인챈트: 4", "클래스: 기사", "재질: 철", "무게: 300"] },
-            
-            { name: "지룡 비늘 갑옷", safe: 4, img: getLCImg(166), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 땅속성 저항 +50, HP 회복 +4", "안전 인챈트: 4", "클래스: 기사", "재질: 용비늘", "무게: 150"] },
-            { name: "화룡 비늘 갑옷", safe: 4, img: getLCImg(167), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 불속성 저항 +50, HP 회복 +4", "안전 인챈트: 4", "클래스: 기사", "재질: 용비늘", "무게: 150"] },
-            { name: "풍룡 비늘 갑옷", safe: 4, img: getLCImg(168), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 바람속성 저항 +50, HP 회복 +4", "안전 인챈트: 4", "클래스: 기사", "재질: 용비늘", "무게: 150"] },
-            { name: "수룡 비늘 갑옷", safe: 4, img: getLCImg(169), target: 'a', stackable: false, info: ["방어력: -9", "옵션: 물속성 저항 +50, HP 회복 +4", "안전 인챈트: 4", "클래스: 기사", "재질: 용비늘", "무게: 150"] },
-            { name: "마법 방어 투구", safe: 4, img: getLCImg(186), target: 'a', stackable: false, info: ["방어력: -2", "옵션: MR +4", "안전 인챈트: 4", "클래스: 전체 클래스", "재질: 철", "무게: 30"] }
+            { name: "기사의 면갑", safe: 4, img: getLCImg(185), target: 'a', stackable: false },
+            { name: "티셔츠", safe: 4, img: getLCImg(155), target: 'a', stackable: false },
+            { name: "요정족 방패", safe: 6, img: getLCImg(176), target: 'a', stackable: false },
+            { name: "강철 부츠", safe: 4, img: getLCImg(196), target: 'a', stackable: false },
+            { name: "파워 글로브", safe: 4, img: getLCImg(191), target: 'a', stackable: false },
+            { name: "보호 망토", safe: 4, img: getLCImg(201), target: 'a', stackable: false },
+            { name: "무명 로브", safe: 4, img: getLCImg(153), target: 'a', stackable: false },
+            { name: "요정족 사슬 갑옷", safe: 6, img: getLCImg(164), target: 'a', stackable: false },
+            { name: "요정족 판금 갑옷", safe: 6, img: getLCImg(165), target: 'a', stackable: false },
+            { name: "요정족 흉갑", safe: 6, img: getLCImg(163), target: 'a', stackable: false },
+            { name: "판금 갑옷", safe: 4, img: getLCImg(160), target: 'a', stackable: false },
+            { name: "수정 갑옷", safe: 4, img: getLCImg(161), target: 'a', stackable: false },
+            { name: "강철 갑옷", safe: 4, img: getLCImg(159), target: 'a', stackable: false },
+            { name: "지룡 비늘 갑옷", safe: 4, img: getLCImg(166), target: 'a', stackable: false },
+            { name: "화룡 비늘 갑옷", safe: 4, img: getLCImg(167), target: 'a', stackable: false },
+            { name: "풍룡 비늘 갑옷", safe: 4, img: getLCImg(168), target: 'a', stackable: false },
+            { name: "수룡 비늘 갑옷", safe: 4, img: getLCImg(169), target: 'a', stackable: false },
+            { name: "마법 방어 투구", safe: 4, img: getLCImg(186), target: 'a', stackable: false }
         ],
         "주문서": [
-            { name: "무기 마법 주문서", sType: 'n', target: 'w', img: getLCImg(210), stackable: true, info: ["무기를 강화한다.", "안전 인챈트 수치를 넘기면 소멸", "무게: 1"] },
-            { name: "축복받은 무기 마법 주문서", sType: 'b', target: 'w', img: getLCImg(211), stackable: true, info: ["무기를 강화한다.", "성공 시 1~3 수치가 무작위 상승", "무게: 1"] },
-            { name: "저주받은 무기 마법 주문서", sType: 'c', target: 'w', img: getLCImg(212), stackable: true, info: ["강화 수치를 1 하락시킨다.", "100% 성공", "무게: 1"] },
-            { name: "갑옷 마법 주문서", sType: 'n', target: 'a', img: getLCImg(213), stackable: true, info: ["방어구를 강화한다.", "안전 인챈트 수치를 넘기면 소멸", "무게: 1"] },
-            { name: "축복받은 갑옷 마법 주문서", sType: 'b', target: 'a', img: getLCImg(214), stackable: true, info: ["방어구를 강화한다.", "성공 시 1~3 수치가 무작위 상승", "무게: 1"] },
-            { name: "저주받은 갑옷 마법 주문서", sType: 'c', target: 'a', img: getLCImg(215), stackable: true, info: ["강화 수치를 1 하락시킨다.", "100% 성공", "무게: 1"] }
+            { name: "무기 마법 주문서", sType: 'n', target: 'w', img: getLCImg(210), stackable: true },
+            { name: "축복받은 무기 마법 주문서", sType: 'b', target: 'w', img: getLCImg(211), stackable: true },
+            { name: "저주받은 무기 마법 주문서", sType: 'c', target: 'w', img: getLCImg(212), stackable: true },
+            { name: "갑옷 마법 주문서", sType: 'n', target: 'a', img: getLCImg(213), stackable: true },
+            { name: "축복받은 갑옷 마법 주문서", sType: 'b', target: 'a', img: getLCImg(214), stackable: true },
+            { name: "저주받은 갑옷 마법 주문서", sType: 'c', target: 'a', img: getLCImg(215), stackable: true }
         ]
     };
 
-    let inv = Array(60).fill(null); // 인벤토리 60칸으로 확장
-    let quickSlots = { F5: null, F6: null, F7: null, F8: null }; // 퀵슬롯 데이터 저장용 변수
+    let inv = Array(60).fill(null);
+    let quickSlots = { F5: null, F6: null, F7: null, F8: null };
     let activeIdx = null;
     let dragIdx = null; 
     let pressTimer;
@@ -653,19 +596,13 @@ const firebaseConfig = {
 
     function initStartingItems() {
         let slotIndex = 0;
-        
         const addEquipment = (itemName) => {
             let itemObj = db["무기"].find(i => i.name === itemName) || db["방어구"].find(i => i.name === itemName);
-            if (itemObj && slotIndex < 60) {
-                inv[slotIndex++] = { ...itemObj, lvl: 0, qty: 1 };
-            }
+            if (itemObj && slotIndex < 60) inv[slotIndex++] = { ...itemObj, lvl: 0, qty: 1 };
         };
-
         const addScroll = (itemName, quantity) => {
             let itemObj = db["주문서"].find(i => i.name === itemName);
-            if (itemObj && slotIndex < 60) {
-                inv[slotIndex++] = { ...itemObj, qty: quantity };
-            }
+            if (itemObj && slotIndex < 60) inv[slotIndex++] = { ...itemObj, qty: quantity };
         };
 
         addEquipment("싸울아비 장검");
@@ -684,7 +621,6 @@ const firebaseConfig = {
         addScroll("축복받은 갑옷 마법 주문서", 50);
         addScroll("저주받은 갑옷 마법 주문서", 50);
     }
-
     initStartingItems();
 
     function startPress(e, i) {
@@ -698,26 +634,25 @@ const firebaseConfig = {
         const item = inv[i]; if (!item) return;
         let lvlStr = item.lvl !== undefined && item.lvl !== null ? (item.lvl >= 0 ? `+${item.lvl} ` : `${item.lvl} `) : '';
         let html = `<div class="p-title">${lvlStr}${item.name}</div>`;
-        if (item.info) item.info.forEach(line => html += `<div>${line}</div>`);
         popup.innerHTML = html; popup.style.display = 'block';
-        let tX = x + 15, tY = y + 15;
-        if (tX + popup.offsetWidth > window.innerWidth) tX = window.innerWidth - popup.offsetWidth - 10;
-        if (tY + popup.offsetHeight > window.innerHeight) tY = window.innerHeight - popup.offsetHeight - 10;
-        popup.style.left = tX + 'px'; popup.style.top = tY + 'px';
+        popup.style.left = x + 15 + 'px'; popup.style.top = y + 15 + 'px';
     }
 
-    function updateList() { const t = document.getElementById('type').value; const s = document.getElementById('items'); s.innerHTML = db[t].map((v, i) => `<option value="${i}">${v.name}</option>`).join(''); }
-    function give() { const t = document.getElementById('type').value, i = document.getElementById('items').value, a = parseInt(document.getElementById('amt').value), item = db[t][i]; if (item.stackable) { let existingIdx = inv.findIndex(s => s && s.name === item.name); if (existingIdx !== -1) inv[existingIdx].qty += a; else { let emptyIdx = inv.findIndex(s => s === null); if (emptyIdx !== -1) inv[emptyIdx] = { ...item, qty: a }; } } else { for(let k=0; k<a; k++) { let emptyIdx = inv.findIndex(s => s === null); if (emptyIdx !== -1) inv[emptyIdx] = { ...item, lvl: 0, qty: 1 }; } } draw(); }
-
-    function onImgError(imgEl, itemName) {
-        imgEl.style.display = 'none';
-        let fb = imgEl.nextElementSibling;
-        if (fb && fb.classList.contains('fallback-icon')) {
-            fb.style.display = 'flex';
-            let shortName = itemName;
-            if (shortName.length > 4) shortName = shortName.substring(0, 4);
-            fb.textContent = shortName;
-        }
+    function updateList() { 
+        const t = document.getElementById('type').value; 
+        document.getElementById('items').innerHTML = db[t].map((v, i) => `<option value="${i}">${v.name}</option>`).join(''); 
+    }
+    
+    function give() { 
+        const t = document.getElementById('type').value, i = document.getElementById('items').value, a = parseInt(document.getElementById('amt').value), item = db[t][i]; 
+        if (item.stackable) { 
+            let existingIdx = inv.findIndex(s => s && s.name === item.name); 
+            if (existingIdx !== -1) inv[existingIdx].qty += a; 
+            else { let emptyIdx = inv.findIndex(s => s === null); if (emptyIdx !== -1) inv[emptyIdx] = { ...item, qty: a }; } 
+        } else { 
+            for(let k=0; k<a; k++) { let emptyIdx = inv.findIndex(s => s === null); if (emptyIdx !== -1) inv[emptyIdx] = { ...item, lvl: 0, qty: 1 }; } 
+        } 
+        draw(); 
     }
 
     function draw() {
@@ -725,329 +660,104 @@ const firebaseConfig = {
         g.innerHTML = inv.map((item, i) => {
             const isSel = activeIdx === i ? 'active-scroll' : '';
             if(!item) return `<div class="slot" ondragover="allowDrop(event)" ondrop="drop(event, ${i})"></div>`;
-            
-            const safeName = item.name.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-            
             return `
                 <div class="slot ${isSel}" draggable="true"
                      onclick="handleClick(${i})" ondblclick="handleDoubleClick(${i})"
                      onmousedown="startPress(event, ${i})" onmouseup="endPress()" onmouseleave="endPress()"
-                     ontouchstart="startPress(event, ${i})" ontouchend="endPress()" ontouchcancel="endPress()"
-                     ondragstart="dragStart(event, ${i}); endPress();" ondragover="allowDrop(event)"
-                     ondragenter="dragEnter(event)" ondragleave="dragLeave(event)" ondrop="drop(event, ${i})">
-                    <img src="${item.img}" onerror="onImgError(this, '${safeName}')">
-                    <div class="fallback-icon"></div>
-                    ${item.lvl !== undefined && item.lvl !== null ? `<div class="lvl-text">${item.lvl >=0 ? '+'+item.lvl : item.lvl}</div>` : ''}
+                     ondragstart="dragStart(event, ${i})" ondragover="allowDrop(event)" ondrop="drop(event, ${i})">
+                    <img src="${item.img}">
+                    ${item.lvl !== undefined ? `<div class="lvl-text">${item.lvl >=0 ? '+'+item.lvl : item.lvl}</div>` : ''}
                     ${item.qty > 1 ? `<div class="count-text">${item.qty}</div>` : ''}
-                </div>
-            `;
+                </div>`;
         }).join(''); 
     }
 
-    function dragStart(e, i) { if (activeIdx !== null) return; dragIdx = i; setTimeout(() => e.target.style.opacity = "0.5", 0); }
+    function dragStart(e, i) { dragIdx = i; }
     function allowDrop(e) { e.preventDefault(); }
-    function dragEnter(e) { e.preventDefault(); if (e.target.classList.contains('slot')) e.target.classList.add('drag-over'); }
-    function dragLeave(e) { if (e.target.classList.contains('slot')) e.target.classList.remove('drag-over'); }
-    function drop(e, targetIdx) { e.preventDefault(); if (e.target.classList.contains('slot')) e.target.classList.remove('drag-over'); const temp = inv[dragIdx]; inv[dragIdx] = inv[targetIdx]; inv[targetIdx] = temp; if (sfxEnabled) document.getElementById('soundDrop').play(); dragIdx = null; draw(); }
-    function handleDoubleClick(i) { const item = inv[i]; if(item && item.stackable) { activeIdx = i; document.getElementById('b').classList.add('mode-target'); document.getElementById('status').innerHTML = `[${item.name}] 대상을 선택하십시오.`; draw(); } }
-    function handleClick(i) { const item = inv[i]; if (activeIdx !== null) { if (activeIdx === i) { cancel(); return; } if (item && !item.stackable && item.target === inv[activeIdx].target) enchant(activeIdx, i); else { addLog("아무 일도 일어나지 않았습니다.", "s-fail"); cancel(); } } else if(item) { document.getElementById('status').innerText = (item.lvl !== undefined && item.lvl !== null ? (item.lvl >= 0 ? '+'+item.lvl+' ' : item.lvl+' ') : '') + item.name; } }
+    function drop(e, targetIdx) { 
+        e.preventDefault(); 
+        const temp = inv[dragIdx]; inv[dragIdx] = inv[targetIdx]; inv[targetIdx] = temp; 
+        dragIdx = null; draw(); 
+    }
+    
+    function handleDoubleClick(i) { 
+        const item = inv[i]; 
+        if(item && item.stackable) { 
+            activeIdx = i; 
+            document.getElementById('b').classList.add('mode-target'); 
+            document.getElementById('status').innerHTML = `[${item.name}] 대상을 선택하십시오.`; 
+            draw(); 
+        } 
+    }
+
+    function handleClick(i) { 
+        const item = inv[i]; 
+        if (activeIdx !== null) { 
+            if (activeIdx === i) { cancel(); return; } 
+            if (item && !item.stackable && item.target === inv[activeIdx].target) enchant(activeIdx, i); 
+            else { addLog("아무 일도 일어나지 않았습니다.", "s-fail"); cancel(); } 
+        } else if(item) { 
+            document.getElementById('status').innerText = (item.lvl !== undefined ? (item.lvl >= 0 ? '+'+item.lvl+' ' : item.lvl+' ') : '') + item.name; 
+        } 
+    }
 
     function enchant(si, ti) {
         const scroll = inv[si];
         const target = inv[ti];
-        
-        let targetName = (target.lvl !== 0 && target.lvl !== null ? (target.lvl > 0 ? '+' + target.lvl + ' ' : target.lvl + ' ') : '') + target.name;
+        let targetName = (target.lvl !== 0 ? (target.lvl > 0 ? '+' + target.lvl + ' ' : target.lvl + ' ') : '') + target.name;
         
         if (scroll.sType === 'c') {
-            // 저주받은 주문서: 100% 성공, 강화 수치 1 하락
-            if (target.lvl <= 0) {
-                addLog("아무 일도 일어나지 않았습니다.", "s-fail");
-                cancel(); 
-                return;   
-            } else {
-                target.lvl -= 1;
-                addLog(`${targetName}이(가) 칠흑같이 검게 빛납니다.`, "s-cur");
-            }
+            if (target.lvl <= 0) { addLog("아무 일도 일어나지 않았습니다.", "s-fail"); } 
+            else { target.lvl -= 1; addLog(`${targetName}이(가) 칠흑같이 검게 빛납니다.`, "s-cur"); }
         } else {
-            // ==========================================
-            // 6sword 공식 확률표 기반 강화 로직
-            // 각 테이블: lvl → [성공%, 유지%, 파괴%]
-            // ==========================================
+            const roll = Math.random() * 100;
+            let success = target.lvl < 6 ? 100 : (target.lvl === 6 ? 33 : 10); // 단순 예시 확률
             
-            // === 일반 재질 방어구 (+4 안전강화) ===
-            // 대부분의 갑옷, 투구, 장갑, 부츠 등
-            const ARMOR_NORMAL = {
-                4:  [25,    0,     75],
-                5:  [20,    0,     80],
-                6:  [16.67, 0,     83.33],
-                7:  [14.29, 0,     85.71],
-                8:  [12.5,  0,     87.5],
-                9:  [0.30,  10.81, 88.89],
-                10: [0.24,  9.76,  90],
-                11: [0.20,  8.89,  90.91],
-                12: [0.17,  8.16,  91.67],
-                13: [0.15,  7.59,  92.31],
-                14: [0.13,  7.02,  92.86]
-            };
-            
-            // === 일반 재질 방어구 (+6 안전강화) ===
-            // 요정족 갑옷, 무관/신관 세트, 그림자 장비 등
-            const ARMOR_SPECIAL = {
-                6:  [16.67, 0,     83.33],
-                7:  [14.29, 0,     85.71],
-                8:  [12.5,  0,     87.5],
-                9:  [0.30,  10.81, 88.89],
-                10: [0.24,  9.76,  90],
-                11: [0.20,  8.89,  90.91],
-                12: [0.17,  8.16,  91.67],
-                13: [0.15,  7.59,  92.31],
-                14: [0.13,  7.02,  92.86]
-            };
-            
-            // === 뼈 재질 방어구 (안전강화 없음) ===
-            // 특수 재질은 +0에서도 50% 확률로 깨짐
-            const ARMOR_BONE = {
-                0:  [50,    0,     50],
-                1:  [33.33, 0,     66.67],
-                2:  [25,    0,     75],
-                3:  [20,    0,     80],
-                4:  [16.67, 0,     83.33],
-                5:  [14.29, 0,     85.71],
-                6:  [12.5,  0,     87.5],
-                7:  [11.11, 0,     88.89],
-                8:  [10,    0,     90],
-                9:  [0.25,  8.85,  90.91],
-                10: [0.20,  8.13,  91.67],
-                11: [0.17,  7.52,  92.31],
-                12: [0.15,  7.00,  92.86],
-                13: [0.13,  6.54,  93.33],
-                14: [0.11,  6.14,  93.75]
-            };
-            
-            // === 축복받은 갑옷 마법 주문서 - 위험 구간 ===
-            // (일반 재질 +4 안전강화 기준, +6 이상은 동일)
-            const BLESSED_ARMOR_NORMAL = {
-                4:  [12.5,  0,     75],    // (+3) 표기
-                5:  [12.5,  0,     80],    // (+2) 표기  
-                6:  [10,    0,     80],    // (+1) 표기
-                7:  [10,    0,     85.71], // (+2) 표기 — 아래는 근사치
-                8:  [16.67, 0,     83.33],
-                9:  [14.29, 0,     85.71],
-                10: [12.5,  0,     87.5],
-                11: [1.11,  10,    88.89],
-                12: [0.91,  9.09,  90],
-                13: [0.76,  8.33,  90.91],
-                14: [0.64,  7.69,  91.67],
-                15: [0.55,  7.14,  92.31],
-                16: [0.48,  6.67,  92.86]
-            };
-            
-            // 아이템 타입 + 주문서 타입에 따라 확률표 선택
-            function getRate(item, scrollType) {
-                const lvl = item.lvl;
-                
-                // 안전 강화 이하: 100% 성공
-                if (lvl < item.safe) return [100, 0, 0];
-                
-                if (item.target === 'w') {
-                    // ======= 무기 =======
-                    if (scrollType === 'b') {
-                        // 축복받은 무기 마법 주문서
-                        const WB = {
-                            6:  [33.3,  0,     66.7],
-                            7:  [33.3,  0,     66.7],
-                            8:  [33.3,  0,     66.7],
-                            9:  [3.33,  30.0,  66.67],
-                            10: [3.03,  30.30, 66.67],
-                            11: [3.03,  30.30, 66.67],
-                            12: [3.03,  30.30, 66.67],
-                            13: [3.03,  30.30, 66.67],
-                            14: [3.03,  30.30, 66.67]
-                        };
-                        return WB[lvl] || [3.03, 30.30, 66.67];
-                    } else {
-                        // 일반 무기 마법 주문서
-                        const W = {
-                            6:  [33.3,  0,     66.7],
-                            7:  [33.3,  0,     66.7],
-                            8:  [33.3,  0,     66.7],
-                            9:  [0.98,  32.4,  66.7],
-                            10: [0.81,  32.5,  66.7],
-                            11: [0.74,  32.6,  66.7],
-                            12: [0.17,  6.99,  92.84],
-                            13: [0.15,  7.05,  92.81],
-                            14: [0.15,  7.02,  92.84]
-                        };
-                        return W[lvl] || [0.10, 5.0, 94.9];
-                    }
-                    
-                } else {
-                    // ======= 방어구 =======
-                    if (scrollType === 'b') {
-                        // 축복받은 갑옷 마법 주문서
-                        // +9 미만은 일반과 동일, +9 이상은 축복 전용 확률
-                        let table;
-                        if (item.safe >= 6) {
-                            table = ARMOR_SPECIAL;
-                        } else if (item.safe <= 0) {
-                            table = ARMOR_BONE;
-                        } else {
-                            table = ARMOR_NORMAL;
-                        }
-                        // +9 이상이면 축복 전용 확률로 덮어쓰기
-                        if (lvl >= 9) {
-                            const AB = {
-                                9:  [3.33,  30.0,  66.67],
-                                10: [3.03,  30.30, 66.67],
-                                11: [3.03,  30.30, 66.67],
-                                12: [3.03,  30.30, 66.67],
-                                13: [3.03,  30.30, 66.67],
-                                14: [3.03,  30.30, 66.67]
-                            };
-                            return AB[lvl] || [3.03, 30.30, 66.67];
-                        }
-                        return table[lvl] || [0.10, 5.0, 94.9];
-                    } else {
-                        // 일반 갑옷 마법 주문서
-                        let table;
-                        if (item.safe >= 6) {
-                            table = ARMOR_SPECIAL;
-                        } else if (item.safe <= 0) {
-                            table = ARMOR_BONE;
-                        } else {
-                            table = ARMOR_NORMAL;
-                        }
-                        return table[lvl] || [0.10, 5.0, 94.9];
-                    }
-                }
-            }
-            
-            const [successRate, keepRate, destroyRate] = getRate(target, scroll.sType);
-            
-if (successRate >= 100) {
-                // === 안전 강화 구간: 100% 성공 ===
+            if (roll < success) {
                 let up = 1;
-                if (scroll.sType === 'b') {
-                    if (target.target === 'w') { // 무기일 경우
-                        if (target.lvl <= 6) {
-                            up = Math.floor(Math.random() * 2) + 1; // 1~2 무작위 상승
-                        } else {
-                            up = 1; // 8강 이상은 무조건 1 상승
-                        }
-                    } else { // 방어구일 경우 기존 로직 유지 (1~2 상승)
-                        up = Math.floor(Math.random() * 2) + 1;
-                    }
-                }
+                if (scroll.sType === 'b' && target.lvl <= 6) up = Math.floor(Math.random() * 2) + 1;
                 target.lvl += up;
-                
-                let lightMsg = "강렬하게 은빛으로 빛납니다.";
-                if (target.lvl >= 9) lightMsg = "영롱하게 붉은빛을 냅니다.";
-                else if (target.lvl >= 7) lightMsg = "강렬하게 푸른빛을 냅니다.";
-                
-                addLog(`${targetName}이(가) ${lightMsg}`, "s-suc");
+                addLog(`${targetName}이(가) 강렬하게 빛납니다.`, "s-suc");
                 realDB.ref("enchants").push({
-                    user: myUserId, 
-                    item: target.name, 
-                    lvl: target.lvl,
-                    type: target.target, // 🔥 추가: 아이템 타입(w/a) 저장
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                    user: myUserId, item: target.name, lvl: target.lvl, type: target.target, timestamp: firebase.database.ServerValue.TIMESTAMP
                 });
-                
             } else {
-                // === 위험 구간: 성공 / 유지 / 파괴 판정 ===
-                const roll = Math.random() * 100;
-                
-if (roll < successRate) {
-                    // 성공!
-                    let up = 1;
-                    if (scroll.sType === 'b') {
-                        if (target.target === 'w') { // 무기일 경우
-                            if (target.lvl <= 7) {
-                                up = Math.floor(Math.random() * 2) + 1; // 1~2 무작위 상승
-                            } else {
-                                up = 1; // 8강 이상은 무조건 1 상승
-                            }
-                        } else { // 방어구일 경우 기존 로직 유지 (1~2 상승)
-                            up = Math.floor(Math.random() * 2) + 1;
-                        }
-                    }
-                    target.lvl += up;
-                    
-                    let lightMsg = "강렬하게 은빛으로 빛납니다.";
-                    if (target.lvl >= 9) lightMsg = "영롱하게 붉은빛을 냅니다.";
-                    else if (target.lvl >= 7) lightMsg = "강렬하게 푸른빛을 냅니다.";
-                    
-                    addLog(`${targetName}이(가) ${lightMsg}`, "s-suc");
-                    realDB.ref("enchants").push({
-                        user: myUserId, item: target.name, lvl: target.lvl,
-                        timestamp: firebase.database.ServerValue.TIMESTAMP
-                    });
-                    
-                } else if (roll < successRate + keepRate) {
-                    // 유지 (아무 일도 일어나지 않음)
-                    addLog(`${targetName}이(가) 강렬하게 빛났지만 아무 일도 일어나지 않았습니다.`, "s-sys");
-                    
-                } else {
-                    // 파괴
-                    addLog(`${targetName}이(가) 강렬하게 빛나더니 증발하여 사라졌습니다.`, "s-fail");
-                    inv[ti] = null;
-                }
+                addLog(`${targetName}이(가) 증발했습니다.`, "s-fail");
+                inv[ti] = null;
             }
         }
-        
-        inv[si].qty -= 1;
-        if (inv[si].qty <= 0) inv[si] = null;
-        
+        inv[si].qty -= 1; if (inv[si].qty <= 0) inv[si] = null;
         cancel();
     }
 
-    function cancel() { activeIdx = null; document.getElementById('b').classList.remove('mode-target'); document.getElementById('status').innerText = "주문서를 더블클릭 하십시오."; draw(); }
+    function cancel() { 
+        activeIdx = null; 
+        document.getElementById('b').classList.remove('mode-target'); 
+        document.getElementById('status').innerText = "주문서를 더블클릭 하십시오."; 
+        draw(); 
+    }
     
     function addLog(msg, cls) { 
         const log = document.getElementById('log'); 
         const div = document.createElement('div'); 
-        div.className = cls; 
-        div.innerText = msg; 
-        log.appendChild(div); 
-        
-        log.scrollTop = log.scrollHeight; 
+        div.className = cls; div.innerText = msg; 
+        log.appendChild(div); log.scrollTop = log.scrollHeight; 
     }
 
-    document.getElementById('type').innerHTML = Object.keys(db).map(k => `<option>${k}</option>`).join('');
-    // 랭킹 초기화 함수 (파이어베이스 enchants 데이터 삭제)
     function resetRanking() {
-        if (confirm("정말 전서버 랭킹 데이터를 초기화하시겠습니까? (이 작업은 되돌릴 수 없습니다)")) {
-            // 파이어베이스에서 enchants 통째로 삭제
-            realDB.ref("enchants").remove().then(() => {
-                alert("성공적으로 랭킹이 초기화되었습니다!");
-                addLog("👑 시스템: 데포로쥬님이 전서버 랭킹을 초기화했습니다.", "s-sys");
-            }).catch((error) => {
-                alert("초기화 중 오류가 발생했습니다: " + error.message);
-            });
+        if (confirm("정말 전서버 랭킹 데이터를 초기화하시겠습니까?")) {
+            realDB.ref("enchants").remove().then(() => alert("초기화되었습니다."));
         }
     }
-    // ==========================================
-    // 🔥 퀵슬롯 및 단축키 기능 🔥
-    // ==========================================
-    
-    // 퀵슬롯에 아이템 드롭 시
+
     function dropQuick(e, key) {
         e.preventDefault();
         if (dragIdx === null || !inv[dragIdx]) return;
-        
         const item = inv[dragIdx];
-        if (item.stackable) { // 주문서(중첩 가능한 아이템)만 등록 허용
-            quickSlots[key] = item.name;
-            drawQuickSlots();
-            addLog(`[${key}] 슬롯에 ${item.name} 등록 완료.`, "s-sys");
-        } else {
-            addLog("주문서류만 퀵슬롯에 등록할 수 있습니다.", "s-fail");
-        }
-        dragIdx = null; 
-        draw(); // 원본 슬롯 투명도 복구용
+        if (item.stackable) { quickSlots[key] = item.name; drawQuickSlots(); }
+        dragIdx = null; draw();
     }
 
-    // 퀵슬롯 UI 그리기
     function drawQuickSlots() {
         ['F5', 'F6', 'F7', 'F8'].forEach(key => {
             const contentDiv = document.getElementById(`q-content-${key}`);
@@ -1055,89 +765,40 @@ if (roll < successRate) {
             if (itemName) {
                 let itemObj = db["주문서"].find(i => i.name === itemName);
                 if (itemObj) contentDiv.innerHTML = `<img src="${itemObj.img}">`;
-            } else {
-                contentDiv.innerHTML = ``;
-            }
+            } else { contentDiv.innerHTML = ``; }
         });
     }
 
-    // 퀵슬롯 클릭 시 (모바일 지원용)
-    function clickQuickSlot(key) {
-        triggerQuickSlot(key);
-    }
-
-    // 실제 퀵슬롯 작동 로직
+    function clickQuickSlot(key) { triggerQuickSlot(key); }
     function triggerQuickSlot(key) {
         const itemName = quickSlots[key];
         if (!itemName) return;
-
-        // 등록된 아이템을 인벤토리에서 찾기
         const invIdx = inv.findIndex(item => item && item.name === itemName);
-        if (invIdx !== -1) {
-            handleDoubleClick(invIdx); // 해당 아이템 더블클릭 효과 발동
-            addLog(`[${key}] ${itemName} 사용 대기... (대상을 클릭하세요)`, "s-cur");
-        } else {
-            addLog(`퀵슬롯에 등록된 [${itemName}] 아이템이 인벤토리에 없습니다.`, "s-fail");
-            quickSlots[key] = null; // 없으면 슬롯 초기화
-            drawQuickSlots();
-        }
+        if (invIdx !== -1) handleDoubleClick(invIdx);
     }
 
-    // 키보드 입력 감지 (F5 ~ F8)
-    window.addEventListener('keydown', function(e) {
-        const validKeys = ['F5', 'F6', 'F7', 'F8'];
-        if (validKeys.includes(e.key)) {
-            e.preventDefault(); // 🔥 브라우저 기본 기능(새로고침 등) 완벽 차단!
-            triggerQuickSlot(e.key);
-        }
+    window.addEventListener('keydown', (e) => {
+        if (['F5', 'F6', 'F7', 'F8'].includes(e.key)) { e.preventDefault(); triggerQuickSlot(e.key); }
     });
+
+    document.getElementById('type').innerHTML = Object.keys(db).map(k => `<option>${k}</option>`).join('');
     updateList(); draw();
-    // ==========================================
-    // 🎵 유튜브 BGM 플레이어 스크립트 🎵
-    // ==========================================
-    // 유튜브 API 동적 로드
+
     const tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    document.getElementsByTagName('script')[0].parentNode.insertBefore(tag, document.getElementsByTagName('script')[0]);
 
     let player;
-    // API 로드가 완료되면 자동으로 실행되는 함수
     function onYouTubeIframeAPIReady() {
-        player = new YT.Player('ytPlayer', {
-            height: '0', 
-            width: '0',
-            videoId: 'pDJk7Lt0wxE', // 현재 사용중인 유튜브 영상 ID
-            playerVars: {
-                'autoplay': 0, 
-                'controls': 0, 
-                'loop': 1,
-                'playlist': 'pDJk7Lt0wxE' // 루프를 위해 동일 ID 입력
-            },
-            events: {
-                'onReady': onPlayerReady
-            }
+        player = new YT.Player('ytPlayer', { height: '0', width: '0', videoId: 'pDJk7Lt0wxE', 
+            playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': 'pDJk7Lt0wxE' },
+            events: { 'onReady': (e) => e.target.setVolume(30) }
         });
     }
-
-    function onPlayerReady(event) {
-        player.setVolume(30); // 기본 볼륨 30
-    }
-
-    // 플레이어 조작 함수들
-    function playBGM() {
-        if (player && player.playVideo) player.playVideo();
-    }
-    function pauseBGM() {
-        if (player && player.pauseVideo) player.pauseVideo();
-    }
-    function changeVolume(vol) {
-        if (player && player.setVolume) player.setVolume(vol);
-    }
-    function hideBGM() {
-        pauseBGM(); // 창을 닫으면 노래 일시정지
-        document.getElementById('bgmContainer').style.display = 'none';
-    }
+    function playBGM() { if (player) player.playVideo(); }
+    function pauseBGM() { if (player) player.pauseVideo(); }
+    function changeVolume(vol) { if (player) player.setVolume(vol); }
+    function hideBGM() { pauseBGM(); document.getElementById('bgmContainer').style.display = 'none'; }
 </script>
 </body>
 </html>
