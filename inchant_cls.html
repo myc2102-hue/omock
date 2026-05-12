@@ -217,7 +217,13 @@
             padding: 8px; font-size: 14px; color: #ccc;
         }
         .rank-title { color: var(--gold); text-align: center; border-bottom: 1px dashed #444; padding-bottom: 4px; margin-bottom: 4px; font-weight: bold; }
-        .rank-item { display: flex; justify-content: space-between; margin-bottom: 2px; }
+       .rank-item { 
+            padding: 4px 0; 
+            border-bottom: 1px solid #222; 
+            white-space: nowrap;      /* 글자가 줄바꿈되지 않게 설정 */
+            overflow: hidden;         /* 넘치는 글자 숨김 */
+            text-overflow: ellipsis;  /* 너무 길면 ... 처리 */
+        }
         .rank-1 { color: var(--pink); font-weight: bold; }
         .rank-2 { color: #f39c12; }
         .rank-3 { color: #f1c40f; }
@@ -530,7 +536,11 @@
             container.innerHTML = data.length ? "" : `<div style="text-align:center; color:#555; font-size:11px;">기록 없음</div>`;
             data.forEach((r, idx) => {
                 let cls = idx === 0 ? "rank-1" : (idx === 1 ? "rank-2" : (idx === 2 ? "rank-3" : ""));
-                container.innerHTML += `<div class="rank-item ${cls}" style="font-size:11px;"><span>${idx+1}. +${r.lvl} ${r.item}</span></div>`;
+                // 🔥 수정: 아이템 이름 뒤에 [사용자 아이디]를 추가했습니다.
+                container.innerHTML += `
+                    <div class="rank-item ${cls}" style="font-size:11px;">
+                        <span>${idx+1}. +${r.lvl} ${r.item} <span style="color:#aaa; font-size:10px;">[${r.user}]</span></span>
+                    </div>`;
             });
         };
         renderRank(wList, weapons);
