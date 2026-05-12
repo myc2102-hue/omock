@@ -683,13 +683,16 @@
             } else if (roll < successRate) {
                 // 성공
                 let up = 1;
-                if (scroll.sType === 'b' && target.lvl < 7) up = Math.floor(Math.random() * 3) + 1;
+               if (scroll.sType === 'b' && target.lvl < 7) {
+                    up = Math.floor(Math.random() * 3) + 1;
+                    if (target.lvl + up > target.safe) up = Math.max(1, target.safe - target.lvl);
+                }
                 target.lvl += up;
                 let lightMsg = "강렬하게 은빛으로 빛납니다.";
                 if (target.lvl >= 9) lightMsg = "영롱하게 붉은빛을 냅니다.";
                 else if (target.lvl >= 7) lightMsg = "강렬하게 푸른빛을 냅니다.";
                 addLog(`${targetName}이(가) ${lightMsg}`, "s-suc");
-               realDB.ref("enchants").push({ user: myUserId, item: target.name, lvl: target.lvl, type: target.target, timestamp: firebase.database.ServerValue.TIMESTAMP });
+                realDB.ref("enchants").push({ user: myUserId, item: target.name, lvl: target.lvl, type: target.target, timestamp: firebase.database.ServerValue.TIMESTAMP });
                 if (target.lvl >= 9) { showShareCard(target.name, target.lvl, target.img, scrollUsed[target.name] || 0); }
             } else if (roll < successRate + keepRate) {
                 // 유지 (아무 일도 일어나지 않음)
