@@ -355,9 +355,9 @@ const firebaseConfig = {
             return;
         }
         
-        // 비밀 관리자 접속: admin → 데포로쥬로 자동 변환
+// 비밀 관리자 접속: admin → 데포로쥬로 자동 변환
         if (inputName.toLowerCase() === "admin") {
-            myUserId = "데포로쥬";
+            myUserId = "👑데포로쥬";
         } else {
             // 예약된 아이디 차단 (관리자/운영자 사칭 방지)
             const reserved = ["데포로쥬", "관리자", "운영자", "GM", "gm"];
@@ -793,11 +793,19 @@ const firebaseConfig = {
             
             const [successRate, keepRate, destroyRate] = getRate(target, scroll.sType);
             
-            if (successRate >= 100) {
+if (successRate >= 100) {
                 // === 안전 강화 구간: 100% 성공 ===
                 let up = 1;
                 if (scroll.sType === 'b') {
-                    up = Math.floor(Math.random() * 3) + 1;
+                    if (target.target === 'w') { // 무기일 경우
+                        if (target.lvl <= 7) {
+                            up = Math.floor(Math.random() * 2) + 1; // 1~2 무작위 상승
+                        } else {
+                            up = 1; // 8강 이상은 무조건 1 상승
+                        }
+                    } else { // 방어구일 경우 기존 로직 유지 (1~2 상승)
+                        up = Math.floor(Math.random() * 2) + 1;
+                    }
                 }
                 target.lvl += up;
                 
@@ -815,11 +823,19 @@ const firebaseConfig = {
                 // === 위험 구간: 성공 / 유지 / 파괴 판정 ===
                 const roll = Math.random() * 100;
                 
-                if (roll < successRate) {
+if (roll < successRate) {
                     // 성공!
                     let up = 1;
                     if (scroll.sType === 'b') {
-                        up = Math.floor(Math.random() * 3) + 1;
+                        if (target.target === 'w') { // 무기일 경우
+                            if (target.lvl <= 7) {
+                                up = Math.floor(Math.random() * 2) + 1; // 1~2 무작위 상승
+                            } else {
+                                up = 1; // 8강 이상은 무조건 1 상승
+                            }
+                        } else { // 방어구일 경우 기존 로직 유지 (1~2 상승)
+                            up = Math.floor(Math.random() * 2) + 1;
+                        }
                     }
                     target.lvl += up;
                     
