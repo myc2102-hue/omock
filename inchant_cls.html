@@ -113,6 +113,50 @@
             background: var(--border-dark); padding: 3px;
             border-top: 1px solid #111; border-left: 1px solid #111;
             border-bottom: 1px solid #999; border-right: 1px solid #999;
+            /* 🔥 추가: 인벤토리 스크롤 기능 */
+            max-height: 295px; overflow-y: auto; align-content: start;
+        }
+        /* 인벤토리 스크롤바 디자인 */
+        .inv-grid::-webkit-scrollbar { width: 12px; }
+        .inv-grid::-webkit-scrollbar-track { background: #111; border-left: 1px solid #333; }
+        .inv-grid::-webkit-scrollbar-thumb { background: #3a3d42; border: 1px solid #555; }
+
+        /* 🔥 추가: 리니지 오리지널 스타일 퀵슬롯 디자인 */
+        .quick-slots { 
+            display: flex; justify-content: center; 
+            margin: 12px auto 0; padding: 0; width: fit-content;
+            background: #111; 
+            border: 2px solid #2a2520; 
+            border-top-color: #5a5040; border-left-color: #5a5040;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.8);
+        }
+        .q-slot {
+            width: 52px; height: 52px; 
+            background: #18191c url('https://www.transparenttextures.com/patterns/black-scales.png'); 
+            border-right: 1px solid #4a453a; 
+            position: relative; cursor: pointer; box-sizing: border-box;
+        }
+        .q-slot:last-child { border-right: none; }
+        .q-slot:hover { box-shadow: inset 0 0 15px rgba(255,235,153,0.15); }
+        .q-slot:active { border-top: 2px solid #000; border-left: 2px solid #000; }
+
+        .q-label { 
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; justify-content: center; align-items: center;
+            font-family: 'Times New Roman', serif; 
+            font-size: 28px; font-weight: bold; font-style: italic;
+            color: #1a1a1a; 
+            text-shadow: 1px 1px 0px #2a2a2a, -1px -1px 0px #000; 
+            z-index: 1; pointer-events: none; user-select: none;
+        }
+
+        .q-content { 
+            position: relative; z-index: 2; width: 100%; height: 100%; 
+            display: flex; justify-content: center; align-items: center; pointer-events: none;
+        }
+        .q-content img { 
+            width: 75%; height: 75%; object-fit: contain; image-rendering: pixelated; 
+            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.8)); 
         }
 
         .slot {
@@ -281,6 +325,21 @@
             <div class="inventory-window window">
                 <div id="status">주문서를 더블클릭 하십시오.</div>
                 <div class="inv-grid" id="grid"></div>
+                
+                <div class="quick-slots">
+                    <div class="q-slot" onclick="clickQuickSlot('F5')" ondrop="dropQuick(event, 'F5')" ondragover="allowDrop(event)">
+                        <span class="q-label">F5</span><div id="q-content-F5" class="q-content"></div>
+                    </div>
+                    <div class="q-slot" onclick="clickQuickSlot('F6')" ondrop="dropQuick(event, 'F6')" ondragover="allowDrop(event)">
+                        <span class="q-label">F6</span><div id="q-content-F6" class="q-content"></div>
+                    </div>
+                    <div class="q-slot" onclick="clickQuickSlot('F7')" ondrop="dropQuick(event, 'F7')" ondragover="allowDrop(event)">
+                        <span class="q-label">F7</span><div id="q-content-F7" class="q-content"></div>
+                    </div>
+                    <div class="q-slot" onclick="clickQuickSlot('F8')" ondrop="dropQuick(event, 'F8')" ondragover="allowDrop(event)">
+                        <span class="q-label">F8</span><div id="q-content-F8" class="q-content"></div>
+                    </div>
+                </div>
             </div>
 
             <div class="chat-window window">
@@ -535,7 +594,8 @@ const firebaseConfig = {
         ]
     };
 
-    let inv = Array(30).fill(null);
+    let inv = Array(60).fill(null); // 인벤토리 60칸으로 확장
+    let quickSlots = { F5: null, F6: null, F7: null, F8: null }; // 퀵슬롯 데이터 저장용 변수
     let activeIdx = null;
     let dragIdx = null; 
     let pressTimer;
@@ -546,14 +606,14 @@ const firebaseConfig = {
         
         const addEquipment = (itemName) => {
             let itemObj = db["무기"].find(i => i.name === itemName) || db["방어구"].find(i => i.name === itemName);
-            if (itemObj && slotIndex < 30) {
+            if (itemObj && slotIndex < 60) {
                 inv[slotIndex++] = { ...itemObj, lvl: 0, qty: 1 };
             }
         };
 
         const addScroll = (itemName, quantity) => {
             let itemObj = db["주문서"].find(i => i.name === itemName);
-            if (itemObj && slotIndex < 30) {
+            if (itemObj && slotIndex < 60) {
                 inv[slotIndex++] = { ...itemObj, qty: quantity };
             }
         };
@@ -913,6 +973,71 @@ if (roll < successRate) {
             });
         }
     }
+    // ==========================================
+    // 🔥 퀵슬롯 및 단축키 기능 🔥
+    // ==========================================
+    
+    // 퀵슬롯에 아이템 드롭 시
+    function dropQuick(e, key) {
+        e.preventDefault();
+        if (dragIdx === null || !inv[dragIdx]) return;
+        
+        const item = inv[dragIdx];
+        if (item.stackable) { // 주문서(중첩 가능한 아이템)만 등록 허용
+            quickSlots[key] = item.name;
+            drawQuickSlots();
+            addLog(`[${key}] 슬롯에 ${item.name} 등록 완료.`, "s-sys");
+        } else {
+            addLog("주문서류만 퀵슬롯에 등록할 수 있습니다.", "s-fail");
+        }
+        dragIdx = null; 
+        draw(); // 원본 슬롯 투명도 복구용
+    }
+
+    // 퀵슬롯 UI 그리기
+    function drawQuickSlots() {
+        ['F5', 'F6', 'F7', 'F8'].forEach(key => {
+            const contentDiv = document.getElementById(`q-content-${key}`);
+            const itemName = quickSlots[key];
+            if (itemName) {
+                let itemObj = db["주문서"].find(i => i.name === itemName);
+                if (itemObj) contentDiv.innerHTML = `<img src="${itemObj.img}">`;
+            } else {
+                contentDiv.innerHTML = ``;
+            }
+        });
+    }
+
+    // 퀵슬롯 클릭 시 (모바일 지원용)
+    function clickQuickSlot(key) {
+        triggerQuickSlot(key);
+    }
+
+    // 실제 퀵슬롯 작동 로직
+    function triggerQuickSlot(key) {
+        const itemName = quickSlots[key];
+        if (!itemName) return;
+
+        // 등록된 아이템을 인벤토리에서 찾기
+        const invIdx = inv.findIndex(item => item && item.name === itemName);
+        if (invIdx !== -1) {
+            handleDoubleClick(invIdx); // 해당 아이템 더블클릭 효과 발동
+            addLog(`[${key}] ${itemName} 사용 대기... (대상을 클릭하세요)`, "s-cur");
+        } else {
+            addLog(`퀵슬롯에 등록된 [${itemName}] 아이템이 인벤토리에 없습니다.`, "s-fail");
+            quickSlots[key] = null; // 없으면 슬롯 초기화
+            drawQuickSlots();
+        }
+    }
+
+    // 키보드 입력 감지 (F5 ~ F8)
+    window.addEventListener('keydown', function(e) {
+        const validKeys = ['F5', 'F6', 'F7', 'F8'];
+        if (validKeys.includes(e.key)) {
+            e.preventDefault(); // 🔥 브라우저 기본 기능(새로고침 등) 완벽 차단!
+            triggerQuickSlot(e.key);
+        }
+    });
     updateList(); draw();
     // ==========================================
     // 🎵 유튜브 BGM 플레이어 스크립트 🎵
