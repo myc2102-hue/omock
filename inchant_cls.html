@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lineage Classic - Massive DB Expansion</title>
+    <title>강화 시뮬레이터 - Enchant Simulator</title>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -35,9 +35,69 @@
             display: flex; align-items: center; justify-content: center; flex-direction: column;
         }
         #loginBox {
-            background: var(--bg-stone); border: 2px solid var(--border-light);
-            padding: 30px; text-align: center; border-radius: 8px;
-            box-shadow: 5px 5px 20px #000;
+            background: linear-gradient(180deg, #3a3d4a 0%, #22242a 100%);
+            border: 2px solid #9ba0af;
+            border-top: 3px solid #b2b6c7;
+            border-left: 3px solid #b2b6c7;
+            border-bottom: 3px solid #111;
+            border-right: 3px solid #111;
+            padding: 0; text-align: center; border-radius: 4px;
+            box-shadow: 8px 8px 30px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.1);
+            width: 340px;
+        }
+        #loginBox .login-titlebar {
+            background: linear-gradient(90deg, #1a1c22 0%, #2a2d38 50%, #1a1c22 100%);
+            border-bottom: 1px solid #555;
+            padding: 10px 15px;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        #loginBox .login-titlebar::before {
+            content: '─── '; color: #555; margin-right: 8px;
+        }
+        #loginBox .login-titlebar::after {
+            content: ' ───'; color: #555; margin-left: 8px;
+        }
+        #loginBox .login-body {
+            padding: 25px 30px 30px;
+        }
+        #loginBox .login-title {
+            color: var(--gold); font-size: 22px; margin: 0;
+            text-shadow: 2px 2px 4px #000, 0 0 10px rgba(255,235,153,0.3);
+            letter-spacing: 3px;
+        }
+        #loginBox .login-subtitle {
+            color: #888; font-size: 12px; margin-top: 4px;
+            letter-spacing: 1px;
+        }
+        #loginBox .login-input {
+            font-size: 16px; padding: 10px; text-align: center; width: 200px;
+            background: #0a0b0c; color: #fff; border: 2px solid #333;
+            border-top-color: #111; border-left-color: #111;
+            border-bottom-color: #666; border-right-color: #666;
+            font-family: 'DungGeunMo', 'Gulim', sans-serif;
+        }
+        #loginBox .login-input:focus {
+            outline: none; border-color: var(--gold);
+            box-shadow: 0 0 8px rgba(255,235,153,0.2);
+        }
+        #loginBox .login-btn {
+            font-size: 15px; padding: 10px 40px;
+            background: linear-gradient(180deg, #4a4d5a 0%, #2a2d38 100%);
+            color: var(--gold); border: 2px solid #666;
+            border-top-color: #999; border-left-color: #999;
+            border-bottom-color: #222; border-right-color: #222;
+            cursor: pointer; font-family: 'DungGeunMo', 'Gulim', sans-serif;
+            letter-spacing: 2px;
+            text-shadow: 1px 1px 0 #000;
+        }
+        #loginBox .login-btn:hover {
+            background: linear-gradient(180deg, #5a5d6a 0%, #3a3d48 100%);
+            color: #fff;
+        }
+        #loginBox .login-btn:active {
+            border-top-color: #222; border-left-color: #222;
+            border-bottom-color: #999; border-right-color: #999;
         }
 
         .app-container { width: 100%; max-width: 968px; display: flex; flex-direction: column; gap: 22px; }
@@ -162,11 +222,18 @@
 
     <div id="loginOverlay">
         <div id="loginBox">
-            <h2 style="color:var(--gold); margin-top:0;">리니지 클래식 테스트서버</h2>
-            <p style="font-size:14px; margin-bottom:20px;">서버에 접속하실 아이디(캐릭터명)를 입력하세요.</p>
-            <input type="text" id="usernameInput" placeholder="캐릭터명" maxlength="10" style="font-size:16px; padding:10px; text-align:center; width:200px;">
-            <br><br>
-            <button onclick="joinServer()" style="font-size:16px; padding:10px 30px;">접속하기</button>
+            <div class="login-titlebar">
+                <span style="color:var(--gold); font-size:13px;">강화 시뮬레이터</span>
+            </div>
+            <div class="login-body">
+                <div class="login-title">강화 시뮬레이터</div>
+                <div class="login-subtitle">ENCHANT SIMULATOR</div>
+                <div style="margin: 20px 0 6px; color:#aaa; font-size:13px;">캐릭터명을 입력하세요</div>
+                <input type="text" id="usernameInput" class="login-input" placeholder="캐릭터명" maxlength="10">
+                <br><br>
+                <button onclick="joinServer()" class="login-btn">접 속 하 기</button>
+                <div style="margin-top:16px; color:#555; font-size:10px;">비공식 팬 제작 시뮬레이터</div>
+            </div>
         </div>
     </div>
 
@@ -212,7 +279,12 @@
         </div>
 
         <div class="credits-section">
-            리니지클래식 어레인서버 ID: <span>데포로쥬</span> 문의<br>
+            리니지클래식 어레인서버 ID: <span>데포로쥬</span> 문의
+        </div>
+        <div style="text-align:center; color:#555; font-size:11px; margin-top:16px; line-height:1.5; text-shadow:none; padding:0 10px;">
+            본 사이트는 비공식 제작 시뮬레이터이며, ㈜엔씨소프트(NCSOFT)와 어떠한 제휴·협력·승인 관계도 없습니다.<br>
+            리니지(Lineage) 및 관련 상표, 이미지, 게임 데이터 등 모든 지적재산권은 ㈜엔씨소프트에 귀속됩니다.<br>
+            본 사이트는 영리 목적이 아닌 팬 활동의 일환으로 제작되었으며, 권리자의 요청 시 즉시 삭제됩니다.
         </div>
     </div>
 
@@ -246,6 +318,14 @@ const firebaseConfig = {
             alert("캐릭터명을 입력해주세요!");
             return;
         }
+        
+        // 예약된 아이디 차단 (관리자/운영자 사칭 방지)
+        const reserved = ["데포로쥬", "관리자", "운영자", "GM", "gm", "admin", "Admin", "ADMIN"];
+        if (reserved.some(r => inputName === r || inputName.toLowerCase() === r.toLowerCase())) {
+            alert("사용할 수 없는 캐릭터명입니다.");
+            return;
+        }
+        
         myUserId = inputName;
         document.getElementById("loginOverlay").style.display = "none";
         
