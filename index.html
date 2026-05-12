@@ -24,10 +24,6 @@
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-   
-
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
         @font-face {
@@ -49,7 +45,6 @@
             font-size: 15.4px;
         }
 
-        /* 🔥 로그인 오버레이 스타일 🔥 */
         #loginOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.95); z-index: 10000;
@@ -134,15 +129,12 @@
             background: var(--border-dark); padding: 3px;
             border-top: 1px solid #111; border-left: 1px solid #111;
             border-bottom: 1px solid #999; border-right: 1px solid #999;
-            /* 🔥 추가: 인벤토리 스크롤 기능 */
             max-height: 295px; overflow-y: auto; align-content: start;
         }
-        /* 인벤토리 스크롤바 디자인 */
         .inv-grid::-webkit-scrollbar { width: 12px; }
         .inv-grid::-webkit-scrollbar-track { background: #111; border-left: 1px solid #333; }
         .inv-grid::-webkit-scrollbar-thumb { background: #3a3d42; border: 1px solid #555; }
 
-        /* 🔥 추가: 리니지 오리지널 스타일 퀵슬롯 디자인 */
         .quick-slots { 
             display: flex; justify-content: center; 
             margin: 12px auto 0; padding: 0; width: fit-content;
@@ -160,7 +152,6 @@
         .q-slot:last-child { border-right: none; }
         .q-slot:hover { box-shadow: inset 0 0 15px rgba(255,235,153,0.15); }
         .q-slot:active { border-top: 2px solid #000; border-left: 2px solid #000; }
-
         .q-label { 
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
             display: flex; justify-content: center; align-items: center;
@@ -170,7 +161,6 @@
             text-shadow: 1px 1px 0px #2a2a2a, -1px -1px 0px #000; 
             z-index: 1; pointer-events: none; user-select: none;
         }
-
         .q-content { 
             position: relative; z-index: 2; width: 100%; height: 100%; 
             display: flex; justify-content: center; align-items: center; pointer-events: none;
@@ -198,12 +188,10 @@
         .count-text { position: absolute; bottom: 2px; right: 4px; color: #fff; font-size: 13.2px; text-shadow: 1px 1px 0 #000; z-index: 10; pointer-events: none; }
 
         .slot .fallback-icon {
-            display: none;
-            width: 80%; height: 80%;
+            display: none; width: 80%; height: 80%;
             justify-content: center; align-items: center;
             font-size: 10px; color: #aaa; text-align: center;
-            line-height: 1.1; word-break: keep-all;
-            pointer-events: none;
+            line-height: 1.1; word-break: keep-all; pointer-events: none;
         }
 
         .chat-window { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg-stone); padding: 13px; gap: 4px; }
@@ -211,26 +199,22 @@
         .chat-tab { background: linear-gradient(to bottom, #5d6166, #2a2c33); border: 1px solid #111; border-top: 1px solid #9ba0af; border-left: 1px solid #9ba0af; padding: 4px 13px; font-size: 13.2px; color: #aaa; cursor: pointer; border-top-left-radius: 4px; border-top-right-radius: 4px; }
         .chat-tab.active { background: #000; color: var(--gold); border-bottom: 1px solid #000; }
 
-        /* 🔥 실시간 랭킹 UI 스타일 🔥 */
         #rankingBoard {
             background: #050505; border: 1px solid #333; border-bottom: none;
             padding: 8px; font-size: 14px; color: #ccc;
         }
         .rank-title { color: var(--gold); text-align: center; border-bottom: 1px dashed #444; padding-bottom: 4px; margin-bottom: 4px; font-weight: bold; }
-       .rank-item { 
-            padding: 4px 0; 
-            border-bottom: 1px solid #222; 
-            white-space: nowrap;      /* 글자가 줄바꿈되지 않게 설정 */
-            overflow: hidden;         /* 넘치는 글자 숨김 */
-            text-overflow: ellipsis;  /* 너무 길면 ... 처리 */
+        .rank-item { 
+            padding: 4px 0; border-bottom: 1px solid #222; 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .rank-1 { color: var(--pink); font-weight: bold; }
         .rank-2 { color: #f39c12; }
         .rank-3 { color: #f1c40f; }
         
-       #log {
+        #log {
             flex-grow: 1; padding: 11px; font-size: 15.4px; line-height: 1.6; overflow-y: auto; text-shadow: 1px 1px 0 #000; 
-            height: 240px; max-height: 240px; /* 🔥 높이 축소 */
+            height: 240px; max-height: 240px;
             background: #000; border-top: 2px solid #050505; border-left: 2px solid #050505; border-bottom: 2px solid #444; border-right: 2px solid #444;
         }
         #log::-webkit-scrollbar { width: 17px; }
@@ -243,7 +227,7 @@
         .chat-input { flex-grow: 1; background: transparent; border: none; color: #fff; padding: 7px 9px; font-family: inherit; font-size: 15.4px; outline: none; text-shadow: 1px 1px 0 #000; }
 
         .s-suc { color: var(--green); } .s-fail { color: var(--red); } .s-cur { color: var(--blue); } .s-sys { color: var(--gold); }
-        .s-chat { color: #fff; } /* 실시간 유저 채팅 텍스트 색상 */
+        .s-chat { color: #fff; }
 
         .item-popup {
             display: none; position: fixed; background: rgba(0, 0, 0, 0.85);
@@ -254,9 +238,7 @@
         .item-popup .p-title { color: var(--gold); font-size: 16.5px; margin-bottom: 4px; border-bottom: 1px solid #333; padding-bottom: 4px; }
         .item-popup .p-safe { color: #aaa; }
 
-        .credits-section {
-            text-align: center; color: #aaa; font-size: 14.3px; margin-top: 11px; line-height: 1.6; text-shadow: 1px 1px 0 #000;
-        }
+        .credits-section { text-align: center; color: #aaa; font-size: 14.3px; margin-top: 11px; line-height: 1.6; text-shadow: 1px 1px 0 #000; }
         .credits-section span { color: var(--gold); }
         
         @media (max-width: 480px) {
@@ -265,7 +247,6 @@
             .admin-controls select, .admin-controls input, .admin-controls button { width: 100%; box-sizing: border-box; }
             .main-content { flex-direction: column; gap: 10px; } .inventory-window { width: 100%; } 
             .chat-window { height: auto; } 
-            /* 모바일에서도 랭킹창 공간 확보 */
             #log { height: 150px; max-height: 150px; } 
         }
     </style>
@@ -273,7 +254,6 @@
 <body id="b">
 
     <audio id="soundDrop" src="https://actions.google.com/sounds/v1/foley/drop_leather.ogg"></audio>
-
     <div id="itemPopup" class="item-popup window"></div>
 
     <div id="loginOverlay">
@@ -284,16 +264,13 @@
             <div class="login-corner br"></div>
             <div class="login-side-l"></div>
             <div class="login-side-r"></div>
-
             <div class="login-title">강화 시뮬레이터</div>
             <div class="login-subtitle">ENCHANT SIMULATOR</div>
             <div class="login-divider"></div>
-
             <div style="margin-bottom: 20px;">
                 <div class="login-label">[ 캐릭터명 ]</div>
                 <input type="text" id="usernameInput" class="login-input" placeholder="캐릭터명을 입력하세요" maxlength="10">
             </div>
-
             <div style="margin-bottom: 20px;">
                 <div class="login-label">[ 사운드 ]</div>
                 <div style="display: flex; align-items: center; gap: 16px; padding-left: 4px;">
@@ -302,9 +279,7 @@
                     <span class="login-sound-option login-sound-on" id="sfxToggle" onclick="toggleSFX()">효과음 : ON</span>
                 </div>
             </div>
-
             <div class="login-divider"></div>
-
             <div style="text-align: center; margin-top: 16px;">
                 <button onclick="joinServer()" class="login-btn">접 속 하 기</button>
             </div>
@@ -314,23 +289,17 @@
         </div>
     </div>
 
-    <!-- BGM 플레이어 (숨김) -->
     <div id="bgmContainer" class="window" style="position:fixed; bottom:20px; right:20px; z-index:9998; width:240px; display:none; flex-direction:column; gap:10px; border:2px solid #333; background: #0a0a0a;">
-        <div style="font-size:13px; color:var(--gold); text-align:center; border-bottom:1px dashed #444; padding-bottom:5px;">
-            🎵 BGM Player
-        </div>
-        
+        <div style="font-size:13px; color:var(--gold); text-align:center; border-bottom:1px dashed #444; padding-bottom:5px;">🎵 BGM Player</div>
         <div style="display:flex; justify-content:center; gap:5px;">
             <button onclick="playBGM()" style="font-size:12px; padding:4px 8px; border-radius:3px; background:#1a1a1a;">▶ 재생</button>
             <button onclick="pauseBGM()" style="font-size:12px; padding:4px 8px; border-radius:3px; background:#1a1a1a;">⏸ 일시정지</button>
             <button onclick="hideBGM()" style="font-size:12px; padding:4px 8px; border-radius:3px; background:#3a1a1a; color:var(--red);">✖ 닫기</button>
         </div>
-        
         <div style="display:flex; align-items:center; justify-content:center; gap:10px; font-size:12px; color:#ccc;">
             <span>음량</span>
             <input type="range" id="bgmVolume" min="0" max="100" value="30" oninput="changeVolume(this.value)" style="width:120px; cursor:pointer;">
         </div>
-
         <div id="ytPlayer" style="display:none;"></div>
     </div>
 
@@ -351,7 +320,6 @@
             <div class="inventory-window window">
                 <div id="status">주문서를 더블클릭 하십시오.</div>
                 <div class="inv-grid" id="grid"></div>
-                
                 <div class="quick-slots">
                     <div class="q-slot" onclick="clickQuickSlot('F5')" ondrop="dropQuick(event, 'F5')" ondragover="allowDrop(event)">
                         <span class="q-label">F5</span><div id="q-content-F5" class="q-content"></div>
@@ -372,12 +340,10 @@
                 <div class="chat-tabs">
                     <div class="chat-tab active">전체</div><div class="chat-tab">혈맹</div><div class="chat-tab">파티</div><div class="chat-tab">장사</div>
                 </div>
-                
                 <div id="onlineBar" style="background:#0a0a0a; border:1px solid #333; border-bottom:none; padding:5px 10px; font-size:12px; display:flex; justify-content:space-between; color:#888;">
                     <span>접속: <span id="onlineCount" style="color:var(--green);">0</span>명</span>
                     <span>누적: <span id="totalCount" style="color:var(--gold);">0</span>명</span>
                 </div>
-
                 <div id="rankingBoard">
                     <div class="rank-title">🏆 전서버 실시간 인챈트 랭킹 🏆</div>
                     <div style="display: flex; gap: 8px; padding: 0 5px 5px 5px;">
@@ -391,7 +357,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div id="log">
                     <div class="s-sys">도움말을 보려면 CTRL-H 를 눌러 주십시오.</div>
                     <div class="s-sys">시스템 메시지(인챈트 결과)는 본인에게만 보이며 타인에게 노출되지 않습니다.</div>
@@ -414,9 +379,6 @@
     </div>
 
 <script>
- // ==========================================
-    // 🔥 파이어베이스 연동 설정
-    // ==========================================
     const firebaseConfig = {
         apiKey: "AIzaSyBcNiClyycbiDyTNgABSMZUxy1Pub8Rezo",
         authDomain: "inchanchat.firebaseapp.com",
@@ -425,10 +387,7 @@
         messagingSenderId: "519834039681",
         appId: "1:519834039681:web:90ff93ef38793429c76480"
     };
-    
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const realDB = firebase.database();
     
     let myUserId = "익명";
@@ -441,7 +400,6 @@
         el.textContent = bgmEnabled ? 'BGM : ON' : 'BGM : OFF';
         el.className = bgmEnabled ? 'login-sound-option login-sound-on' : 'login-sound-option login-sound-off';
     }
-
     function toggleSFX() {
         sfxEnabled = !sfxEnabled;
         const el = document.getElementById('sfxToggle');
@@ -451,43 +409,27 @@
 
     function joinServer() {
         const inputName = document.getElementById("usernameInput").value.trim();
-        if(!inputName) {
-            alert("캐릭터명을 입력해주세요!");
-            return;
-        }
-        
+        if(!inputName) { alert("캐릭터명을 입력해주세요!"); return; }
         if (inputName.toLowerCase() === "admin") {
             myUserId = "👑데포로쥬";
             document.getElementById("resetBtn").style.display = "inline-block";
         } else {
             const reserved = ["데포로쥬", "관리자", "운영자", "GM", "gm"];
             if (reserved.some(r => inputName === r || inputName.toLowerCase() === r.toLowerCase())) {
-                alert("사용할 수 없는 캐릭터명입니다.");
-                return;
+                alert("사용할 수 없는 캐릭터명입니다."); return;
             }
             myUserId = inputName;
         }
-        
         document.getElementById("loginOverlay").style.display = "none";
         const chatInput = document.getElementById("chatInputBox");
         chatInput.readOnly = false;
         chatInput.placeholder = "엔터키를 눌러 채팅을 입력하세요.";
-        
-        realDB.ref("chats").push({
-            user: "관리자",
-            message: `${myUserId} 님이 접속하였습니다.`,
-            timestamp: firebase.database.ServerValue.TIMESTAMP
-        });
-
+        realDB.ref("chats").push({ user: "관리자", message: `${myUserId} 님이 접속하였습니다.`, timestamp: firebase.database.ServerValue.TIMESTAMP });
         if (bgmEnabled) {
             document.getElementById('bgmContainer').style.display = 'flex';
-            if (player && player.playVideo) {
-                player.playVideo();
-            } else {
-                setTimeout(() => { if (player && player.playVideo) player.playVideo(); }, 1000);
-            }
+            if (player && player.playVideo) player.playVideo();
+            else setTimeout(() => { if (player && player.playVideo) player.playVideo(); }, 1000);
         }
-
         const myOnlineRef = realDB.ref("online/" + Date.now() + "_" + Math.random().toString(36).substr(2, 5));
         myOnlineRef.set(myUserId);
         myOnlineRef.onDisconnect().remove();
@@ -497,69 +439,31 @@
     document.getElementById("chatInputBox").addEventListener("keypress", function(e) {
         if (e.key === "Enter") {
             const msg = this.value.trim();
-            if (msg) {
-                realDB.ref("chats").push({
-                    user: myUserId,
-                    message: msg,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
-                });
-                this.value = ""; 
-            }
+            if (msg) { realDB.ref("chats").push({ user: myUserId, message: msg, timestamp: firebase.database.ServerValue.TIMESTAMP }); this.value = ""; }
         }
     });
 
-    realDB.ref("online").on("value", (snapshot) => {
-        document.getElementById("onlineCount").textContent = snapshot.numChildren();
-    });
+    realDB.ref("online").on("value", (snapshot) => { document.getElementById("onlineCount").textContent = snapshot.numChildren(); });
+    realDB.ref("stats/totalVisits").on("value", (snapshot) => { document.getElementById("totalCount").textContent = snapshot.val() || 0; });
+    realDB.ref("chats").orderByChild("timestamp").limitToLast(50).on("child_added", (snapshot) => { const data = snapshot.val(); addLog(`[${data.user}] ${data.message}`, "s-chat"); });
 
-    realDB.ref("stats/totalVisits").on("value", (snapshot) => {
-        document.getElementById("totalCount").textContent = snapshot.val() || 0;
-    });
-
-    realDB.ref("chats").orderByChild("timestamp").limitToLast(50).on("child_added", (snapshot) => {
-        const data = snapshot.val();
-        addLog(`[${data.user}] ${data.message}`, "s-chat");
-    });
-
-// 🔥 통합 랭킹 수신 로직 (무기/방어구 분리 + 아이디 표시 + 덮어쓰기 방지)
     realDB.ref("enchants").orderByChild("lvl").limitToLast(200).on("value", (snapshot) => {
         let records = [];
-        snapshot.forEach(child => {
-            const data = child.val();
-            // 데이터에 user 정보가 없으면 '익명'으로 표시
-            if(!data.user) data.user = "익명";
-            records.push(data);
-        });
-        
-        // 1. 레벨 높은 순, 2. 최근 달성 순 정렬
+        snapshot.forEach(child => { const data = child.val(); if(!data.user) data.user = "익명"; records.push(data); });
         records.sort((a, b) => b.lvl - a.lvl || b.timestamp - a.timestamp);
-        
         const wList = document.getElementById("weaponRankList");
         const aList = document.getElementById("armorRankList");
-        
-        if (!wList || !aList) return; // 엘리먼트가 없으면 중단
-
-        // 타입별 필터링 (무기: w, 방어구: a)
+        if (!wList || !aList) return;
         const weapons = records.filter(r => r.type === 'w').slice(0, 5);
         const armors = records.filter(r => r.type === 'a').slice(0, 5);
-
         const renderRank = (container, data) => {
             container.innerHTML = data.length ? "" : `<div style="text-align:center; color:#555; font-size:11px;">기록 없음</div>`;
-            
             data.forEach((r, idx) => {
-                let cls = "";
-                if (idx === 0) cls = "rank-1";
-                else if (idx === 1) cls = "rank-2";
-                else if (idx === 2) cls = "rank-3";
-                
-                // 아이템 이름 옆에 [아이디] 표시
-                container.innerHTML += `
-                    <div class="rank-item ${cls}" style="font-size:11px; padding: 2px 0; border-bottom: 1px solid #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        <span>${idx + 1}. +${r.lvl} ${r.item} <span style="color:#888; font-size:10px;">[${r.user}]</span></span>
-                    </div>`;
+                let cls = ""; if (idx === 0) cls = "rank-1"; else if (idx === 1) cls = "rank-2"; else if (idx === 2) cls = "rank-3";
+                container.innerHTML += `<div class="rank-item ${cls}" style="font-size:11px; padding: 2px 0; border-bottom: 1px solid #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <span>${idx + 1}. +${r.lvl} ${r.item} <span style="color:#888; font-size:10px;">[${r.user}]</span></span></div>`;
             });
         };
-
         renderRank(wList, weapons);
         renderRank(aList, armors);
     });
@@ -623,72 +527,29 @@
 
     function initStartingItems() {
         let slotIndex = 0;
-        const addEquipment = (itemName) => {
-            let itemObj = db["무기"].find(i => i.name === itemName) || db["방어구"].find(i => i.name === itemName);
-            if (itemObj && slotIndex < 60) inv[slotIndex++] = { ...itemObj, lvl: 0, qty: 1 };
-        };
-        const addScroll = (itemName, quantity) => {
-            let itemObj = db["주문서"].find(i => i.name === itemName);
-            if (itemObj && slotIndex < 60) inv[slotIndex++] = { ...itemObj, qty: quantity };
-        };
-
-        addEquipment("싸울아비 장검");
-        addEquipment("기사의 면갑");
-        addEquipment("판금 갑옷");
-        addEquipment("티셔츠");
-        addEquipment("요정족 방패");
-        addEquipment("강철 부츠");
-        addEquipment("파워 글로브");
-        addEquipment("보호 망토");
-
-        addScroll("무기 마법 주문서", 200);
-        addScroll("갑옷 마법 주문서", 200);
-        addScroll("축복받은 무기 마법 주문서", 50);
-        addScroll("저주받은 무기 마법 주문서", 50);
-        addScroll("축복받은 갑옷 마법 주문서", 50);
-        addScroll("저주받은 갑옷 마법 주문서", 50);
+        const addEquipment = (n) => { let o = db["무기"].find(i=>i.name===n)||db["방어구"].find(i=>i.name===n); if(o&&slotIndex<60) inv[slotIndex++]={...o,lvl:0,qty:1}; };
+        const addScroll = (n,q) => { let o = db["주문서"].find(i=>i.name===n); if(o&&slotIndex<60) inv[slotIndex++]={...o,qty:q}; };
+        addEquipment("싸울아비 장검"); addEquipment("기사의 면갑"); addEquipment("판금 갑옷"); addEquipment("티셔츠");
+        addEquipment("요정족 방패"); addEquipment("강철 부츠"); addEquipment("파워 글로브"); addEquipment("보호 망토");
+        addScroll("무기 마법 주문서",200); addScroll("갑옷 마법 주문서",200);
+        addScroll("축복받은 무기 마법 주문서",50); addScroll("저주받은 무기 마법 주문서",50);
+        addScroll("축복받은 갑옷 마법 주문서",50); addScroll("저주받은 갑옷 마법 주문서",50);
     }
     initStartingItems();
 
-    function startPress(e, i) {
-        if (!inv[i]) return;
-        let cX = e.clientX || (e.touches && e.touches[0].clientX);
-        let cY = e.clientY || (e.touches && e.touches[0].clientY);
-        pressTimer = setTimeout(() => showPopup(i, cX, cY), 400);
-    }
-    function endPress() { clearTimeout(pressTimer); popup.style.display = 'none'; }
-    function showPopup(i, x, y) {
-        const item = inv[i]; if (!item) return;
-        let lvlStr = item.lvl !== undefined && item.lvl !== null ? (item.lvl >= 0 ? `+${item.lvl} ` : `${item.lvl} `) : '';
-        let html = `<div class="p-title">${lvlStr}${item.name}</div>`;
-        popup.innerHTML = html; popup.style.display = 'block';
-        popup.style.left = x + 15 + 'px'; popup.style.top = y + 15 + 'px';
-    }
+    function startPress(e, i) { if (!inv[i]) return; let cX=e.clientX||(e.touches&&e.touches[0].clientX); let cY=e.clientY||(e.touches&&e.touches[0].clientY); pressTimer=setTimeout(()=>showPopup(i,cX,cY),400); }
+    function endPress() { clearTimeout(pressTimer); popup.style.display='none'; }
+    function showPopup(i, x, y) { const item=inv[i]; if(!item) return; let lvlStr=item.lvl!==undefined&&item.lvl!==null?(item.lvl>=0?`+${item.lvl} `:`${item.lvl} `):''; popup.innerHTML=`<div class="p-title">${lvlStr}${item.name}</div>`; popup.style.display='block'; popup.style.left=x+15+'px'; popup.style.top=y+15+'px'; }
 
-    function updateList() { 
-        const t = document.getElementById('type').value; 
-        document.getElementById('items').innerHTML = db[t].map((v, i) => `<option value="${i}">${v.name}</option>`).join(''); 
-    }
-    
-    function give() { 
-        const t = document.getElementById('type').value, i = document.getElementById('items').value, a = parseInt(document.getElementById('amt').value), item = db[t][i]; 
-        if (item.stackable) { 
-            let existingIdx = inv.findIndex(s => s && s.name === item.name); 
-            if (existingIdx !== -1) inv[existingIdx].qty += a; 
-            else { let emptyIdx = inv.findIndex(s => s === null); if (emptyIdx !== -1) inv[emptyIdx] = { ...item, qty: a }; } 
-        } else { 
-            for(let k=0; k<a; k++) { let emptyIdx = inv.findIndex(s => s === null); if (emptyIdx !== -1) inv[emptyIdx] = { ...item, lvl: 0, qty: 1 }; } 
-        } 
-        draw(); 
-    }
+    function updateList() { const t=document.getElementById('type').value; document.getElementById('items').innerHTML=db[t].map((v,i)=>`<option value="${i}">${v.name}</option>`).join(''); }
+    function give() { const t=document.getElementById('type').value,i=document.getElementById('items').value,a=parseInt(document.getElementById('amt').value),item=db[t][i]; if(item.stackable){let e=inv.findIndex(s=>s&&s.name===item.name);if(e!==-1)inv[e].qty+=a;else{let e2=inv.findIndex(s=>s===null);if(e2!==-1)inv[e2]={...item,qty:a};}}else{for(let k=0;k<a;k++){let e=inv.findIndex(s=>s===null);if(e!==-1)inv[e]={...item,lvl:0,qty:1};}} draw(); }
 
     function draw() {
         const g = document.getElementById('grid');
         g.innerHTML = inv.map((item, i) => {
             const isSel = activeIdx === i ? 'active-scroll' : '';
             if(!item) return `<div class="slot" ondragover="allowDrop(event)" ondrop="drop(event, ${i})"></div>`;
-            return `
-                <div class="slot ${isSel}" draggable="true"
+            return `<div class="slot ${isSel}" draggable="true"
                      onclick="handleClick(${i})" ondblclick="handleDoubleClick(${i})"
                      onmousedown="startPress(event, ${i})" onmouseup="endPress()" onmouseleave="endPress()"
                      ondragstart="dragStart(event, ${i})" ondragover="allowDrop(event)" ondrop="drop(event, ${i})">
@@ -701,65 +562,113 @@
 
     function dragStart(e, i) { dragIdx = i; }
     function allowDrop(e) { e.preventDefault(); }
-    function drop(e, targetIdx) { 
-        e.preventDefault(); 
-        const temp = inv[dragIdx]; inv[dragIdx] = inv[targetIdx]; inv[targetIdx] = temp; 
-        dragIdx = null; draw(); 
-    }
-    
-    function handleDoubleClick(i) { 
-        const item = inv[i]; 
-        if(item && item.stackable) { 
-            activeIdx = i; 
-            document.getElementById('b').classList.add('mode-target'); 
-            document.getElementById('status').innerHTML = `[${item.name}] 대상을 선택하십시오.`; 
-            draw(); 
-        } 
-    }
+    function drop(e, targetIdx) { e.preventDefault(); const temp=inv[dragIdx]; inv[dragIdx]=inv[targetIdx]; inv[targetIdx]=temp; dragIdx=null; draw(); }
+    function handleDoubleClick(i) { const item=inv[i]; if(item&&item.stackable){activeIdx=i; document.getElementById('b').classList.add('mode-target'); document.getElementById('status').innerHTML=`[${item.name}] 대상을 선택하십시오.`; draw();} }
+    function handleClick(i) { const item=inv[i]; if(activeIdx!==null){if(activeIdx===i){cancel();return;} if(item&&!item.stackable&&item.target===inv[activeIdx].target) enchant(activeIdx,i); else{addLog("아무 일도 일어나지 않았습니다.","s-fail"); cancel();}} else if(item){document.getElementById('status').innerText=(item.lvl!==undefined?(item.lvl>=0?'+'+item.lvl+' ':item.lvl+' '):'')+item.name;} }
 
-    function handleClick(i) { 
-        const item = inv[i]; 
-        if (activeIdx !== null) { 
-            if (activeIdx === i) { cancel(); return; } 
-            if (item && !item.stackable && item.target === inv[activeIdx].target) enchant(activeIdx, i); 
-            else { addLog("아무 일도 일어나지 않았습니다.", "s-fail"); cancel(); } 
-        } else if(item) { 
-            document.getElementById('status').innerText = (item.lvl !== undefined ? (item.lvl >= 0 ? '+'+item.lvl+' ' : item.lvl+' ') : '') + item.name; 
-        } 
-    }
-
+    // ==========================================
+    // 🔥 6sword 공식 확률표 기반 강화 로직 🔥
+    // 일반/축복 주문서 확률 분리 적용
+    // +9 이상 성공/유지/파괴 3분기 판정
+    // ==========================================
     function enchant(si, ti) {
         const scroll = inv[si];
         const target = inv[ti];
         let targetName = (target.lvl !== 0 ? (target.lvl > 0 ? '+' + target.lvl + ' ' : target.lvl + ' ') : '') + target.name;
         
         if (scroll.sType === 'c') {
+            // 저주받은 주문서: 100% 성공, 1단계 하락
             if (target.lvl <= 0) { addLog("아무 일도 일어나지 않았습니다.", "s-fail"); } 
             else { target.lvl -= 1; addLog(`${targetName}이(가) 칠흑같이 검게 빛납니다.`, "s-cur"); }
         } else {
-           const roll = Math.random() * 100;
-            // 🔥 수정: 아이템의 safe 수치 미만이면 100%, 그 외에는 확률 적용
-            let success = 0;
-            if (target.lvl < target.safe) {
-                success = 100;
-            } else {
-                // 안전 강화 수치와 같거나 높을 때의 확률 (예: 본섭 기준 6강 시도시 약 33%)
-                success = (target.lvl === target.safe) ? 33 : 10; 
+            // 확률 테이블: [성공%, 유지%, 파괴%]
+            const ARMOR_NORMAL = {
+                4:[25,0,75], 5:[20,0,80], 6:[16.67,0,83.33], 7:[14.29,0,85.71], 8:[12.5,0,87.5],
+                9:[0.30,10.81,88.89], 10:[0.24,9.76,90], 11:[0.20,8.89,90.91],
+                12:[0.17,8.16,91.67], 13:[0.15,7.59,92.31], 14:[0.13,7.02,92.86]
+            };
+            const ARMOR_SPECIAL = {
+                6:[16.67,0,83.33], 7:[14.29,0,85.71], 8:[12.5,0,87.5],
+                9:[0.30,10.81,88.89], 10:[0.24,9.76,90], 11:[0.20,8.89,90.91],
+                12:[0.17,8.16,91.67], 13:[0.15,7.59,92.31], 14:[0.13,7.02,92.86]
+            };
+            const ARMOR_BONE = {
+                0:[50,0,50], 1:[33.33,0,66.67], 2:[25,0,75], 3:[20,0,80],
+                4:[16.67,0,83.33], 5:[14.29,0,85.71], 6:[12.5,0,87.5],
+                7:[11.11,0,88.89], 8:[10,0,90],
+                9:[0.25,8.85,90.91], 10:[0.20,8.13,91.67], 11:[0.17,7.52,92.31],
+                12:[0.15,7.00,92.86], 13:[0.13,6.54,93.33], 14:[0.11,6.14,93.75]
+            };
+            
+            function getRate(item, scrollType) {
+                const lvl = item.lvl;
+                if (lvl < item.safe) return [100, 0, 0];
+                
+                if (item.target === 'w') {
+                    if (scrollType === 'b') {
+                        // 축복받은 무기 마법 주문서
+                        const WB = {
+                            6:[33.3,0,66.7], 7:[33.3,0,66.7], 8:[33.3,0,66.7],
+                            9:[3.33,30.0,66.67], 10:[3.03,30.30,66.67], 11:[3.03,30.30,66.67],
+                            12:[3.03,30.30,66.67], 13:[3.03,30.30,66.67], 14:[3.03,30.30,66.67]
+                        };
+                        return WB[lvl] || [3.03,30.30,66.67];
+                    } else {
+                        // 일반 무기 마법 주문서
+                        const W = {
+                            6:[33.3,0,66.7], 7:[33.3,0,66.7], 8:[33.3,0,66.7],
+                            9:[0.98,32.4,66.7], 10:[0.81,32.5,66.7], 11:[0.74,32.6,66.7],
+                            12:[0.17,6.99,92.84], 13:[0.15,7.05,92.81], 14:[0.15,7.02,92.84]
+                        };
+                        return W[lvl] || [0.10,5.0,94.9];
+                    }
+                } else {
+                    if (scrollType === 'b' && lvl >= 9) {
+                        // 축복받은 갑옷 마법 주문서 (+9 이상)
+                        const AB = {
+                            9:[3.33,30.0,66.67], 10:[3.03,30.30,66.67], 11:[3.03,30.30,66.67],
+                            12:[3.03,30.30,66.67], 13:[3.03,30.30,66.67], 14:[3.03,30.30,66.67]
+                        };
+                        return AB[lvl] || [3.03,30.30,66.67];
+                    }
+                    // 일반 갑옷 마법 주문서
+                    let table;
+                    if (item.safe >= 6) table = ARMOR_SPECIAL;
+                    else if (item.safe <= 0) table = ARMOR_BONE;
+                    else table = ARMOR_NORMAL;
+                    return table[lvl] || [0.10,5.0,94.9];
+                }
             }
             
-            if (roll < success) {
-               let up = 1;
-                // 🔥 수정: 아이템의 안전 강화 수치 이하에서 축주문서 사용 시 1~2 랜덤 상승
-                if (scroll.sType === 'b' && target.lvl <= target.safe) {
-                    up = Math.floor(Math.random() * 2) + 1;
-                }
+            const [successRate, keepRate, destroyRate] = getRate(target, scroll.sType);
+            const roll = Math.random() * 100;
+            
+            if (successRate >= 100) {
+                // 안전 강화: 100% 성공
+                let up = 1;
+                if (scroll.sType === 'b' && target.lvl < 7) up = Math.floor(Math.random() * 3) + 1;
                 target.lvl += up;
-                addLog(`${targetName}이(가) 강렬하게 빛납니다.`, "s-suc");
-                realDB.ref("enchants").push({
-                    user: myUserId, item: target.name, lvl: target.lvl, type: target.target, timestamp: firebase.database.ServerValue.TIMESTAMP
-                });
+                let lightMsg = "강렬하게 은빛으로 빛납니다.";
+                if (target.lvl >= 9) lightMsg = "영롱하게 붉은빛을 냅니다.";
+                else if (target.lvl >= 7) lightMsg = "강렬하게 푸른빛을 냅니다.";
+                addLog(`${targetName}이(가) ${lightMsg}`, "s-suc");
+                realDB.ref("enchants").push({ user: myUserId, item: target.name, lvl: target.lvl, type: target.target, timestamp: firebase.database.ServerValue.TIMESTAMP });
+            } else if (roll < successRate) {
+                // 성공
+                let up = 1;
+                if (scroll.sType === 'b' && target.lvl < 7) up = Math.floor(Math.random() * 3) + 1;
+                target.lvl += up;
+                let lightMsg = "강렬하게 은빛으로 빛납니다.";
+                if (target.lvl >= 9) lightMsg = "영롱하게 붉은빛을 냅니다.";
+                else if (target.lvl >= 7) lightMsg = "강렬하게 푸른빛을 냅니다.";
+                addLog(`${targetName}이(가) ${lightMsg}`, "s-suc");
+                realDB.ref("enchants").push({ user: myUserId, item: target.name, lvl: target.lvl, type: target.target, timestamp: firebase.database.ServerValue.TIMESTAMP });
+            } else if (roll < successRate + keepRate) {
+                // 유지 (아무 일도 일어나지 않음)
+                addLog(`${targetName}이(가) 강렬하게 빛났지만 아무 일도 일어나지 않았습니다.`, "s-sys");
             } else {
-                addLog(`${targetName}이(가) 증발했습니다.`, "s-fail");
+                // 파괴
+                addLog(`${targetName}이(가) 강렬하게 빛나더니 증발하여 사라졌습니다.`, "s-fail");
                 inv[ti] = null;
             }
         }
@@ -767,56 +676,16 @@
         cancel();
     }
 
-    function cancel() { 
-        activeIdx = null; 
-        document.getElementById('b').classList.remove('mode-target'); 
-        document.getElementById('status').innerText = "주문서를 더블클릭 하십시오."; 
-        draw(); 
-    }
-    
-    function addLog(msg, cls) { 
-        const log = document.getElementById('log'); 
-        const div = document.createElement('div'); 
-        div.className = cls; div.innerText = msg; 
-        log.appendChild(div); log.scrollTop = log.scrollHeight; 
-    }
+    function cancel() { activeIdx=null; document.getElementById('b').classList.remove('mode-target'); document.getElementById('status').innerText="주문서를 더블클릭 하십시오."; draw(); }
+    function addLog(msg, cls) { const log=document.getElementById('log'); const div=document.createElement('div'); div.className=cls; div.innerText=msg; log.appendChild(div); log.scrollTop=log.scrollHeight; }
 
-    function resetRanking() {
-        if (confirm("정말 전서버 랭킹 데이터를 초기화하시겠습니까?")) {
-            realDB.ref("enchants").remove().then(() => alert("초기화되었습니다."));
-        }
-    }
+    function resetRanking() { if(confirm("정말 전서버 랭킹 데이터를 초기화하시겠습니까?")){ realDB.ref("enchants").remove().then(()=>alert("초기화되었습니다.")); } }
 
-    function dropQuick(e, key) {
-        e.preventDefault();
-        if (dragIdx === null || !inv[dragIdx]) return;
-        const item = inv[dragIdx];
-        if (item.stackable) { quickSlots[key] = item.name; drawQuickSlots(); }
-        dragIdx = null; draw();
-    }
-
-    function drawQuickSlots() {
-        ['F5', 'F6', 'F7', 'F8'].forEach(key => {
-            const contentDiv = document.getElementById(`q-content-${key}`);
-            const itemName = quickSlots[key];
-            if (itemName) {
-                let itemObj = db["주문서"].find(i => i.name === itemName);
-                if (itemObj) contentDiv.innerHTML = `<img src="${itemObj.img}">`;
-            } else { contentDiv.innerHTML = ``; }
-        });
-    }
-
+    function dropQuick(e, key) { e.preventDefault(); if(dragIdx===null||!inv[dragIdx]) return; const item=inv[dragIdx]; if(item.stackable){quickSlots[key]=item.name; drawQuickSlots();} dragIdx=null; draw(); }
+    function drawQuickSlots() { ['F5','F6','F7','F8'].forEach(key=>{const c=document.getElementById(`q-content-${key}`); const n=quickSlots[key]; if(n){let o=db["주문서"].find(i=>i.name===n); if(o) c.innerHTML=`<img src="${o.img}">`;}else{c.innerHTML='';}}); }
     function clickQuickSlot(key) { triggerQuickSlot(key); }
-    function triggerQuickSlot(key) {
-        const itemName = quickSlots[key];
-        if (!itemName) return;
-        const invIdx = inv.findIndex(item => item && item.name === itemName);
-        if (invIdx !== -1) handleDoubleClick(invIdx);
-    }
-
-    window.addEventListener('keydown', (e) => {
-        if (['F5', 'F6', 'F7', 'F8'].includes(e.key)) { e.preventDefault(); triggerQuickSlot(e.key); }
-    });
+    function triggerQuickSlot(key) { const n=quickSlots[key]; if(!n) return; const idx=inv.findIndex(item=>item&&item.name===n); if(idx!==-1) handleDoubleClick(idx); }
+    window.addEventListener('keydown', (e) => { if(['F5','F6','F7','F8'].includes(e.key)){e.preventDefault(); triggerQuickSlot(e.key);} });
 
     document.getElementById('type').innerHTML = Object.keys(db).map(k => `<option>${k}</option>`).join('');
     updateList(); draw();
@@ -827,15 +696,15 @@
 
     let player;
     function onYouTubeIframeAPIReady() {
-        player = new YT.Player('ytPlayer', { height: '0', width: '0', videoId: 'pDJk7Lt0wxE', 
-            playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': 'pDJk7Lt0wxE' },
-            events: { 'onReady': (e) => e.target.setVolume(30) }
+        player = new YT.Player('ytPlayer', { height:'0', width:'0', videoId:'pDJk7Lt0wxE',
+            playerVars:{'autoplay':0,'controls':0,'loop':1,'playlist':'pDJk7Lt0wxE'},
+            events:{'onReady':(e)=>e.target.setVolume(30)}
         });
     }
-    function playBGM() { if (player) player.playVideo(); }
-    function pauseBGM() { if (player) player.pauseVideo(); }
-    function changeVolume(vol) { if (player) player.setVolume(vol); }
-    function hideBGM() { pauseBGM(); document.getElementById('bgmContainer').style.display = 'none'; }
+    function playBGM() { if(player) player.playVideo(); }
+    function pauseBGM() { if(player) player.pauseVideo(); }
+    function changeVolume(vol) { if(player) player.setVolume(vol); }
+    function hideBGM() { pauseBGM(); document.getElementById('bgmContainer').style.display='none'; }
 </script>
 </body>
 </html>
