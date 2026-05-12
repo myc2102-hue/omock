@@ -737,12 +737,22 @@
             if (target.lvl <= 0) { addLog("아무 일도 일어나지 않았습니다.", "s-fail"); } 
             else { target.lvl -= 1; addLog(`${targetName}이(가) 칠흑같이 검게 빛납니다.`, "s-cur"); }
         } else {
-            const roll = Math.random() * 100;
-            let success = target.lvl < 6 ? 100 : (target.lvl === 6 ? 33 : 10); // 단순 예시 확률
+           const roll = Math.random() * 100;
+            // 🔥 수정: 아이템의 safe 수치 미만이면 100%, 그 외에는 확률 적용
+            let success = 0;
+            if (target.lvl < target.safe) {
+                success = 100;
+            } else {
+                // 안전 강화 수치와 같거나 높을 때의 확률 (예: 본섭 기준 6강 시도시 약 33%)
+                success = (target.lvl === target.safe) ? 33 : 10; 
+            }
             
             if (roll < success) {
-                let up = 1;
-                if (scroll.sType === 'b' && target.lvl <= 6) up = Math.floor(Math.random() * 2) + 1;
+               let up = 1;
+                // 🔥 수정: 아이템의 안전 강화 수치 이하에서 축주문서 사용 시 1~2 랜덤 상승
+                if (scroll.sType === 'b' && target.lvl <= target.safe) {
+                    up = Math.floor(Math.random() * 2) + 1;
+                }
                 target.lvl += up;
                 addLog(`${targetName}이(가) 강렬하게 빛납니다.`, "s-suc");
                 realDB.ref("enchants").push({
