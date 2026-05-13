@@ -564,6 +564,7 @@
     let quickSlots = { F5: null, F6: null, F7: null, F8: null };
     let activeIdx = null;
     let scrollUsed = {};
+    let lastEnchantTime = 0;
     let dragIdx = null; 
     let pressTimer;
     const popup = document.getElementById('itemPopup');
@@ -618,6 +619,14 @@
         const scroll = inv[si];
         const target = inv[ti];
         let targetName = (target.lvl !== 0 ? (target.lvl > 0 ? '+' + target.lvl + ' ' : target.lvl + ' ') : '') + target.name;
+        
+        const now = Date.now();
+        if (now - lastEnchantTime < 1000) {
+            addLog("너무 빠릅요청 입니다. 잠시 후 다시 시도하세요.", "s-fail");
+            cancel();
+            return;
+        }
+        lastEnchantTime = now;
         
         if (scroll.sType === 'c') {
             // 저주받은 주문서: 100% 성공, 1단계 하락
