@@ -508,26 +508,7 @@
         renderRank(wList, weapons);
         renderRank(aList, armors);
     });
-        let records = [];
-        snapshot.forEach(child => { const data = child.val(); if(!data.user) data.user = "익명"; records.push(data); });
-        records.sort((a, b) => b.lvl - a.lvl || b.timestamp - a.timestamp);
-        const wList = document.getElementById("weaponRankList");
-        const aList = document.getElementById("armorRankList");
-        if (!wList || !aList) return;
-      const weaponNames = db["무기"].map(w => w.name);
-        const weapons = records.filter(r => r.type === 'w' || (!r.type && weaponNames.includes(r.item))).slice(0, 5);
-        const armors = records.filter(r => r.type === 'a' || (!r.type && !weaponNames.includes(r.item))).slice(0, 5);
-        const renderRank = (container, data) => {
-            container.innerHTML = data.length ? "" : `<div style="text-align:center; color:#555; font-size:11px;">기록 없음</div>`;
-            data.forEach((r, idx) => {
-                let cls = ""; if (idx === 0) cls = "rank-1"; else if (idx === 1) cls = "rank-2"; else if (idx === 2) cls = "rank-3";
-                container.innerHTML += `<div class="rank-item ${cls}" style="font-size:11px; padding: 2px 0; border-bottom: 1px solid #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                    <span>${idx + 1}. +${r.lvl} ${r.item} <span style="color:#888; font-size:10px;">[${r.user}]</span></span></div>`;
-            });
-        };
-        renderRank(wList, weapons);
-        renderRank(aList, armors);
-    });
+        
 
     const ASSET_SERVER = "./img_items/";
     const getLCImg = (iconId) => `${ASSET_SERVER}${iconId}.png`;
