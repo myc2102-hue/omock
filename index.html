@@ -472,7 +472,7 @@
     realDB.ref("stats/totalVisits").on("value", (snapshot) => { document.getElementById("totalCount").textContent = snapshot.val() || 0; });
     realDB.ref("chats").orderByChild("timestamp").limitToLast(50).on("child_added", (snapshot) => { const data = snapshot.val(); addLog(`[${data.user}] ${data.message}`, "s-chat"); });
 
-    realDB.ref("enchants").orderByChild("lvl").limitToLast(200).on("value", (snapshot) => {
+    realDB.ref("enchants").orderByChild("lvl").limitToLast(500).on("value", (snapshot) => {
         let records = [];
         snapshot.forEach(child => { const data = child.val(); if(!data.user) data.user = "익명"; records.push(data); });
         records.sort((a, b) => b.lvl - a.lvl || b.timestamp - a.timestamp);
