@@ -458,7 +458,19 @@
         const myOnlineRef = realDB.ref("online/" + Date.now() + "_" + Math.random().toString(36).substr(2, 5));
         myOnlineRef.set(myUserId);
         myOnlineRef.onDisconnect().remove();
-        realDB.ref("stats/totalVisits").transaction(count => (count || 0) + 1);
+       realDB.ref("stats/totalVisits").transaction(count => (count || 0) + 1);
+
+        // 1시간마다 랭킹 자동 초기화
+        const now = new Date();
+        const currentHour = now.getFullYear() + '-' + (now.getMonth()+1) + '-' + now.getDate() + '-' + now.getHours();
+        realDB.ref("stats/lastResetHour").once("value", (snapshot) => {
+            const lastHour = snapshot.val();
+            if (lastHour !== currentHour) {
+                realDB.ref("enchants").remove();
+                realDB.ref("stats/lastResetHour").set(currentHour);
+                addLog("⏰ 매 시간 랭킹이 초기화되었습니다. 새로운 도전을 시작하세요!", "s-sys");
+            }
+        });
     }
 
     document.getElementById("chatInputBox").addEventListener("keypress", function(e) {
@@ -470,7 +482,7 @@
 
     realDB.ref("online").on("value", (snapshot) => { document.getElementById("onlineCount").textContent = snapshot.numChildren(); });
     realDB.ref("stats/totalVisits").on("value", (snapshot) => { document.getElementById("totalCount").textContent = snapshot.val() || 0; });
-    realDB.ref("chats").orderByChild("timestamp").limitToLast(50).on("child_added", (snapshot) => { const data = snapshot.val(); addLog(`[${data.user}] ${data.message}`, "s-chat"); });
+    realDB.ref("chats").orderByChild("timestamp").limitToLast(50).on("child_added", (snapshot) => { const data = snapshot.val(); const chatClass = (data.user === "👑데포로쥬") ? "s-sys" : "s-chat"; addLog(`[${data.user}] ${data.message}`, chatClass); });
 
     realDB.ref("enchants").orderByChild("lvl").limitToLast(500).on("value", (snapshot) => {
         let records = [];
