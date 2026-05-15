@@ -144,7 +144,7 @@
                     <div class="vs-divider">VS</div>
                     <div id="player2Area"><div class="player-card-empty" id="player2Empty">상대 대기중...</div><div id="player2Card" class="player-card" style="display:none;"><div class="player-name" id="p2Name">대기중...</div><div class="player-equip-grid" id="p2Equips"></div><div class="player-power">전투력 <span class="player-power-value" id="p2Power">-</span></div><div class="player-ready-tag ready-no" id="p2Ready">준비 안됨</div></div></div>
                 </div>
-                <canvas id="battleCanvas" width="480" height="220"></canvas>
+                <canvas id="battleCanvas" width="480" height="240"></canvas>
                 <div class="arena-actions" id="arenaActions"><button class="ready-btn" id="readyBtn" onclick="toggleReady()">⚔ 전투 준비</button></div>
                 <div class="battle-log-box" id="battleLogBox" style="display:none;"></div>
             </div>
@@ -250,43 +250,210 @@ realDB.ref("battleRooms/"+currentRoomId).update({status:'done',winner,battleLog:
 /* ==========================================
    🔥 도트그래픽 전투 애니메이션 (Canvas) 🔥
    ========================================== */
-const PX=3;
-const K_SPRITE=['0001111000','0011111100','0011211100','0000440000','0033333300','0333333330','0333333330','0033333300','0033333300','0003333000','0000550000','0000500500','0006600660','0006600660'];
-const K_COLORS={'1':'#889','2':'#223','3':'#4466aa','4':'#ddbb88','5':'#445566','6':'#554433'};
+const PX=4;
+const K_SPRITE=[
+'0001111000',
+'0011111100',
+'0011211100',
+'0000440000',
+'0033333300',
+'0333333330',
+'0333333330',
+'0033333300',
+'0033333300',
+'0003333000',
+'0000550000',
+'0000500500',
+'0006600660',
+'0006600660'
+];
+const K_COLORS={'1':'#8899aa','2':'#223','3':'#4466aa','4':'#ddbb88','5':'#445566','6':'#554433'};
 
-function drawKS(ctx,x,y,ac,flip,flash){for(let r=0;r<K_SPRITE.length;r++){for(let c=0;c<K_SPRITE[r].length;c++){const ch=K_SPRITE[r][c];if(ch==='0')continue;let clr=K_COLORS[ch]||'#888';if(ch==='3')clr=ac;if(flash)clr='#fff';const dc=flip?(9-c):c;ctx.fillStyle=clr;ctx.fillRect(x+dc*PX,y+r*PX,PX,PX);}}}
+/* 기사 본체 그리기 */
+function drawKS(ctx,x,y,ac,flip,flash){
+for(let r=0;r<K_SPRITE.length;r++){for(let c=0;c<K_SPRITE[r].length;c++){
+const ch=K_SPRITE[r][c];if(ch==='0')continue;
+let clr=K_COLORS[ch]||'#888';if(ch==='3')clr=ac;if(flash)clr='#fff';
+const dc=flip?(9-c):c;ctx.fillStyle=clr;
+ctx.fillRect(x+dc*PX,y+r*PX,PX,PX);
+}}}
 
-function drawSW(ctx,x,y,flip,ext,flash){const sL=ext?9:5,sY=y+5*PX;ctx.fillStyle=flash?'#fff':'#654';if(!flip){ctx.fillRect(x+10*PX,sY,2*PX,PX);ctx.fillStyle=flash?'#fff':'#bbc';ctx.fillRect(x+12*PX,sY,sL*PX,PX);ctx.fillRect(x+(12+sL)*PX,sY-PX,PX,PX);}else{ctx.fillRect(x-2*PX,sY,2*PX,PX);ctx.fillStyle=flash?'#fff':'#bbc';ctx.fillRect(x-(2+sL)*PX,sY,sL*PX,PX);ctx.fillRect(x-(3+sL)*PX,sY-PX,PX,PX);}}
+/* 검 그리기 - swordPhase: 'idle'=비스듬히 들기, 'raise'=높이 치켜들기, 'strike'=내려치기 */
+function drawSword(ctx,x,y,flip,swordPhase,flash){
+const P=PX;const blade=flash?'#fff':'#ccdde8';const handle=flash?'#fff':'#775533';const guard=flash?'#fff':'#aa8844';
+const cx=flip?x:x+9*P; /* 손 위치 기준 */
+const armY=y+5*P;
+if(swordPhase==='idle'){
+  /* 비스듬히 아래로 들고 있는 자세 */
+  if(!flip){
+    ctx.fillStyle=handle;ctx.fillRect(cx+P,armY+P,P,P);
+    ctx.fillStyle=guard;ctx.fillRect(cx+P,armY+2*P,P,2*P);
+    ctx.fillStyle=blade;
+    ctx.fillRect(cx+2*P,armY+2*P,P,P);ctx.fillRect(cx+3*P,armY+3*P,P,P);
+    ctx.fillRect(cx+4*P,armY+4*P,P,P);ctx.fillRect(cx+5*P,armY+5*P,P,P);
+  }else{
+    ctx.fillStyle=handle;ctx.fillRect(cx-P,armY+P,P,P);
+    ctx.fillStyle=guard;ctx.fillRect(cx-P,armY+2*P,P,2*P);
+    ctx.fillStyle=blade;
+    ctx.fillRect(cx-2*P,armY+2*P,P,P);ctx.fillRect(cx-3*P,armY+3*P,P,P);
+    ctx.fillRect(cx-4*P,armY+4*P,P,P);ctx.fillRect(cx-5*P,armY+5*P,P,P);
+  }
+}else if(swordPhase==='raise'){
+  /* 머리 위로 높이 치켜든 자세 */
+  if(!flip){
+    ctx.fillStyle=handle;ctx.fillRect(cx+P,armY-P,P,P);
+    ctx.fillStyle=guard;ctx.fillRect(cx+P,armY-2*P,P,P);
+    ctx.fillStyle=blade;
+    ctx.fillRect(cx+2*P,armY-3*P,P,P);ctx.fillRect(cx+3*P,armY-4*P,P,P);
+    ctx.fillRect(cx+4*P,armY-5*P,P,P);ctx.fillRect(cx+5*P,armY-6*P,P,P);
+    ctx.fillRect(cx+6*P,armY-7*P,P,P);
+  }else{
+    ctx.fillStyle=handle;ctx.fillRect(cx-P,armY-P,P,P);
+    ctx.fillStyle=guard;ctx.fillRect(cx-P,armY-2*P,P,P);
+    ctx.fillStyle=blade;
+    ctx.fillRect(cx-2*P,armY-3*P,P,P);ctx.fillRect(cx-3*P,armY-4*P,P,P);
+    ctx.fillRect(cx-4*P,armY-5*P,P,P);ctx.fillRect(cx-5*P,armY-6*P,P,P);
+    ctx.fillRect(cx-6*P,armY-7*P,P,P);
+  }
+}else if(swordPhase==='strike'){
+  /* 앞으로 내려치는 자세 (수평으로 뻗음) */
+  if(!flip){
+    ctx.fillStyle=handle;ctx.fillRect(cx+P,armY,P,P);
+    ctx.fillStyle=guard;ctx.fillRect(cx+2*P,armY-P,P,3*P);
+    ctx.fillStyle=blade;
+    for(let i=0;i<7;i++)ctx.fillRect(cx+(3+i)*P,armY,P,P);
+    ctx.fillRect(cx+10*P,armY-P,P,P); /* 검 끝 */
+  }else{
+    ctx.fillStyle=handle;ctx.fillRect(cx-P,armY,P,P);
+    ctx.fillStyle=guard;ctx.fillRect(cx-2*P,armY-P,P,3*P);
+    ctx.fillStyle=blade;
+    for(let i=0;i<7;i++)ctx.fillRect(cx-(3+i)*P,armY,P,P);
+    ctx.fillRect(cx-10*P,armY-P,P,P);
+  }
+}}
 
-function drawSH(ctx,x,y,flip,flash){ctx.fillStyle=flash?'#fff':'#997744';const sY=y+4*PX;if(!flip)ctx.fillRect(x-2*PX,sY,2*PX,4*PX);else ctx.fillRect(x+10*PX,sY,2*PX,4*PX);}
+/* 방패 그리기 */
+function drawSH(ctx,x,y,flip,flash){
+const P=PX;ctx.fillStyle=flash?'#fff':'#997744';const sY=y+4*P;
+const bdr=flash?'#fff':'#aa8855';
+if(!flip){ctx.fillRect(x-2*P,sY,2*P,5*P);ctx.fillStyle=bdr;ctx.fillRect(x-2*P,sY,2*P,P);ctx.fillRect(x-2*P,sY+4*P,2*P,P);}
+else{ctx.fillRect(x+10*P,sY,2*P,5*P);ctx.fillStyle=bdr;ctx.fillRect(x+10*P,sY,2*P,P);ctx.fillRect(x+10*P,sY+4*P,2*P,P);}}
 
-function drawHB(ctx,x,y,hp,mhp,name){const bW=130,bH=10;ctx.fillStyle='#111';ctx.fillRect(x,y,bW,bH+16);ctx.fillStyle='#ccc';ctx.font='11px DungGeunMo';ctx.textAlign='left';ctx.fillText(name,x+2,y+10);ctx.fillStyle='#333';ctx.fillRect(x,y+14,bW,bH);const r=Math.max(0,hp/mhp);ctx.fillStyle=r>0.5?'#44ff44':r>0.2?'#ffaa00':'#ff4444';ctx.fillRect(x,y+14,bW*r,bH);ctx.strokeStyle='#666';ctx.strokeRect(x,y+14,bW,bH);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='10px DungGeunMo';ctx.fillText(`${Math.max(0,Math.round(hp))}/${mhp}`,x+bW/2,y+23);}
+/* 베기 이펙트 (노란색 호 모양) */
+function drawSlash(ctx,x,y,flip){
+const P=PX;ctx.fillStyle='#ffffaa';
+if(!flip){
+  ctx.fillRect(x+8*P,y-2*P,P,P);ctx.fillRect(x+9*P,y-P,P,P);
+  ctx.fillRect(x+10*P,y,2*P,P);ctx.fillRect(x+10*P,y+P,2*P,P);
+  ctx.fillRect(x+9*P,y+2*P,P,P);ctx.fillRect(x+8*P,y+3*P,P,P);
+  ctx.fillStyle='#ffff77';
+  ctx.fillRect(x+11*P,y-P,P,P);ctx.fillRect(x+12*P,y,P,P);
+  ctx.fillRect(x+12*P,y+P,P,P);ctx.fillRect(x+11*P,y+2*P,P,P);
+}else{
+  ctx.fillRect(x+1*P,y-2*P,P,P);ctx.fillRect(x,y-P,P,P);
+  ctx.fillRect(x-2*P,y,2*P,P);ctx.fillRect(x-2*P,y+P,2*P,P);
+  ctx.fillRect(x,y+2*P,P,P);ctx.fillRect(x+P,y+3*P,P,P);
+  ctx.fillStyle='#ffff77';
+  ctx.fillRect(x-P,y-P,P,P);ctx.fillRect(x-2*P,y,P,P);
+  ctx.fillRect(x-2*P,y+P,P,P);ctx.fillRect(x-P,y+2*P,P,P);
+}}
 
-function drawGR(ctx,w,h){const gY=h-30;ctx.fillStyle='#2a2015';ctx.fillRect(0,gY,w,30);ctx.fillStyle='#3a3020';for(let x=0;x<w;x+=6){if((x*7+3)%11<5)ctx.fillRect(x,gY,PX,PX);}ctx.fillStyle='#1a1008';for(let x=0;x<w;x+=9)ctx.fillRect(x+3,gY+8,PX,PX);ctx.strokeStyle='#444';ctx.beginPath();ctx.moveTo(0,gY);ctx.lineTo(w,gY);ctx.stroke();}
+/* HP바 */
+function drawHB(ctx,x,y,hp,mhp,name){const bW=140,bH=12;
+ctx.fillStyle='#0a0a0a';ctx.fillRect(x-2,y-2,bW+4,bH+22);
+ctx.fillStyle='#ccc';ctx.font='12px DungGeunMo';ctx.textAlign='left';ctx.fillText(name,x+2,y+10);
+ctx.fillStyle='#333';ctx.fillRect(x,y+15,bW,bH);
+const r=Math.max(0,hp/mhp);ctx.fillStyle=r>0.5?'#44ff44':r>0.2?'#ffaa00':'#ff4444';
+ctx.fillRect(x,y+15,bW*r,bH);ctx.strokeStyle='#666';ctx.strokeRect(x,y+15,bW,bH);
+ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='11px DungGeunMo';
+ctx.fillText(`${Math.max(0,Math.round(hp))}/${mhp}`,x+bW/2,y+25);}
+
+/* 바닥 */
+function drawGR(ctx,w,h){const gY=h-32;
+ctx.fillStyle='#2a2015';ctx.fillRect(0,gY,w,32);
+ctx.fillStyle='#3a3020';for(let x=0;x<w;x+=8){if((x*7+3)%11<5)ctx.fillRect(x,gY,PX,PX);}
+ctx.fillStyle='#4a4030';for(let x=0;x<w;x+=12){ctx.fillRect(x+2,gY+2,PX,PX);}
+ctx.fillStyle='#1a1008';for(let x=0;x<w;x+=10){ctx.fillRect(x+4,gY+10,PX,PX);}
+ctx.strokeStyle='#555';ctx.beginPath();ctx.moveTo(0,gY);ctx.lineTo(w,gY);ctx.stroke();}
 
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 
-async function playBattleAnimation(roomData){const td=JSON.parse(roomData.battleTurns);const canvas=document.getElementById('battleCanvas');const ctx=canvas.getContext('2d');const W=canvas.width,H=canvas.height,groundY=H-30,knightH=14*PX;
+async function playBattleAnimation(roomData){
+const td=JSON.parse(roomData.battleTurns);
+const canvas=document.getElementById('battleCanvas');
+const ctx=canvas.getContext('2d');
+const W=canvas.width,H=canvas.height,groundY=H-32,knightH=14*PX;
 document.getElementById("arenaPlayersArea").style.display="none";canvas.style.display="block";
-let p1={x:50,hp:td.hMax,flash:false,atk:false},p2={x:W-90,hp:td.gMax,flash:false,atk:false};const bP1X=p1.x,bP2X=p2.x;
 
-function renderScene(){ctx.fillStyle='#0a0a05';ctx.fillRect(0,0,W,H);drawGR(ctx,W,H);const kY=groundY-knightH-4;
-drawKS(ctx,p1.x,kY,'#4466aa',false,p1.flash);drawSW(ctx,p1.x,kY,false,p1.atk,p1.flash);drawSH(ctx,p1.x,kY,false,p1.flash);
-drawKS(ctx,p2.x,kY,'#aa4444',true,p2.flash);drawSW(ctx,p2.x,kY,true,p2.atk,p2.flash);drawSH(ctx,p2.x,kY,true,p2.flash);
-drawHB(ctx,10,8,p1.hp,td.hMax,td.hostName);drawHB(ctx,W-140,8,p2.hp,td.gMax,td.guestName);}
+let p1={x:40,hp:td.hMax,flash:false,swordPhase:'idle'};
+let p2={x:W-85,hp:td.gMax,flash:false,swordPhase:'idle'};
+const bP1X=p1.x,bP2X=p2.x;
+let slashFx=null; /* {x,y,flip} 베기 이펙트 */
 
-function showDmg(x,y,dmg){ctx.font='bold 16px DungGeunMo';ctx.fillStyle='#ff5555';ctx.textAlign='center';ctx.fillText(`-${dmg}`,x+15,y);}
+function renderScene(){
+ctx.fillStyle='#0a0a05';ctx.fillRect(0,0,W,H);
+drawGR(ctx,W,H);
+const kY=groundY-knightH-4;
+/* 기사1 (파란갑옷, 오른쪽 봄) */
+drawKS(ctx,p1.x,kY,'#4466aa',false,p1.flash);
+drawSword(ctx,p1.x,kY,false,p1.swordPhase,p1.flash);
+drawSH(ctx,p1.x,kY,false,p1.flash);
+/* 기사2 (빨간갑옷, 왼쪽 봄) */
+drawKS(ctx,p2.x,kY,'#aa4444',true,p2.flash);
+drawSword(ctx,p2.x,kY,true,p2.swordPhase,p2.flash);
+drawSH(ctx,p2.x,kY,true,p2.flash);
+/* 베기 이펙트 */
+if(slashFx) drawSlash(ctx,slashFx.x,slashFx.y,slashFx.flip);
+/* HP바 */
+drawHB(ctx,8,6,p1.hp,td.hMax,td.hostName);
+drawHB(ctx,W-150,6,p2.hp,td.gMax,td.guestName);
+}
+
+function showDmg(x,y,dmg){ctx.font='bold 18px DungGeunMo';ctx.fillStyle='#ff5555';ctx.textAlign='center';
+ctx.strokeStyle='#000';ctx.lineWidth=3;ctx.strokeText(`-${dmg}`,x,y);ctx.fillText(`-${dmg}`,x,y);}
 
 renderScene();await sleep(1200);
-for(let i=0;i<td.turns.length;i++){const t=td.turns[i];const atk=t.isHost?p1:p2,def=t.isHost?p2:p1,dir=t.isHost?1:-1,baseX=t.isHost?bP1X:bP2X;
-atk.atk=true;for(let f=0;f<8;f++){atk.x+=dir*7;renderScene();await sleep(25);}
-def.flash=true;renderScene();const kY=groundY-knightH-4;showDmg(def.x+10,kY-5,t.dmg);await sleep(250);
-def.flash=false;if(t.isHost)p2.hp=t.gHP;else p1.hp=t.hHP;renderScene();await sleep(100);
-atk.atk=false;for(let f=0;f<8;f++){atk.x-=dir*7;renderScene();await sleep(25);}atk.x=baseX;renderScene();await sleep(350);}
 
-await sleep(300);ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(0,H/2-25,W,50);ctx.font='bold 20px DungGeunMo';ctx.textAlign='center';
-if(roomData.winner){ctx.fillStyle='#ffeb99';ctx.fillText(`🏆 ${roomData.winner} 승리! 🏆`,W/2,H/2+7);}else{ctx.fillStyle='#aaa';ctx.fillText('무승부!',W/2,H/2+7);}
-await sleep(2000);document.getElementById("arenaPlayersArea").style.display="flex";
+for(let i=0;i<td.turns.length;i++){
+const t=td.turns[i];
+const atk=t.isHost?p1:p2, def=t.isHost?p2:p1;
+const dir=t.isHost?1:-1, baseX=t.isHost?bP1X:bP2X;
+const kY=groundY-knightH-4;
+
+/* 1단계: 전진하면서 칼 치켜들기 */
+atk.swordPhase='raise';
+for(let f=0;f<6;f++){atk.x+=dir*6;renderScene();await sleep(30);}
+await sleep(80);
+
+/* 2단계: 내려치기! */
+atk.swordPhase='strike';renderScene();await sleep(60);
+
+/* 3단계: 베기 이펙트 + 플래시 */
+const slX=t.isHost?def.x:def.x+5*PX;
+slashFx={x:slX,y:kY+3*PX,flip:!t.isHost};
+def.flash=true;renderScene();
+showDmg(def.x+20,kY-10,t.dmg);
+await sleep(300);
+
+/* 4단계: 이펙트 해제, HP 반영 */
+slashFx=null;def.flash=false;
+if(t.isHost)p2.hp=t.gHP;else p1.hp=t.hHP;
+renderScene();await sleep(120);
+
+/* 5단계: 후퇴하며 칼 내리기 */
+atk.swordPhase='idle';
+for(let f=0;f<6;f++){atk.x-=dir*6;renderScene();await sleep(30);}
+atk.x=baseX;renderScene();await sleep(300);
+}
+
+/* 승자 오버레이 */
+await sleep(400);
+ctx.fillStyle='rgba(0,0,0,0.65)';ctx.fillRect(0,H/2-28,W,56);
+ctx.font='bold 22px DungGeunMo';ctx.textAlign='center';
+if(roomData.winner){ctx.fillStyle='#ffeb99';ctx.fillText(`🏆 ${roomData.winner} 승리! 🏆`,W/2,H/2+8);}
+else{ctx.fillStyle='#aaa';ctx.fillText('무승부!',W/2,H/2+8);}
+await sleep(2500);
+document.getElementById("arenaPlayersArea").style.display="flex";
 if(roomData.battleLog){const logBox=document.getElementById("battleLogBox");logBox.style.display="block";logBox.innerHTML=roomData.battleLog;logBox.scrollTop=logBox.scrollHeight;}}
 </script>
 </body>
